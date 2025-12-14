@@ -33,14 +33,42 @@ This document describes the RESTful API interfaces of the metrics mall system, i
 ## 1. Metrics Query Interfaces
 ### 1.1. Get metric snapshot (GMS)
 
-**Interface**: `GET /api/m/{entity_code}/{entity_id}/{metric_codes}?{dim_conds}&{require_ts}`
+**Interface**: `POST /api/v1/m`
 
-**Query Parameters**:
-- entity_code: entity type (e.g. user, device, transaction) (required)
-- entity_id: entity id (required)
-- metric_codes: metric codes (e.g. coin_balance, risk_score, login_count), seperated by comma (required)
-- dim_conds: dimension conditions, dim_codes are prefix with 'dim_' (e.g. dim_city=Beijing, dim_os=ios) (optional)
-- require_ts: 是否返回数据更新时间戳 (optional, default: false) 
+**Request Body**:
+
+```json
+{
+  "ec": "user",
+  "eid": 12345678,
+  "metrics": [
+    {
+      "code": "coin_balance",
+      "dims": {
+        "city": "Beijing"
+      }
+    },
+    {
+      "code": "risk_score",
+      "dims": {
+        "os": "ios"
+      }
+    },
+    {
+      "code": "login_count"
+    }
+  ],
+  "require_ts": false
+}
+```
+
+**Request Parameters**:
+- ec: entity code (e.g. user, device, transaction) (required)
+- eid: entity identifier (required)
+- metrics: array of metric query objects (required)
+  - code: metric code (e.g. coin_balance, risk_score, login_count) (required)
+  - dims: dimension conditions map, keys are unified dimension codes without 'dim_' prefix (e.g. {"city": "Beijing", "os": "ios"}) (optional)
+- require_ts: 是否返回数据更新时间戳 (optional, default: false)
 
 **Response Example**:
 
@@ -49,8 +77,8 @@ This document describes the RESTful API interfaces of the metrics mall system, i
   "code": 0,
   "errmsg": "",
   "data": {
-    "entity_code": "user",
-    "entity_id": 12345678,
+    "ec": "user",
+    "eid": 12345678,
     "values": {
       "coin_balance": 1050.5,
       "risk_score": 0.1,
@@ -66,8 +94,9 @@ This document describes the RESTful API interfaces of the metrics mall system, i
 
 Notes:
 - 空值处理：如果 Redis 里查不到 risk_score，返回 null。
-- 批量接口：支持一次查多个指标。metric_codes 用逗号分隔。
-- 时间戳：；默认false以节省流量，如果 require_ts=true，则返回各指标的更新时间戳。
+- 批量接口：支持一次查多个指标，每个指标可以指定不同的维度条件。
+- 维度条件：每个 metric 可以独立配置 dims，如果某个 metric 不需要维度条件，可以不传 dims 字段。
+- 时间戳：默认false以节省流量，如果 require_ts=true，则返回各指标的更新时间戳。
 
 
 ### 1.2. Get metric aggregate (GMA)

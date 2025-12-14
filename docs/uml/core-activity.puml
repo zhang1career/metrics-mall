@@ -1,0 +1,55 @@
+@startuml
+skinparam style strictuml
+skinparam activity {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    FontName Arial
+}
+
+|#Pink|管理员 (Admin)|
+start
+:录入/更新指标定义;
+:校验指标血缘依赖;
+
+|#LightYellow|元数据 (MySQL)|
+:保存元数据 & 计算规则;
+
+|#LightGreen|计算引擎 (Flink)|
+:监听/加载规则变更;
+:消费 Kafka 数据流 (Source);
+:数据清洗 & 标准化 (ETL);
+
+fork
+    |#LightGreen|计算引擎 (Flink)|
+    :分支逻辑 A (实时快照);
+    :提取 Key (如 UserID);
+    :仅保留最新 Value;
+    
+    |#Orange|高速缓存 (Redis)|
+    :Upsert (覆盖写入);
+    note right: 存储结构：\nKey: metric:uid:123\nValue: JSON/String
+    
+    |#White|查询服务 (API Layer)|
+    :接口 A (Get Latest);
+    :读取 Redis;
+
+fork again
+    |#LightGreen|计算引擎 (Flink)|
+    :分支逻辑 B (历史趋势);
+    :组装明细数据 (FlatMap);
+    :微批次缓冲 (Buffering);
+    
+    |#LightCyan|分析仓库 (ClickHouse)|
+    :Batch Insert (追加写入);
+    note right: 存储结构：\nMergeTree\nPartition by Date
+    
+    |#White|查询服务 (API Layer)|
+    :接口 B (Get Trend/Agg);
+    :SQL 查询 ClickHouse;
+end fork
+
+|#White|查询服务 (API Layer)|
+:返回结果 (Response);
+stop
+
+@enduml

@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  metrics_mall:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: metrics_mall
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: zhang
+      MYSQL_PASS: 123456
+      MYSQL_ROOT_PASSWORD: rootpw
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD:
+      REDIS_DB: 0
+      KAFKA_HOST: kafka
+      KAFKA_PORT: 9093
+      CLICKHOUSE_PORT: clickhouse
+      CLICKHOUSE_PORT: 8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD:
+      LOG_LEVEL: INFO
+      LOG_DIR: /var/log/rule_engine
+    ports:
+      - "10100:8080"
+    volumes:
+      - ./docker/log:/var/log/metrics_mall
+    networks:
+      - infrastructure_infrastructure

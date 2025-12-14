@@ -1,0 +1,59 @@
+@startuml
+skinparam actorStyle awesome
+left to right direction
+
+actor "指标管理员\n(Admin)" as Admin
+actor "业务系统/机器\n(Business System)" as BizSys
+actor "数据分析师\n(Analyst)" as Analyst
+
+package "指标平台 (Metrics Platform)" {
+
+    rectangle "元数据管理 (Metadata Mgmt)" {
+        usecase "定义指标\n(原子/派生/复合)" as UC_Def
+        usecase "管理血缘关系\n(Lineage)" as UC_Lineage
+        usecase "配置计算规则" as UC_Config
+    }
+
+    rectangle "计算与存储 (Engine & Storage)" {
+        usecase "实时流计算\n(Flink)" as UC_Calc
+        usecase "快照存储 (Redis)" as UC_Store_Hot
+        usecase "历史存储 (ClickHouse)" as UC_Store_Cold
+    }
+
+    rectangle "查询服务 (Serving Layer)" {
+        usecase "接口 A: 实时决策查询\n(查最新单点值)" as UC_API_A
+        usecase "接口 B: OLAP趋势查询\n(查聚合历史)" as UC_API_B
+    }
+}
+
+' 关系定义
+Admin --> UC_Def
+Admin --> UC_Lineage
+Admin --> UC_Config
+
+' 内部依赖驱动
+UC_Def ..> UC_Calc : 驱动计算逻辑
+UC_Calc ..> UC_Store_Hot : 写最新值
+UC_Calc ..> UC_Store_Cold : 写历史明细
+
+' 外部服务调用
+BizSys --> UC_API_A : <color:red>毫秒级响应 / 高并发</color>
+Analyst --> UC_API_B : <color:blue>亚秒级响应 / 复杂分析</color>
+
+' 数据读取依赖
+UC_API_A ..> UC_Store_Hot : 读 Redis
+UC_API_B ..> UC_Store_Cold : 读 ClickHouse
+
+note right of UC_API_A
+  场景：风控、推荐
+  QPS: 1000+
+  延迟: < 10ms
+end note
+
+note right of UC_API_B
+  场景：看板、报表
+  QPS: 10+
+  延迟: < 1s
+end note
+
+@enduml
