@@ -1,4 +1,4 @@
-
+# 最小产品设计
 
 ## 指标管理
 
@@ -15,7 +15,7 @@
 
 对于GMS接口，例如查询用户（10000001）在北京的登录次数：
 
-`POST /api/v1/m`
+`POST /api/v1/m_snap`
 ```json
 {
   "ec": "user",
@@ -23,22 +23,33 @@
   "metrics": [
     {
       "code": "login_count",
+      "v": 2,
       "dims": {
         "city": "Beijing"
       }
     }
-  ]
+  ],
+  "snapshot_ts": 123456789000,
+  "is_atomic": true
 }
 ```
 
+**参数说明**:
+- `metrics.code`: 统一维度代号（必传）
+- `metrics.v`: 指定版本号（可选），详见[DESIGN-METRIC-VERSION-20251214](DESIGN-METRIC-VERSION-20251214.md)
+- `metrics.dims`: 维度值（可选）
+- `snapshot_ts`: 指定快照时间（UNIX时间戳，毫秒）（可选）,详见[DESIGN-SNAPSHOT-AT-SPECIFIC-TIME-20251214](DESIGN-SNAPSHOT-AT-SPECIFIC-TIME-20251214.md)
+- `atomic`: 是否要求多个指标的快照时间一致（可选）,详见[DESIGN-SNAPSHOT-AT-SPECIFIC-TIME-20251214](DESIGN-SNAPSHOT-AT-SPECIFIC-TIME-20251214.md)
+
+
 后端的处理逻辑是：
 1. API服务接收入参`ec=user`和`eid=10000001`；解析`metrics[0].dims.city=Beijing`得到`city=Beijing`；
-2. 联表查询`entity_meta`、`dim`和`x`表，通过`entity_meta.code=user`和`x.da=city`，把统一维度代号`city`替换为真实的维度代号`dim.code=born_city`，同时得到数值的获取方式`x.src_path`。
+2. 联表查询`entity_meta`、`dim`和`x`表，通过`entity_meta.code=user`和`x.alias=city`，把统一维度代号`city`替换为真实的维度代号`dim.code=born_city`，同时得到数值的获取方式`x.data_uri`。
 3. 拼接 Redis Key: mx:user:10000001:login_count:born_city_Beijing；
 
 查询设备（40000001）在北京的登陆次数：
 
-`POST /api/v1/m`
+`POST /api/v1/m_snap`
 ```json
 {
   "ec": "device",
@@ -56,7 +67,7 @@
 
 后端的处理逻辑是：
 1. API服务接收入参`ec=device`和`eid=40000001`；解析`metrics[0].dims.city=Beijing`得到`city=Beijing`；
-2. 联表查询`entity_meta`、`dim`和`x`表，通过`entity_meta.code=device`和`x.da=city`，把统一维度代号`city`替换为真实的维度代号`dim.code=produce_city`，同时得到数值的获取方式`x.src_path`。
+2. 联表查询`entity_meta`、`dim`和`x`表，通过`entity_meta.code=device`和`x.alias=city`，把统一维度代号`city`替换为真实的维度代号`dim.code=produce_city`，同时得到数值的获取方式`x.data_uri`。
 3. 拼接 Redis Key: mx:device:40000001:login_count:produce_city_Beijing；
 
 
@@ -79,7 +90,7 @@
 这是对于GMS接口的最大的贡献——自动化预计算。
 
 1. Flink 启动时，扫描`x`表，发现 User 实体关联了 City 维度，且 is_hot=1。
-2. 代码生成：Flink 自动生成逻辑——“每当处理 User 日志，解析 src_path 拿到城市值，拼接 Key mx:user:{uid}:{metric_codes}:city_{val} 并写入 Redis”。
+2. 代码生成：Flink 自动生成逻辑——“每当处理 User 日志，解析 data_uri 拿到城市值，拼接 Key mx:user:{uid}:{metric_codes}:city_{val} 并写入 Redis”。
 3. 发现 Transaction 实体关联了 City 维度，但 is_hot=0（也许因为交易对城市维度的实时查询需求不大，或者基数太大）。
 
 
@@ -97,7 +108,7 @@
 
 批量接口的复杂场景示例：查询用户（10000001）的多个指标，每个指标有不同的维度条件：
 
-`POST /api/v1/m`
+`POST /api/v1/m_snap`
 ```json
 {
   "entity_code": "user",

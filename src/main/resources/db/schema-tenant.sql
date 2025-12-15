@@ -98,7 +98,7 @@ CREATE TABLE t_abc123_metric (
     name VARCHAR(256) NOT NULL DEFAULT '' COMMENT '指标名称（中文）',
     description TEXT COMMENT '描述',
     metric_type INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '指标类型: 0=ATOMIC, 1=DERIVED, 2=COMPOSITE',
-    value_type INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '值类型: 0=BOOL, 1=INT, 2=FLOAT, 3=STRING',
+    value_type INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '值类型: 0=STR, 1=INT, 2=LONG, 3=FLOAT, 4=BOOL, 5=DATE, 6=OBJ',
     agg_type INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '聚合类型: 0=sum, 1=avg, 2=max, 3=min, 4=count',
     unit VARCHAR(32) NOT NULL DEFAULT '' COMMENT '单位',
     validation VARCHAR(500) NOT NULL DEFAULT '' COMMENT '验证规则（JSON格式）',

@@ -59,7 +59,7 @@
 
 **建议**：
 // GMS 改为 POST，支持复杂查询场景 ✅ 已采纳
-POST /api/v1/metrics/snapshot
+POST /api/v1/m_snap
 {
   "entity_code": "user",
   "entity_id": 12345,
@@ -70,8 +70,8 @@ POST /api/v1/metrics/snapshot
 }
 
 // GMA 考虑支持 GET（简单查询）+ POST（复杂查询）
-POST /api/v1/metrics/aggregate  // 复杂查询
-GET /api/v1/metrics/aggregate?metric=pay_amount&start=...&end=...  // 简单查询**改进点**：
+POST /api/v1/m_agg  // 复杂查询
+GET /api/v1/m_agg?metric=pay_amount&start=...&end=...  // 简单查询**改进点**：
 -✅ 增加 API 版本号（`/api/v1/`）
 -✅ GMS 接口改为 POST，支持每个metric独立配置维度条件
 - 提供 OpenAPI/Swagger 文档
@@ -97,7 +97,7 @@ GET /api/v1/metrics/aggregate?metric=pay_amount&start=...&end=...  // 简单查�
 "code": 40001,
 "errmsg": "指标不存在",
 "user_message": "您查询的指标 'coin_balance' 不存在，请检查指标名称或联系管理员",
-"suggestion": "查看可用指标列表: GET /api/v1/metrics/list"
+"suggestion": "查看可用指标列表: GET /api/v1/m/{metric_code}/versions/{version}/list"
 }---
 
 ### 4. 数据安全与权限 ⚠️ 高优先级

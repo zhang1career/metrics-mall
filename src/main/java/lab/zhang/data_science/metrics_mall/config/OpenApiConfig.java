@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * OpenAPI (Swagger) 配置类
- * 
+ *
  * @author Metrics Mall Team
  */
 @Configuration

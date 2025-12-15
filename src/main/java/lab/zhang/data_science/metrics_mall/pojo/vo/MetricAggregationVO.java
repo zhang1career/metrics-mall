@@ -1,0 +1,33 @@
+package lab.zhang.data_science.metrics_mall.pojo.vo;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Metric aggregation response DTO for controller layer.
+ *
+ * @author Rongjin Zhang
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MetricAggregationVO {
+
+    /**
+     * Metric metadata map, key is metric code, value is metric metadata.
+     */
+    private Map<String, MetricMetaVO> meta;
+
+    /**
+     * Aggregation result rows.
+     */
+    private List<AggregationRowVO> rows;
+
+}
+

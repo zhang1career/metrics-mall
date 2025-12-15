@@ -33,7 +33,7 @@ This document describes the RESTful API interfaces of the metrics mall system, i
 ## 1. Metrics Query Interfaces
 ### 1.1. Get metric snapshot (GMS)
 
-**Interface**: `POST /api/v1/m`
+**Interface**: `POST /api/v1/m_snap`
 
 **Request Body**:
 
@@ -58,7 +58,7 @@ This document describes the RESTful API interfaces of the metrics mall system, i
       "code": "login_count"
     }
   ],
-  "require_ts": false
+  "snapshot_ts": 0
 }
 ```
 
@@ -68,7 +68,10 @@ This document describes the RESTful API interfaces of the metrics mall system, i
 - metrics: array of metric query objects (required)
   - code: metric code (e.g. coin_balance, risk_score, login_count) (required)
   - dims: dimension conditions map, keys are unified dimension codes without 'dim_' prefix (e.g. {"city": "Beijing", "os": "ios"}) (optional)
-- require_ts: 是否返回数据更新时间戳 (optional, default: false)
+- snapshot_ts: 指定快照时间（UNIX时间戳，毫秒）（可选）
+  - 如果不传：不需要返回指标的快照时间信息
+  - 如果传0：返回指标的最新快照时间信息
+  - 如果传非0：返回指定时间点的快照值；如果指定时间点的快照值缺失，就返回早于该时间点的最近值
 
 **Response Example**:
 
@@ -96,12 +99,12 @@ Notes:
 - 空值处理：如果 Redis 里查不到 risk_score，返回 null。
 - 批量接口：支持一次查多个指标，每个指标可以指定不同的维度条件。
 - 维度条件：每个 metric 可以独立配置 dims，如果某个 metric 不需要维度条件，可以不传 dims 字段。
-- 时间戳：默认false以节省流量，如果 require_ts=true，则返回各指标的更新时间戳。
+- 时间戳：默认false以节省流量，如果 snapshot_ts=true，则返回各指标的更新时间戳。
 
 
 ### 1.2. Get metric aggregate (GMA)
 
-**Interface**: `POST /api/magg`
+**Interface**: `POST api/v1/m_agg`
 
 **Request Body**:
 

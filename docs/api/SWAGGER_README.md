@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/metric")
+@RequestMapping("/api/v1/m_snap")
 @Tag(name = "实时决策接口 (Interface A)", description = "提供基于 Redis 的毫秒级实时数据查询")
 public class MetricRealtimeController {
 

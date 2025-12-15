@@ -31,6 +31,7 @@
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <eclipse-collections.version>11.1.0</eclipse-collections.version>
         <guava.version>33.3.1-jre</guava.version>
+        <hutool.version>5.8.25</hutool.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <mvel2.version>2.5.2.Final</mvel2.version>
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
@@ -104,6 +105,13 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
+        </dependency>
+
+        <!-- Hutool for Java utilities -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
         </dependency>
 
         <!-- Caffeine for local caching -->

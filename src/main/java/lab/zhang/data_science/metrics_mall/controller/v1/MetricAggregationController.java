@@ -1,0 +1,59 @@
+package lab.zhang.data_science.metrics_mall.controller.v1;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
+import lab.zhang.data_science.metrics_mall.model.MetricAggregationResult;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO;
+import lab.zhang.data_science.metrics_mall.pojo.vo.MetricAggregationVO;
+import lab.zhang.data_science.metrics_mall.service.MetricAggregationService;
+import lab.zhang.data_science.metrics_mall.struct_mapper.MetricAggregationStructMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * Metric aggregation controller for handling GMA queries.
+ *
+ * @author Rongjin Zhang
+ */
+@Slf4j
+@Tag(name = "Metric Aggregation", description = "GMA (Get Metric Aggregate) APIs")
+@RestController
+@RequiredArgsConstructor
+public class MetricAggregationController extends BaseController {
+
+    private final MetricAggregationService metricAggregationService;
+    private final MetricAggregationStructMapper metricAggregationStructMapper;
+
+    /**
+     * Query metric aggregation.
+     *
+     * @param apiKey API key from request header
+     * @param qo     metric aggregation query object
+     * @return metric aggregation response
+     */
+    @Operation(summary = "Get metric aggregation", description = "Query historical metric aggregation results (GMA)")
+    @PostMapping("/m_agg")
+    public ApiResponse<MetricAggregationVO> queryAggregation(
+            @RequestHeader("X-API-Key") String apiKey,
+            @RequestHeader(value = "X-Request-ID", required = false) String requestIdStr,
+            @RequestParam(value = "traceId", required = false) String traceIdStr,
+            @Valid @RequestBody MetricAggregationQO qo) {
+        log.info("[agg] param: qo={}", qo);
+
+        // Convert QO to Model
+        MetricAggregationDTO query = metricAggregationStructMapper.qoToDto(qo);
+
+        // Call service layer
+        MetricAggregationResult result = metricAggregationService.queryAggregation(query);
+
+        // Convert Model to DTO
+        MetricAggregationVO dto = metricAggregationStructMapper.modelToVo(result);
+
+        return ApiResponse.success(dto);
+    }
+}
+
