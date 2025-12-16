@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.pojo.vo;
 
+import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO.MetricPrettyBriefVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Metric aggregation response DTO for controller layer.
+ * Metric aggregation VO for controller layer.
  *
  * @author Rongjin Zhang
  */
@@ -20,14 +21,13 @@ import java.util.Map;
 public class MetricAggregationVO {
 
     /**
-     * Metric metadata map, key is metric code, value is metric metadata.
+     * Metric metadata map, key is metric code, value is metric pretty brief information.
      */
-    private Map<String, MetricMetaVO> meta;
+    private Map<String, MetricPrettyBriefVO> meta;
 
     /**
      * Aggregation result rows.
      */
-    private List<AggregationRowVO> rows;
+    private List<AggregationVO> rows;
 
 }
-

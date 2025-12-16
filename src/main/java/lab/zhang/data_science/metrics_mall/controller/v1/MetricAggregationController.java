@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
-import lab.zhang.data_science.metrics_mall.model.MetricAggregationResult;
+import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricAggregationVO;
@@ -45,15 +45,15 @@ public class MetricAggregationController extends BaseController {
         log.info("[agg] param: qo={}", qo);
 
         // Convert QO to Model
-        MetricAggregationDTO query = metricAggregationStructMapper.qoToDto(qo);
+        MetricAggregationDTO dto = metricAggregationStructMapper.qoToDto(qo);
 
         // Call service layer
-        MetricAggregationResult result = metricAggregationService.queryAggregation(query);
+        MetricAggregation model = metricAggregationService.queryAggregation(dto);
 
         // Convert Model to DTO
-        MetricAggregationVO dto = metricAggregationStructMapper.modelToVo(result);
+        MetricAggregationVO vo = metricAggregationStructMapper.modelToVo(model);
 
-        return ApiResponse.success(dto);
+        return ApiResponse.success(vo);
     }
 }
 

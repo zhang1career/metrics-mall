@@ -7,6 +7,11 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 
+/**
+ * Mapper for converting MetricDimension related objects.
+ *
+ * @author Rongjin Zhang
+ */
 @Mapper(componentModel = "spring")
 public interface MetricDimensionStructMap {
 

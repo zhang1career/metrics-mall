@@ -1,6 +1,6 @@
 package lab.zhang.data_science.metrics_mall.service;
 
-import lab.zhang.data_science.metrics_mall.model.MetricAggregationResult;
+import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
 
 /**
@@ -15,6 +15,6 @@ public interface MetricAggregationService {
      * @param queryModel metric aggregation query model
      * @return metric aggregation result containing metadata and rows
      */
-    MetricAggregationResult queryAggregation(MetricAggregationDTO queryModel);
+    MetricAggregation queryAggregation(MetricAggregationDTO queryModel);
 }
 

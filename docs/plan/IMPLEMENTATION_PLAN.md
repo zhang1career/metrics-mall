@@ -423,14 +423,14 @@ Request Body:
   "metric_codes": ["pay_amount", "pay_user_cnt"],
   "time_range": {
     "start": "2024-05-20 00:00:00",
-    "end": "2024-05-21 00:00:00"
+    "stop": "2024-05-21 00:00:00"
   },
   "interval": "1h",
   "group_by": ["city", "os"],
   "filters": [
     {"field": "channel", "op": "=", "value": "tiktok"}
   ],
-  "order_by": {"field": "pay_amount", "sort": "desc"},
+  "order_bys": [{"field": "pay_amount", "sort": "desc"}],
   "limit": 100
 }
 

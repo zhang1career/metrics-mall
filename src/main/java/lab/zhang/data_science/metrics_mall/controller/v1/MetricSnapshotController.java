@@ -53,4 +53,3 @@ public class MetricSnapshotController extends BaseController {
         return ApiResponse.success(vo);
     }
 }
-

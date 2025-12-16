@@ -2,7 +2,6 @@ package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.model.*;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
-import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,7 @@ public interface MetricService {
      * @param queryModel metric aggregation query model
      * @return metric aggregation result containing metadata and rows
      */
-    MetricAggregationResult queryAggregation(MetricAggregationDTO queryModel);
+    MetricAggregation queryAggregation(MetricAggregationDTO queryModel);
 
     /**
      * Get metric models by codes.

@@ -2,12 +2,10 @@ package lab.zhang.data_science.metrics_mall.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lab.zhang.data_science.metrics_mall.controller.v1.MetricAggregationController;
+import lab.zhang.data_science.metrics_mall.model.Metric;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
-import lab.zhang.data_science.metrics_mall.model.MetricAggregationResult;
-import lab.zhang.data_science.metrics_mall.pojo.qo.FieldConditionQO;
+import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO;
-import lab.zhang.data_science.metrics_mall.pojo.qo.OrderByQO;
-import lab.zhang.data_science.metrics_mall.pojo.qo.TimeRangeQO;
 import lab.zhang.data_science.metrics_mall.service.MetricService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,29 +55,29 @@ class MetricAggregationControllerTest {
         // Given
         MetricAggregationQO aggregationQO = MetricAggregationQO.builder()
                 .metricCodes(Arrays.asList("pay_amount", "pay_user_cnt"))
-                .timeRange(TimeRangeQO.builder()
+                .timeRange(MetricAggregationQO.TimeRangeQO.builder()
                         .start("2024-05-20 00:00:00")
-                        .end("2024-05-21 00:00:00")
+                        .stop("2024-05-21 00:00:00")
                         .build())
                 .interval("1h")
                 .groupBy(Arrays.asList("city", "os"))
                 .filters(Arrays.asList(
-                        FieldConditionQO.builder()
+                        MetricAggregationQO.FieldConditionQO.builder()
                                 .field("channel")
                                 .op("=")
                                 .value("tiktok")
                                 .build()
                 ))
-                .orderBy(OrderByQO.builder()
+                .orderBy(MetricAggregationQO.OrderByQO.builder()
                         .field("pay_amount")
                         .sort("desc")
                         .build())
                 .limit(100)
                 .build();
         
-        Map<String, MetricAggregationResult.MetricMeta> meta = new HashMap<>();
-        meta.put("pay_amount", new MetricAggregationResult.MetricMeta("支付金额", "CNY", 2));
-        meta.put("pay_user_cnt", new MetricAggregationResult.MetricMeta("支付人数", "人", 0));
+        Map<String, Metric> meta = new HashMap<>();
+        meta.put("pay_amount", new Metric("支付金额", "CNY", 2));
+        meta.put("pay_user_cnt", new Metric("支付人数", "人", 0));
         
         Map<String, String> dims = new HashMap<>();
         dims.put("city", "Beijing");
@@ -89,11 +87,11 @@ class MetricAggregationControllerTest {
         metrics.put("pay_amount", 5000.00);
         metrics.put("pay_user_cnt", 200.0);
         
-        MetricAggregationResult.AggregationRow row =
-                new MetricAggregationResult.AggregationRow("2024-05-20 10:00:00", dims, metrics);
+        MetricAggregation.AggregationRow row =
+                new MetricAggregation.AggregationRow("2024-05-20 10:00:00", dims, metrics);
         
-        MetricAggregationResult result =
-                new MetricAggregationResult(meta, Arrays.asList(row));
+        MetricAggregation result =
+                new MetricAggregation(meta, Arrays.asList(row));
         
         when(metricService.queryAggregation(any(MetricAggregationDTO.class))).thenReturn(result);
         
@@ -117,15 +115,15 @@ class MetricAggregationControllerTest {
         // Given
         MetricAggregationQO aggregationQO = MetricAggregationQO.builder()
                 .metricCodes(Arrays.asList("pay_amount"))
-                .timeRange(TimeRangeQO.builder()
+                .timeRange(MetricAggregationQO.TimeRangeQO.builder()
                         .start("2024-05-20 00:00:00")
-                        .end("2024-05-21 00:00:00")
+                        .stop("2024-05-21 00:00:00")
                         .build())
                 .interval("1h")
                 .build();
         
-        Map<String, MetricAggregationResult.MetricMeta> meta = new HashMap<>();
-        meta.put("pay_amount", new MetricAggregationResult.MetricMeta("支付金额", "CNY", 2));
+        Map<String, Metric> meta = new HashMap<>();
+        meta.put("pay_amount", new Metric("支付金额", "CNY", 2));
         
         Map<String, String> dims1 = new HashMap<>();
         dims1.put("city", "Beijing");
@@ -139,13 +137,13 @@ class MetricAggregationControllerTest {
         Map<String, Double> metrics2 = new HashMap<>();
         metrics2.put("pay_amount", 3000.00);
         
-        MetricAggregationResult.AggregationRow row1 =
-                new MetricAggregationResult.AggregationRow("2024-05-20 10:00:00", dims1, metrics1);
-        MetricAggregationResult.AggregationRow row2 =
-                new MetricAggregationResult.AggregationRow("2024-05-20 11:00:00", dims2, metrics2);
+        MetricAggregation.AggregationRow row1 =
+                new MetricAggregation.AggregationRow("2024-05-20 10:00:00", dims1, metrics1);
+        MetricAggregation.AggregationRow row2 =
+                new MetricAggregation.AggregationRow("2024-05-20 11:00:00", dims2, metrics2);
         
-        MetricAggregationResult result =
-                new MetricAggregationResult(meta, Arrays.asList(row1, row2));
+        MetricAggregation result =
+                new MetricAggregation(meta, Arrays.asList(row1, row2));
         
         when(metricService.queryAggregation(any(MetricAggregationDTO.class))).thenReturn(result);
         
@@ -165,9 +163,9 @@ class MetricAggregationControllerTest {
     void testQueryAggregation_ValidationError_MissingMetricCodes() throws Exception {
         // Given
         MetricAggregationQO aggregationQO = MetricAggregationQO.builder()
-                .timeRange(TimeRangeQO.builder()
+                .timeRange(MetricAggregationQO.TimeRangeQO.builder()
                         .start("2024-05-20 00:00:00")
-                        .end("2024-05-21 00:00:00")
+                        .stop("2024-05-21 00:00:00")
                         .build())
                 .build();
         
@@ -199,8 +197,8 @@ class MetricAggregationControllerTest {
         // Given
         MetricAggregationQO aggregationQO = MetricAggregationQO.builder()
                 .metricCodes(Arrays.asList("pay_amount"))
-                .timeRange(TimeRangeQO.builder()
-                        .end("2024-05-21 00:00:00")
+                .timeRange(MetricAggregationQO.TimeRangeQO.builder()
+                        .stop("2024-05-21 00:00:00")
                         .build())
                 .build();
         

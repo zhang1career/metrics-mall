@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.pojo.qo;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,12 +55,85 @@ public class MetricAggregationQO {
      * Order by configuration.
      */
     @Valid
-    private OrderByQO orderBy;
+    private List<OrderByQO> orderBys;
     
     /**
      * Result limit.
      */
     private Integer limit;
 
-}
 
+    /**
+     * Time range query object.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TimeRangeQO {
+
+        /**
+         * Start time, format: "yyyy-MM-dd HH:mm:ss".
+         */
+        @NotBlank(message = "Start time cannot be blank")
+        private String start;
+
+        /**
+         * Stop time, format: "yyyy-MM-dd HH:mm:ss".
+         */
+        @NotBlank(message = "Stop time cannot be blank")
+        private String stop;
+    }
+
+
+    /**
+     * Filter query object.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FieldConditionQO {
+
+        /**
+         * Field name.
+         */
+        @NotBlank(message = "Field cannot be blank")
+        private String field;
+
+        /**
+         * Operator: =, !=, >, <, >=, <=, in, not_in.
+         */
+        @NotBlank(message = "Operator cannot be blank")
+        private String op;
+
+        /**
+         * Filter value.
+         */
+        @NotNull(message = "Value cannot be null")
+        private Object value;
+    }
+
+
+    /**
+     * Order by query object.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OrderByQO {
+
+        /**
+         * Field name.
+         */
+        @NotBlank(message = "Field cannot be blank")
+        private String field;
+
+        /**
+         * Sort direction: asc, desc.
+         */
+        @NotBlank(message = "Sort cannot be blank")
+        private String sort;
+    }
+}

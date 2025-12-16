@@ -3,9 +3,10 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 import cn.hutool.core.map.MapUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lab.zhang.data_science.metrics_mall.model.Metric;
-import lab.zhang.data_science.metrics_mall.model.SampledValue;
+import lab.zhang.data_science.metrics_mall.model.Metric.SampledValue;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO;
+import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO.MetricPrettyBriefVO;
 import lab.zhang.data_science.metrics_mall.util.TimeUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -24,17 +25,6 @@ import java.util.stream.Collectors;
  */
 @Mapper(componentModel = "spring")
 public interface MetricStructMapper {
-
-    /**
-     * Convert MetricModel to MetricDAO.
-     *
-     * @param dto metric DTO
-     * @return MetricDAO
-     */
-    @Mapping(target = "metricType", expression = "java(model.getMetricType() != null ? model.getMetricType().getId() : null)")
-    @Mapping(target = "valueType", expression = "java(model.getValueType() != null ? model.getValueType().getId() : null)")
-    @Mapping(target = "aggregationType", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getId() : null)")
-    MetricDAO dtoToDao(MetricDTO dto);
 
 
     Metric daoToModel(MetricDAO dao);
@@ -110,6 +100,27 @@ public interface MetricStructMapper {
                 .filter(sv -> !sv.getSampleTime().isAfter(snapshot))
                 .max(Comparator.comparing(SampledValue::getSampleTime))
                 .orElse(null);
+    }
+
+
+    /**
+     * Convert Metric model to MetricPrettyBriefVO.
+     *
+     * @param model metric model
+     * @return MetricPrettyBriefVO
+     */
+    @Mapping(target = "aggregationTypeStr", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getName() : cn.hutool.core.util.StrUtil.EMPTY)")
+    MetricPrettyBriefVO modelToPrettyBriefVo(Metric model);
+
+    default Map<String, MetricPrettyBriefVO> modelToPrettyBriefVoMap(Map<String, Metric> modelMap) {
+        if (modelMap == null) {
+            return MapUtil.empty();
+        }
+        return modelMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> modelToPrettyBriefVo(entry.getValue())
+                ));
     }
 }
 

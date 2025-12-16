@@ -8,7 +8,7 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 /**
- * Mapper for converting Model to DTO.
+ * Mapper for converting Event related objects.
  *
  * @author Rongjin Zhang
  * 

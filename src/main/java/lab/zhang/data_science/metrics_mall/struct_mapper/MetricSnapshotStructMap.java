@@ -8,6 +8,11 @@ import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 
 
+/**
+ * Mapper for converting MetricSnapshot related objects.
+ *
+ * @author Rongjin Zhang
+ */
 @MapperConfig(
         componentModel = "spring",
         uses = {

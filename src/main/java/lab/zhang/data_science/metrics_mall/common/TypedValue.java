@@ -20,6 +20,24 @@ public class TypedValue implements Serializable {
     private static final long serialVersionUID = 1L;
 
 
+    public static TypedValue of(Object value) {
+        if (value == null) {
+            return nullValue();
+        } else if (value instanceof String) {
+            return new TypedValue(value, ValueTypeEnum.STRING);
+        } else if (value instanceof Integer) {
+            return new TypedValue(value, ValueTypeEnum.INTEGER);
+        } else if (value instanceof Long) {
+            return new TypedValue(value, ValueTypeEnum.LONG);
+        } else if (value instanceof Double || value instanceof Float) {
+            return new TypedValue(value, ValueTypeEnum.DECIMAL);
+        } else if (value instanceof Boolean) {
+            return new TypedValue(value, ValueTypeEnum.BOOLEAN);
+        } else {
+            return new TypedValue(value, ValueTypeEnum.OBJECT);
+        }
+    }
+
     public static TypedValue of(Object value, ValueTypeEnum type) {
         return new TypedValue(value, type);
     }
