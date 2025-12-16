@@ -56,15 +56,11 @@ public class  AggregationVO {
                 for (Map.Entry<String, TypedValue> entry : dimensionMap.entrySet()) {
                     String dimKey = entry.getKey();
                     TypedValue dimValue = entry.getValue();
+                    gen.writeFieldName(dimKey);
                     if (dimValue != null) {
-                        Object actualValue = dimValue.getValue();
-                        if (actualValue != null) {
-                            gen.writeObjectField(dimKey, actualValue);
-                        } else {
-                            gen.writeNullField(dimKey);
-                        }
+                        serializers.findValueSerializer(TypedValue.class).serialize(dimValue, gen, serializers);
                     } else {
-                        gen.writeNullField(dimKey);
+                        gen.writeNull();
                     }
                 }
             }
@@ -75,15 +71,11 @@ public class  AggregationVO {
                 for (Map.Entry<String, TypedValue> entry : valueMap.entrySet()) {
                     String valKey = entry.getKey();
                     TypedValue valValue = entry.getValue();
+                    gen.writeFieldName(valKey);
                     if (valValue != null) {
-                        Object actualValue = valValue.getValue();
-                        if (actualValue != null) {
-                            gen.writeObjectField(valKey, actualValue);
-                        } else {
-                            gen.writeNullField(valKey);
-                        }
+                        serializers.findValueSerializer(TypedValue.class).serialize(valValue, gen, serializers);
                     } else {
-                        gen.writeNullField(valKey);
+                        gen.writeNull();
                     }
                 }
             }

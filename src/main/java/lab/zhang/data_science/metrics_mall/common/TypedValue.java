@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
+
+import static lab.zhang.data_science.metrics_mall.constant.NumConst.ZERO;
 
 /**
  * TypedValue - Typed value wrapper class
@@ -38,7 +41,9 @@ public class TypedValue implements Serializable {
         } else if (value instanceof Long) {
             return new TypedValue(value, ValueTypeEnum.LONG);
         } else if (value instanceof Double || value instanceof Float) {
-            return new TypedValue(value, ValueTypeEnum.DECIMAL);
+            throw new IllegalArgumentException("Precision must be specified for decimal values.");
+        } else if (value instanceof BigDecimal) {
+            throw new IllegalArgumentException("Precision must be specified for decimal values.");
         } else if (value instanceof Boolean) {
             return new TypedValue(value, ValueTypeEnum.BOOLEAN);
         } else {
@@ -46,8 +51,28 @@ public class TypedValue implements Serializable {
         }
     }
 
-    public static TypedValue of(Object value, ValueTypeEnum type) {
-        return new TypedValue(value, type);
+    public static TypedValue of(Object value, Integer precision) {
+        if (value == null) {
+            return nullValue();
+        } else if (value instanceof String) {
+            return new TypedValue(value, ValueTypeEnum.STRING);
+        } else if (value instanceof Integer) {
+            return new TypedValue(value, ValueTypeEnum.INTEGER);
+        } else if (value instanceof Long) {
+            return new TypedValue(value, ValueTypeEnum.LONG);
+        } else if (value instanceof Double || value instanceof Float) {
+            return new TypedValue(value, ValueTypeEnum.DECIMAL, precision);
+        } else if (value instanceof BigDecimal) {
+            return new TypedValue(value, ValueTypeEnum.DECIMAL, precision);
+        } else if (value instanceof Boolean) {
+            return new TypedValue(value, ValueTypeEnum.BOOLEAN);
+        } else {
+            return new TypedValue(value, ValueTypeEnum.OBJECT);
+        }
+    }
+
+    public static TypedValue of(Object value, ValueTypeEnum type, Integer precision) {
+        return new TypedValue(value, type, precision);
     }
 
     public static TypedValue nullValue() {
@@ -62,6 +87,7 @@ public class TypedValue implements Serializable {
         return new TypedValue(false, ValueTypeEnum.BOOLEAN);
     }
 
+
     /**
      * Actual value
      */
@@ -72,14 +98,28 @@ public class TypedValue implements Serializable {
      */
     private ValueTypeEnum type;
 
+    /**
+     * Precision for decimal value.
+     */
+    private Integer precision;
+
+
+    @JsonCreator
+    public TypedValue(@JsonProperty("value") Object value,
+                      @JsonProperty("type") ValueTypeEnum type,
+                      Integer precision) {
+        this.value = value;
+        this.type = type;
+        this.precision = precision;
+    }
 
     @JsonCreator
     public TypedValue(@JsonProperty("value") Object value,
                       @JsonProperty("type") ValueTypeEnum type) {
         this.value = value;
         this.type = type;
+        this.precision = ZERO;
     }
-
 
     /**
      * Get value automatically based on internal type information.
@@ -166,6 +206,21 @@ public class TypedValue implements Serializable {
             Object actualValue = value.getValue();
             if (actualValue == null) {
                 gen.writeNull();
+                return;
+            }
+
+            if (value.getType() == ValueTypeEnum.DECIMAL && value.getPrecision() != null) {
+                BigDecimal decimalValue;
+                if (actualValue instanceof BigDecimal) {
+                    decimalValue = (BigDecimal) actualValue;
+                } else if (actualValue instanceof Number) {
+                    decimalValue = new BigDecimal(actualValue.toString());
+                } else {
+                    decimalValue = new BigDecimal(actualValue.toString());
+                }
+                decimalValue = decimalValue.setScale(value.getPrecision(), java.math.RoundingMode.HALF_UP);
+                String formattedValue = decimalValue.toPlainString();
+                gen.writeString(formattedValue);
             } else {
                 gen.writeObject(actualValue);
             }

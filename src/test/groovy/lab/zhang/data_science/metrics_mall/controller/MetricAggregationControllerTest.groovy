@@ -67,24 +67,27 @@ class MetricAggregationControllerTest extends Specification {
                 .limit(100)
                 .build()
 
+        def precision0 = 0
+        def precision2 = 2
+
         def meta = [
                 "pay_amount": PrimeMetric.builder()
                         .name("支付金额")
                         .unit("CNY")
-                        .precision(2)
+                        .precision(precision2)
                         .build(),
                 "pay_user_cnt": PrimeMetric.builder()
                         .name("支付人数")
                         .unit("人")
-                        .precision(0)
+                        .precision(precision0)
                         .build()
         ]
 
         def dimMap = ["bucket_time": TypedValue.of("2024-05-20 10:00:00"),
                       "city": TypedValue.of("Beijing"),
                       "os": TypedValue.of("iOS")]
-        def valueMap = ["pay_amount": TypedValue.of(5000.00),
-                              "pay_user_cnt": TypedValue.of(200.0)]
+        def valueMap = ["pay_amount": TypedValue.of(5000.00, precision2),
+                              "pay_user_cnt": TypedValue.of(200.0, precision0)]
         def dimensionValueMap = [(dimMap): valueMap]
 
         def result = new MetricAggregation(meta, dimensionValueMap)
@@ -130,8 +133,8 @@ class MetricAggregationControllerTest extends Specification {
                 .andExpect(jsonPath('$.data.rows[0].bucket_time').value("2024-05-20 10:00:00"))
                 .andExpect(jsonPath('$.data.rows[0].city').value("Beijing"))
                 .andExpect(jsonPath('$.data.rows[0].os').value("iOS"))
-                .andExpect(jsonPath('$.data.rows[0].pay_amount').value(5000.0))
-                .andExpect(jsonPath('$.data.rows[0].pay_user_cnt').value(200.0))
+                .andExpect(jsonPath('$.data.rows[0].pay_amount').value(5000.00))
+                .andExpect(jsonPath('$.data.rows[0].pay_user_cnt').value(200))
     }
 
     def "test query aggregation multiple rows"() {
@@ -145,22 +148,24 @@ class MetricAggregationControllerTest extends Specification {
                 .interval("1h")
                 .build()
 
+        def precision1 = 1
+
         def meta = [
                 "pay_amount": PrimeMetric.builder()
                         .name("支付金额")
                         .unit("CNY")
-                        .precision(2)
+                        .precision(precision1)
                         .build()
         ]
 
         def multiDimMap1 = ["bucket_time": TypedValue.of("2024-05-20 10:00:00"),
                         "city": TypedValue.of("Beijing"),
                         "os": TypedValue.of("iOS")]
-        def multiMetricValueMap1 = ["pay_amount": TypedValue.of(5000.00)]
+        def multiMetricValueMap1 = ["pay_amount": TypedValue.of(5000.00, precision1)]
         def multiDimMap2 = ["bucket_time": TypedValue.of("2024-05-20 11:00:00"),
                         "city": TypedValue.of("Shanghai"),
                         "os": TypedValue.of("iOS")]
-        def multiMetricValueMap2 = ["pay_amount": TypedValue.of(3000.00)]
+        def multiMetricValueMap2 = ["pay_amount": TypedValue.of(3000.00, precision1)]
         def valueMap = [(multiDimMap1): multiMetricValueMap1, (multiDimMap2): multiMetricValueMap2]
 
         def result = new MetricAggregation(meta, valueMap)
@@ -169,11 +174,11 @@ class MetricAggregationControllerTest extends Specification {
         def multiTestDimMap1 = ["bucket_time": TypedValue.of("2024-05-20 10:00:00"),
                        "city": TypedValue.of("Beijing"),
                        "os": TypedValue.of("iOS")]
-        def multiTestMetricMap1 = ["pay_amount": TypedValue.of(5000.00)]
+        def multiTestMetricMap1 = ["pay_amount": TypedValue.of(5000.00, precision1)]
         def multiTestDimMap2 = ["bucket_time": TypedValue.of("2024-05-20 11:00:00"),
                        "city": TypedValue.of("Shanghai"),
                        "os": TypedValue.of("iOS")]
-        def multiTestMetricMap2 = ["pay_amount": TypedValue.of(3000.00)]
+        def multiTestMetricMap2 = ["pay_amount": TypedValue.of(3000.00, precision1)]
         def vo = MetricAggregationVO.builder()
                 .meta([:])
                 .rows([

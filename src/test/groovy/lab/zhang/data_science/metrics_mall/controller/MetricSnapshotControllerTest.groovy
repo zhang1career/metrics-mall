@@ -60,6 +60,8 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTs(0L)
                 .build()
 
+        def precision2 = 2
+
         def values = ["coin_balance": 1050.5]
         def ts = ["coin_balance": 1715000001000L]
 
@@ -78,7 +80,7 @@ class MetricSnapshotControllerTest extends Specification {
         def vo = MetricSnapshotVO.builder()
                 .entityCode("user")
                 .entityId(12345678L)
-                .valueMap(["coin_balance": TypedValue.of(1050.5)])
+                .valueMap(["coin_balance": TypedValue.of(1050.5, precision2)])
                 .sampleTimeMap(ts)
                 .build()
 
@@ -97,7 +99,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data.ec').value("user"))
                 .andExpect(jsonPath('$.data.eid').value(12345678))
-                .andExpect(jsonPath('$.data.values.coin_balance').value(1050.5))
+                .andExpect(jsonPath('$.data.values.coin_balance').value(1050.50))
                 .andExpect(jsonPath('$.data._ts.coin_balance').value(1715000001000L))
     }
 
@@ -118,6 +120,8 @@ class MetricSnapshotControllerTest extends Specification {
                 ])
                 .snapshotTs(0L)
                 .build()
+
+        def precision1 = 1
 
         def values = [
                 "coin_balance": 1050.5,
@@ -148,8 +152,8 @@ class MetricSnapshotControllerTest extends Specification {
                 .entityCode("user")
                 .entityId(12345678L)
                 .valueMap([
-                        "coin_balance": TypedValue.of(1050.5),
-                        "risk_score": TypedValue.of(0.1)
+                        "coin_balance": TypedValue.of(1050.5, precision1),
+                        "risk_score": TypedValue.of(0.1, precision1)
                 ])
                 .sampleTimeMap(ts)
                 .build()
@@ -181,6 +185,8 @@ class MetricSnapshotControllerTest extends Specification {
                         .build()])
                 .build()
 
+        def precision0 = 0
+
         def values = ["coin_balance": 1050.5]
 
         def entity = Entity.builder()
@@ -198,7 +204,7 @@ class MetricSnapshotControllerTest extends Specification {
         def vo = MetricSnapshotVO.builder()
                 .entityCode("user")
                 .entityId(12345678L)
-                .valueMap(["coin_balance": TypedValue.of(1050.5)])
+                .valueMap(["coin_balance": TypedValue.of(1050.5, precision0)])
                 .sampleTimeMap(null)
                 .build()
 
@@ -215,7 +221,7 @@ class MetricSnapshotControllerTest extends Specification {
         then:
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-                .andExpect(jsonPath('$.data.values.coin_balance').value(1050.5))
+                .andExpect(jsonPath('$.data.values.coin_balance').value(1051))
     }
 
     def "test query snapshot validation error missing entity code"() {
