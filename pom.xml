@@ -36,7 +36,8 @@
         <mvel2.version>2.5.2.Final</mvel2.version>
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <mysql-connector.version>8.3.0</mysql-connector.version>
-        <spock.version>2.4-M1-groovy-4.0</spock.version>
+        <spock.version>2.4-groovy-4.0</spock.version>
+        <groovy.version>4.0.15</groovy.version>
         <springdoc-openapi.version>2.3.0</springdoc-openapi.version>
     </properties>
 
@@ -173,6 +174,14 @@
             <version>${mvel2.version}</version>
         </dependency>
 
+        <!-- Groovy for Spock -->
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Spock Framework for testing -->
         <dependency>
             <groupId>org.spockframework</groupId>
@@ -187,5 +196,41 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>2.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>addTestSources</goal>
+                            <goal>compileTests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <useFile>false</useFile>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Spec.java</include>
+                        <include>**/*Test.groovy</include>
+                        <include>**/*Spec.groovy</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
 

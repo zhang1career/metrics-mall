@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.model;
 
+import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class MetricSnapshot {
     /**
      * Metric values map, key is metric code, value is metric value.
      */
-    private List<Metric> metricList;
+    private List<EchoMetric> metricList;
 
     private LocalDateTime snapshotDateTime;
 }

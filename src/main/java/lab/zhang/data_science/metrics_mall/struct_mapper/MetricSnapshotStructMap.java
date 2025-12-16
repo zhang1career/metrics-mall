@@ -40,7 +40,7 @@ public interface MetricSnapshotStructMap {
      */
     @Mapping(target = "entityCode", expression = "java(model.getEntity().getMeta().getCode())")
     @Mapping(target = "entityId", expression = "java(model.getEntity().getId())")
-    @Mapping(target = "valueMap", expression = "java(metricStructMapper.modelToSampleValue(model.getMetricList(), model.getSnapshotDateTime()))")
-    @Mapping(target = "sampleTimeMap", expression = "java(metricStructMapper.modelToSampleTime(model.getMetricList(), model.getSnapshotDateTime()))")
+    @Mapping(target = "valueMap", expression = "java(metricStructMapper.echoModelToSampleValue(model.getMetricList(), model.getSnapshotDateTime()))")
+    @Mapping(target = "sampleTimeMap", expression = "java(metricStructMapper.echoModelToSampleTime(model.getMetricList(), model.getSnapshotDateTime()))")
     MetricSnapshotVO modelToVo(MetricSnapshot model);
 }

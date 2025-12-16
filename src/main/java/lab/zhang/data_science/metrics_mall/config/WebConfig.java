@@ -24,12 +24,9 @@ public class WebConfig implements WebMvcConfigurer {
         return new TraceLoggingFilter();
     }
 
-    @Autowired
-    private TraceLoggingFilter traceLoggingFilter;
-
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(traceLoggingFilter)
+        registry.addInterceptor(traceLoggingFilter())
                 .addPathPatterns("/api/**")  // Apply to all API endpoints
                 .excludePathPatterns("/api/dicts"); // Exclude dict endpoint if needed
     }

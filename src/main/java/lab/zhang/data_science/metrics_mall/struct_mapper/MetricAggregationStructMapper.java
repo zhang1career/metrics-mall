@@ -120,7 +120,7 @@ public interface MetricAggregationStructMapper {
      * @return list of aggregation VO
      */
     default List<AggregationVO> modelToAggregationVoBatch(MetricAggregation model) {
-        return model.getValueMap().entrySet().stream()
+        return model.getDimensionValueMap().entrySet().stream()
                 .map(entry -> {
                     AggregationVO vo = new AggregationVO();
                     vo.setDimensionMap(entry.getKey());

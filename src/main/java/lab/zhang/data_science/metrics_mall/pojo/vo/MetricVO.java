@@ -72,42 +72,5 @@ public class MetricVO extends BaseVO {
     private Map<String, TypedValue> validation;
 
 
-    /**
-     * Metric brief view object for controller layer.
-     *
-     * @author Rongjin Zhang
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MetricPrettyBriefVO {
-
-        /**
-         * Metric name in Chinese.
-         */
-        private String name;
-
-        /**
-         * Metric description.
-         */
-        private String description;
-
-        /**
-         * Unit of the metric.
-         */
-        private String unit;
-
-        /**
-         * Precision for decimal display.
-         */
-        private Integer precision;
-
-        /**
-         * Aggregation type: sum, avg, max, min, count.
-         */
-        @JsonProperty("agg_type_str")
-        private String aggregationTypeStr;
-    }
 }
 

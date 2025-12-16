@@ -1,6 +1,6 @@
 package lab.zhang.data_science.metrics_mall.pojo.vo;
 
-import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO.MetricPrettyBriefVO;
+import lab.zhang.data_science.metrics_mall.pojo.vo.BriefMetricVO.PrettyBriefMetricVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +23,7 @@ public class MetricAggregationVO {
     /**
      * Metric metadata map, key is metric code, value is metric pretty brief information.
      */
-    private Map<String, MetricPrettyBriefVO> meta;
+    private Map<String, PrettyBriefMetricVO> meta;
 
     /**
      * Aggregation result rows.

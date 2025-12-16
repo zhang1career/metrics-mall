@@ -2,10 +2,16 @@ package lab.zhang.data_science.metrics_mall.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lab.zhang.data_science.metrics_mall.enums.ValueTypeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -15,8 +21,10 @@ import java.io.Serializable;
  */
 @Data
 @NoArgsConstructor
+@JsonSerialize(using = TypedValue.TypedValueSerializer.class)
 public class TypedValue implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
 
@@ -74,16 +82,16 @@ public class TypedValue implements Serializable {
 
 
     /**
-     * Get value automatically based on internal type information
+     * Get value automatically based on internal type information.
      * This method intelligently converts the value based on the stored ValueType
-     * and returns the most appropriate type
-     *
-     * @return the value converted to the most appropriate type based on internal type information
-     *
-     * @example
+     * and returns the most appropriate type.
+     * <p>
+     * For example:
      * TypedValue tv = new TypedValue(100, ValueType.INTEGER);
      * Object result = tv.getValue();  // Returns Integer(100), not Object
      * Integer intValue = (Integer) result;  // Safe cast
+     *
+     * @return the value converted to the most appropriate type based on internal type information
      */
     public Object getValue() {
         if (value == null) {
@@ -95,22 +103,14 @@ public class TypedValue implements Serializable {
             return value;  // If type is not set, return raw value
         }
 
-        switch (type) {
-            case STRING:
-                return getStringValue();
-            case INTEGER:
-                return getIntegerValue();
-            case LONG:
-                return getLongValue();
-            case DECIMAL:
-                return getDecimalValue();
-            case BOOLEAN:
-                return getBooleanValue();
-            case DATE:
-            case OBJECT:
-            default:
-                return value;  // Return raw value for complex types
-        }
+        return switch (type) {
+            case STRING -> getStringValue();
+            case INTEGER -> getIntegerValue();
+            case LONG -> getLongValue();
+            case DECIMAL -> getDecimalValue();
+            case BOOLEAN -> getBooleanValue();
+            default -> value;  // Return raw value for complex types
+        };
     }
 
     /**
@@ -146,6 +146,30 @@ public class TypedValue implements Serializable {
         if (value == null) return null;
         if (value instanceof Boolean) return (Boolean) value;
         return Boolean.parseBoolean(value.toString());
+    }
+
+    /**
+     * Custom serializer for TypedValue.
+     * Serializes TypedValue as just the value, not as an object.
+     *
+     * @author Rongjin Zhang
+     */
+    static class TypedValueSerializer extends JsonSerializer<TypedValue> {
+
+        @Override
+        public void serialize(TypedValue value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            if (value == null) {
+                gen.writeNull();
+                return;
+            }
+
+            Object actualValue = value.getValue();
+            if (actualValue == null) {
+                gen.writeNull();
+            } else {
+                gen.writeObject(actualValue);
+            }
+        }
     }
 }
 

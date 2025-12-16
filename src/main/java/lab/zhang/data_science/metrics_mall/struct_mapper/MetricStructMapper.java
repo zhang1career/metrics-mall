@@ -2,11 +2,14 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import cn.hutool.core.map.MapUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lab.zhang.data_science.metrics_mall.model.Metric;
-import lab.zhang.data_science.metrics_mall.model.Metric.SampledValue;
+import lab.zhang.data_science.metrics_mall.enums.AggregationTypeEnum;
+import lab.zhang.data_science.metrics_mall.enums.MetricTypeEnum;
+import lab.zhang.data_science.metrics_mall.model.metric.BaseMetric;
+import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
+import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDAO;
+import lab.zhang.data_science.metrics_mall.pojo.vo.BriefMetricVO.PrettyBriefMetricVO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO;
-import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO.MetricPrettyBriefVO;
 import lab.zhang.data_science.metrics_mall.util.TimeUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -26,8 +29,36 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface MetricStructMapper {
 
+    /**
+     * Map Integer to MetricTypeEnum.
+     *
+     * @param id metric type id
+     * @return MetricTypeEnum
+     */
+    default MetricTypeEnum mapMetricType(Integer id) {
+        return MetricTypeEnum.fromId(id);
+    }
 
-    Metric daoToModel(MetricDAO dao);
+    /**
+     * Map Integer to AggregationTypeEnum.
+     *
+     * @param id aggregation type id
+     * @return AggregationTypeEnum
+     */
+    default AggregationTypeEnum mapAggregationType(Integer id) {
+        return AggregationTypeEnum.fromId(id);
+    }
+
+
+    /**
+     * Convert MetricDAO to MetricModel.
+     *
+     * @param dao metric entity
+     * @return MetricModel
+     */
+    @Mapping(target = "metricType", expression = "java(mapMetricType(dao.getMetricType()))")
+    @Mapping(target = "aggregationType", expression = "java(mapAggregationType(dao.getAggregationType()))")
+    PrimeMetric daoToModel(MetricDAO dao);
 
     /**
      * Convert list of MetricDAO to list of MetricModel.
@@ -35,7 +66,7 @@ public interface MetricStructMapper {
      * @param daoList metric entity list
      * @return MetricModel list
      */
-    List<Metric> daoToModelBatch(List<MetricDAO> daoList);
+    List<PrimeMetric> daoToModelBatch(List<MetricDAO> daoList);
 
 
     /**
@@ -45,9 +76,10 @@ public interface MetricStructMapper {
      * @return MetricAggregationResponseDTO.MetricMetaDTO
      */
     @Mapping(target = "metricType", expression = "java(model.getMetricType() != null ? model.getMetricType().getId() : null)")
-    @Mapping(target = "valueType", expression = "java(model.getValueType() != null ? model.getValueType().getId() : null)")
+    @Mapping(target = "valueType", expression = "java(model.getValue() != null && model.getValue().getType() != null ? model.getValue().getType().getId() : null)")
     @Mapping(target = "aggregationType", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getId() : null)")
-    MetricVO modelToVo(Metric model);
+    @Mapping(target = "validation", source = "validationMap")
+    MetricVO modelToVo(PrimeMetric model);
 
 
     /**
@@ -56,14 +88,14 @@ public interface MetricStructMapper {
      * @param modelList metric model list
      * @return map of metric code to metric value
      */
-    default Map<String, TypedValue> modelToSampleValue(List<Metric> modelList, LocalDateTime snapshot) {
+    default Map<String, TypedValue> echoModelToSampleValue(List<EchoMetric> modelList, LocalDateTime snapshot) {
         if (modelList == null) {
             return MapUtil.empty();
         }
         return modelList.stream()
-                .map(mode -> modelToHistoryValues(mode, snapshot))
+                .map(mode -> getBackNearest(mode, snapshot))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(SampledValue::getCode, SampledValue::getValue));
+                .collect(Collectors.toMap(BaseMetric::getCode, BaseMetric::getValue));
     }
 
     /**
@@ -73,15 +105,15 @@ public interface MetricStructMapper {
      * @param snapshot  the snapshot time
      * @return map of metric code to sample time in milliseconds
      */
-    default Map<String, Long> modelToSampleTime(List<Metric> modelList, LocalDateTime snapshot) {
+    default Map<String, Long> echoModelToSampleTime(List<EchoMetric> modelList, LocalDateTime snapshot) {
         if (modelList == null) {
             return MapUtil.empty();
         }
         return modelList.stream()
-                .map(mode -> modelToHistoryValues(mode, snapshot))
+                .map(mode -> getBackNearest(mode, snapshot))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(
-                        SampledValue::getCode,
+                        BaseMetric::getCode,
                         sv -> TimeUtil.dateTimeToTimestamp(sv.getSampleTime())));
     }
 
@@ -92,13 +124,13 @@ public interface MetricStructMapper {
      * @param snapshot the snapshot time
      * @return the latest sampled value before or at the snapshot time, or null if none found
      */
-    default SampledValue modelToHistoryValues(Metric model, LocalDateTime snapshot) {
-        if (model == null || model.getHistoryValueList() == null) {
+    default BaseMetric getBackNearest(EchoMetric model, LocalDateTime snapshot) {
+        if (model == null || model.getHistoryMetricList() == null) {
             return null;
         }
-        return model.getHistoryValueList().stream()
+        return model.getHistoryMetricList().stream()
                 .filter(sv -> !sv.getSampleTime().isAfter(snapshot))
-                .max(Comparator.comparing(SampledValue::getSampleTime))
+                .max(Comparator.comparing(BaseMetric::getSampleTime))
                 .orElse(null);
     }
 
@@ -110,9 +142,9 @@ public interface MetricStructMapper {
      * @return MetricPrettyBriefVO
      */
     @Mapping(target = "aggregationTypeStr", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getName() : cn.hutool.core.util.StrUtil.EMPTY)")
-    MetricPrettyBriefVO modelToPrettyBriefVo(Metric model);
+    PrettyBriefMetricVO modelToPrettyBriefVo(PrimeMetric model);
 
-    default Map<String, MetricPrettyBriefVO> modelToPrettyBriefVoMap(Map<String, Metric> modelMap) {
+    default Map<String, PrettyBriefMetricVO> modelToPrettyBriefVoMap(Map<String, PrimeMetric> modelMap) {
         if (modelMap == null) {
             return MapUtil.empty();
         }

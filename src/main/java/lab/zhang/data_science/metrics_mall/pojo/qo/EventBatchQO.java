@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.pojo.qo;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +26,7 @@ public class EventBatchQO {
      * Event list.
      */
     @NotNull(message = "Events cannot be null")
+    @NotEmpty(message = "Events cannot be empty")
     @Valid
     private List<EventQO> events;
 

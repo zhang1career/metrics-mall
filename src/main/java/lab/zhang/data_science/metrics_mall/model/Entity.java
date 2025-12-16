@@ -3,6 +3,13 @@ package lab.zhang.data_science.metrics_mall.model;
 import lombok.*;
 
 
+/**
+ * Entity is an abstraction of a business object in the metrics mall system.
+ * It can represent various real-world entities such as users, products, or transactions.
+ * The Entity class contains metadata about the entity and a unique identifier.
+ *
+ * @author Rongjin Zhang
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Builder
@@ -12,5 +19,22 @@ public class Entity extends BaseModel {
 
     private EntityMeta meta;
 
-    private Integer id;
+    private Long id;
+
+
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EntityMeta extends BaseModel {
+
+        private Integer id;
+
+        private String code;
+
+        private String name;
+
+        private String description;
+    }
 }
