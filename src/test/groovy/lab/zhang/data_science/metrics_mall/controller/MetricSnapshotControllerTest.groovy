@@ -1,26 +1,24 @@
 package lab.zhang.data_science.metrics_mall.controller
 
+import cn.hutool.core.date.DateUtil
 import com.fasterxml.jackson.databind.ObjectMapper
+import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService
 import lab.zhang.data_science.metrics_mall.common.TypedValue
 import lab.zhang.data_science.metrics_mall.controller.v1.MetricSnapshotController
 import lab.zhang.data_science.metrics_mall.model.Entity
+import lab.zhang.data_science.metrics_mall.model.MetricSnapshot
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
-import lab.zhang.data_science.metrics_mall.model.MetricSnapshot
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
+import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO
-import lab.zhang.data_science.metrics_mall.pojo.qo.VersionedMetricDimensionQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricSnapshotVO
 import lab.zhang.data_science.metrics_mall.service.MetricSnapshotService
-import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMap
-import org.spockframework.spring.SpringBean
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
-
-import java.time.LocalDateTime
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -31,32 +29,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author Rongjin Zhang
  */
-@WebMvcTest(controllers = [MetricSnapshotController.class])
 class MetricSnapshotControllerTest extends Specification {
 
-    @Autowired
     MockMvc mockMvc
 
-    @SpringBean
     MetricSnapshotService metricSnapshotService = Mock()
 
-    @SpringBean
-    MetricSnapshotStructMap metricSnapshotStructMap = Mock()
+    MetricSnapshotStructMapper metricSnapshotStructMap = Mock()
 
-    @Autowired
-    ObjectMapper objectMapper
+    MetricSnapshotCacheService metricSnapshotCacheService = Mock()
+
+    MetricSnapshotController controller
+
+    ObjectMapper objectMapper = new ObjectMapper()
 
     private static final String API_KEY = "test-api-key"
+
+    def setup() {
+        controller = new MetricSnapshotController()
+        controller.metricSnapshotService = metricSnapshotService
+        controller.metricSnapshotStructMapper = metricSnapshotStructMap
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+    }
 
     def "test query snapshot success"() {
         given:
         def snapshotQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
-                .metrics([VersionedMetricDimensionQO.builder()
-                        .code("coin_balance")
-                        .dims(createDimMap("city", "Beijing"))
-                        .build()])
+                .metrics([EchoMetricQO.builder()
+                                  .code("coin_balance")
+                                  .dims(createDimMap("city", "Beijing"))
+                                  .build()])
                 .snapshotTs(0L)
                 .build()
 
@@ -73,7 +77,7 @@ class MetricSnapshotControllerTest extends Specification {
         def result = MetricSnapshot.builder()
                 .entity(entity)
                 .metricList(metricList as List<EchoMetric>)
-                .snapshotDateTime(LocalDateTime.now())
+                .snapshotTs(DateUtil.current())
                 .build()
 
         def dto = MetricSnapshotDTO.builder().build()
@@ -81,7 +85,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .entityCode("user")
                 .entityId(12345678L)
                 .valueMap(["coin_balance": TypedValue.of(1050.5, precision2)])
-                .sampleTimeMap(ts)
+                .snapshotTsMap(ts)
                 .build()
 
         metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
@@ -109,11 +113,11 @@ class MetricSnapshotControllerTest extends Specification {
                 .ec("user")
                 .eid(12345678L)
                 .metrics([
-                        VersionedMetricDimensionQO.builder()
+                        EchoMetricQO.builder()
                                 .code("coin_balance")
                                 .dims(createDimMap("city", "Beijing"))
                                 .build(),
-                        VersionedMetricDimensionQO.builder()
+                        EchoMetricQO.builder()
                                 .code("risk_score")
                                 .dims(createDimMap("os", "ios"))
                                 .build()
@@ -125,12 +129,12 @@ class MetricSnapshotControllerTest extends Specification {
 
         def values = [
                 "coin_balance": 1050.5,
-                "risk_score": 0.1
+                "risk_score"  : 0.1
         ]
 
         def ts = [
                 "coin_balance": 1715000001000L,
-                "risk_score": 1715000005000L
+                "risk_score"  : 1715000005000L
         ]
 
         def entity = Entity.builder()
@@ -144,7 +148,7 @@ class MetricSnapshotControllerTest extends Specification {
         def result = MetricSnapshot.builder()
                 .entity(entity)
                 .metricList(metricList as List<EchoMetric>)
-                .snapshotDateTime(LocalDateTime.now())
+                .snapshotTs(DateUtil.current())
                 .build()
 
         def dto = MetricSnapshotDTO.builder().build()
@@ -153,9 +157,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .entityId(12345678L)
                 .valueMap([
                         "coin_balance": TypedValue.of(1050.5, precision1),
-                        "risk_score": TypedValue.of(0.1, precision1)
+                        "risk_score"  : TypedValue.of(0.1, precision1)
                 ])
-                .sampleTimeMap(ts)
+                .snapshotTsMap(ts)
                 .build()
 
         metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
@@ -180,9 +184,9 @@ class MetricSnapshotControllerTest extends Specification {
         def snapshotQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
-                .metrics([VersionedMetricDimensionQO.builder()
-                        .code("coin_balance")
-                        .build()])
+                .metrics([EchoMetricQO.builder()
+                                  .code("coin_balance")
+                                  .build()])
                 .build()
 
         def precision0 = 0
@@ -197,7 +201,7 @@ class MetricSnapshotControllerTest extends Specification {
         def result = MetricSnapshot.builder()
                 .entity(entity)
                 .metricList(metricList as List<EchoMetric>)
-                .snapshotDateTime(LocalDateTime.now())
+                .snapshotTs(DateUtil.current())
                 .build()
 
         def dto = MetricSnapshotDTO.builder().build()
@@ -205,7 +209,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .entityCode("user")
                 .entityId(12345678L)
                 .valueMap(["coin_balance": TypedValue.of(1050.5, precision0)])
-                .sampleTimeMap(null)
+                .snapshotTsMap(null)
                 .build()
 
         metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
@@ -228,9 +232,9 @@ class MetricSnapshotControllerTest extends Specification {
         given:
         def snapshotQO = MetricSnapshotQO.builder()
                 .eid(12345678L)
-                .metrics([VersionedMetricDimensionQO.builder()
-                        .code("coin_balance")
-                        .build()])
+                .metrics([EchoMetricQO.builder()
+                                  .code("coin_balance")
+                                  .build()])
                 .build()
 
         when:
@@ -247,9 +251,9 @@ class MetricSnapshotControllerTest extends Specification {
         given:
         def snapshotQO = MetricSnapshotQO.builder()
                 .ec("user")
-                .metrics([VersionedMetricDimensionQO.builder()
-                        .code("coin_balance")
-                        .build()])
+                .metrics([EchoMetricQO.builder()
+                                  .code("coin_balance")
+                                  .build()])
                 .build()
 
         when:

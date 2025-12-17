@@ -9,11 +9,9 @@ import lab.zhang.data_science.metrics_mall.pojo.qo.EventQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.EventResponseVO
 import lab.zhang.data_science.metrics_mall.service.EventService
 import lab.zhang.data_science.metrics_mall.struct_mapper.EventStructMapper
-import org.spockframework.spring.SpringBean
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -25,32 +23,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author Rongjin Zhang
  */
-@WebMvcTest(controllers = [EventController.class])
-class EventDTOControllerTest extends Specification {
+class EventControllerTest extends Specification {
 
-    @Autowired
     MockMvc mockMvc
 
-    @SpringBean
     EventService eventService = Mock()
 
-    @SpringBean
     EventStructMapper eventStructMapper = Mock()
 
-    @Autowired
-    ObjectMapper objectMapper
+    EventController controller
+
+    ObjectMapper objectMapper = new ObjectMapper()
 
     private static final String API_KEY = "test-api-key"
+
+    def setup() {
+        controller = new EventController(eventService, eventStructMapper)
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+    }
 
     def "test report success"() {
         given:
         def eventBatchQO = EventBatchQO.builder()
                 .events([EventQO.builder()
-                        .metricName("user_credit_score")
-                        .timestamp(1701234567890L)
-                        .dim(createDimMap("user_id", "12345", "region", "us-west", "device", "ios"))
-                        .value(850.0)
-                        .build()])
+                                 .metricName("user_credit_score")
+                                 .timestamp(1701234567890L)
+                                 .dim(createDimMap("user_id", "12345", "region", "us-west", "device", "ios"))
+                                 .value(850.0)
+                                 .build()])
                 .build()
 
         def result = new EventAcceptanceResult(1, 0)
@@ -124,9 +124,9 @@ class EventDTOControllerTest extends Specification {
         given:
         def eventBatchQO = EventBatchQO.builder()
                 .events([EventQO.builder()
-                        .timestamp(1701234567890L)
-                        .value(850.0)
-                        .build()])
+                                 .timestamp(1701234567890L)
+                                 .value(850.0)
+                                 .build()])
                 .build()
 
         when:
@@ -143,9 +143,9 @@ class EventDTOControllerTest extends Specification {
         given:
         def eventBatchQO = EventBatchQO.builder()
                 .events([EventQO.builder()
-                        .metricName("user_credit_score")
-                        .value(850.0)
-                        .build()])
+                                 .metricName("user_credit_score")
+                                 .value(850.0)
+                                 .build()])
                 .build()
 
         when:
@@ -162,9 +162,9 @@ class EventDTOControllerTest extends Specification {
         given:
         def eventBatchQO = EventBatchQO.builder()
                 .events([EventQO.builder()
-                        .metricName("user_credit_score")
-                        .timestamp(1701234567890L)
-                        .build()])
+                                 .metricName("user_credit_score")
+                                 .timestamp(1701234567890L)
+                                 .build()])
                 .build()
 
         when:

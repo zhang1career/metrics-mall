@@ -16,7 +16,7 @@ public class EnvUtil {
     /**
      * Current environment (read from configuration, default is test environment)
      */
-    @Value("${rule.engine.environment:TEST}")
+    @Value("${metrics_mall.environment:TEST}")
     private String environment;
 
     /**

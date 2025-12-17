@@ -6,15 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
-import java.util.Map;
 
-
+/**
+ * The fundamental unit of metric data,
+ * representing a single metric value at a specific point in time.
+ */
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BaseMetric {
+public class AlphaMetric {
 
     /**
      * Metric code.
@@ -27,22 +28,7 @@ public class BaseMetric {
     private TypedValue value;
 
     /**
-     * Precision for decimal value.
+     * Metric snapshot timestamp, in milliseconds.
      */
-    private Integer precision;
-
-    /**
-     * Unit of the metric.
-     */
-    private String unit;
-
-    /**
-     * Metric sample timestamp.
-     */
-    private LocalDateTime sampleTime;
-
-    /**
-     * Valid range of metric values.
-     */
-    private Map<String, TypedValue> validationMap;
+    private Long snapshotTs;
 }

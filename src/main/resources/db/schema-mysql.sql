@@ -5,6 +5,7 @@ CREATE TABLE `metric` (
     `description` TEXT,
     `metric_type` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'metric type, 0=ATOMIC, 1=DERIVED, 2=COMPOSITE',
     `value_type`  INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'value type, 0=STR, 1=INT, 2=LONG, 3=FLOAT, 4=BOOL, 5=DATE, 6=OBJ',
+    `precision`   INT UNSIGNED NOT NULL DEFAULT '2' COMMENT 'decimal precision for FLOAT type',
     `agg_type`    INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'aggregation type, 0=sum, 1=avg, 2=max, 3=min, 4=count',
     `unit`        VARCHAR(32)  NOT NULL DEFAULT '' COMMENT 'unit of the metric',
     `validation`  VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'valid range of metric values, json format',

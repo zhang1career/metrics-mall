@@ -20,7 +20,7 @@ import java.util.Date;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PrimeMetric extends BaseMetric {
+public class PrimeMetric extends BetaMetric {
 
     /**
      * Primary key id.

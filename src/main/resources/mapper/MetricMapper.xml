@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lab.zhang.data_science.metrics_mall.mapper.MetricMapper">
+
+    <select id="selectByCodes" resultType="lab.zhang.data_science.metrics_mall.pojo.dao.MetricDAO">
+        SELECT
+            id,
+            code,
+            name,
+            description,
+            metric_type,
+            value_type,
+            agg_type,
+            unit,
+            validation,
+            ct,
+            ut
+        FROM metric
+        WHERE code IN
+        <foreach collection="codes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+    </select>
+
+</mapper>
+

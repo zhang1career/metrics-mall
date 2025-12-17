@@ -32,10 +32,11 @@ public class MetricSnapshotDTO {
     /**
      * Metric query list.
      */
-    private List<MetricDimensionDTO> metricList;
+    private List<EchoMetricDTO> metricList;
     
     /**
-     * Snapshot timestamp in milliseconds. 0 means return latest snapshot time, null means not return timestamp.
+     * Snapshot timestamp in milliseconds.
+     * 0 means return latest snapshot time, null means not return timestamp.
      */
     private Long snapshotTs;
 

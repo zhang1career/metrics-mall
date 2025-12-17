@@ -54,6 +54,11 @@ public class MetricDAO extends BaseDAO {
     private Integer valueType;
 
     /**
+     * Decimal precision for FLOAT type metrics.
+     */
+    private Integer precision;
+
+    /**
      * Aggregation type: 0=sum, 1=avg, 2=max, 3=min, 4=count.
      */
     @TableField("agg_type")

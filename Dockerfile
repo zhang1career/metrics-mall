@@ -20,6 +20,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD wget --spider -q http://localhost:8080/actuator/health || exit 1
 
-ENV JAVA_OPTS="-Xms128m -Xmx1024m -XX:MaxMetaspaceSize=128m -XX:MetaspaceSize=64m -XX:MaxDirectMemorySize=16m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENV JAVA_OPTS="-Xms128m -Xmx1024m -XX:MaxMetaspaceSize=128m -XX:MetaspaceSize=64m -XX:MaxDirectMemorySize=16m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xshare:off"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]

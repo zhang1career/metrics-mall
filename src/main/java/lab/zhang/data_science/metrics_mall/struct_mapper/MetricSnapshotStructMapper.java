@@ -18,7 +18,7 @@ import org.mapstruct.Mapping;
         uses = {
                 MetricStructMapper.class,
         })
-public interface MetricSnapshotStructMap {
+public interface MetricSnapshotStructMapper {
 
     /**
      * Convert MetricSnapshotQO to MetricSnapshotDTO.
@@ -27,7 +27,8 @@ public interface MetricSnapshotStructMap {
      */
     @Mapping(target = "entityCode", source = "ec")
     @Mapping(target = "entityId", source = "eid")
-    @Mapping(target = "metricList", source = "metrics")
+    @Mapping(target = "metricList", expression = "java(metricStructMapper.echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs()))")
+    @Mapping(target = "snapshotTs", source = "snapshotTs")
     @Mapping(target = "isAtomic", expression = "java(qo.getIsAtomic() != null ? qo.getIsAtomic().equals(1) : false)")
     MetricSnapshotDTO qoToDto(MetricSnapshotQO qo);
 
@@ -40,7 +41,7 @@ public interface MetricSnapshotStructMap {
      */
     @Mapping(target = "entityCode", expression = "java(model.getEntity().getMeta().getCode())")
     @Mapping(target = "entityId", expression = "java(model.getEntity().getId())")
-    @Mapping(target = "valueMap", expression = "java(metricStructMapper.echoModelToSampleValue(model.getMetricList(), model.getSnapshotDateTime()))")
-    @Mapping(target = "sampleTimeMap", expression = "java(metricStructMapper.echoModelToSampleTime(model.getMetricList(), model.getSnapshotDateTime()))")
+    @Mapping(target = "valueMap", expression = "java(metricStructMapper.echoModelToSnapshotValue(model.getMetricList(), model.getSnapshotTs()))")
+    @Mapping(target = "snapshotTimestampMap", expression = "java(metricStructMapper.echoModelToSnapshotTime(model.getMetricList(), model.getSnapshotTs()))")
     MetricSnapshotVO modelToVo(MetricSnapshot model);
 }

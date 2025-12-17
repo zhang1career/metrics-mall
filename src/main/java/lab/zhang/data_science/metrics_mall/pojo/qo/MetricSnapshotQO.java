@@ -38,7 +38,7 @@ public class MetricSnapshotQO {
      */
     @NotNull(message = "Metrics cannot be null")
     @Valid
-    private List<VersionedMetricDimensionQO> metrics;
+    private List<EchoMetricQO> metrics;
     
     /**
      * Snapshot timestamp in milliseconds. 0 means return latest snapshot time, null means not return timestamp.

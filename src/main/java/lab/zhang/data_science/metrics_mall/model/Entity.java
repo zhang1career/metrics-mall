@@ -22,12 +22,11 @@ public class Entity extends BaseModel {
     private Long id;
 
 
-    @EqualsAndHashCode(callSuper = true)
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class EntityMeta extends BaseModel {
+    public static class EntityMeta {
 
         private Integer id;
 

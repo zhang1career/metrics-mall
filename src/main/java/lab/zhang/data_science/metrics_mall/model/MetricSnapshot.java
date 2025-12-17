@@ -1,12 +1,11 @@
 package lab.zhang.data_science.metrics_mall.model;
 
-import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
+import lab.zhang.data_science.metrics_mall.model.metric.BetaMetric;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -25,7 +24,10 @@ public class MetricSnapshot {
     /**
      * Metric values map, key is metric code, value is metric value.
      */
-    private List<EchoMetric> metricList;
+    private List<BetaMetric> metricList;
 
-    private LocalDateTime snapshotDateTime;
+    /**
+     * Snapshot timestamp in milliseconds.
+     */
+    private Long snapshotTs;
 }

@@ -34,7 +34,7 @@
         <hutool.version>5.8.25</hutool.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <mvel2.version>2.5.2.Final</mvel2.version>
-        <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <mysql-connector.version>8.3.0</mysql-connector.version>
         <spock.version>2.4-groovy-4.0</spock.version>
         <groovy.version>4.0.15</groovy.version>
@@ -66,10 +66,10 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
-        <!-- MyBatis Plus -->
+        <!-- MyBatis Plus (Spring Boot 3.x compatible) -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>${mybatis-plus.version}</version>
         </dependency>
 

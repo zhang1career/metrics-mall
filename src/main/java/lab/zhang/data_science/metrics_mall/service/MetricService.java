@@ -2,6 +2,7 @@ package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.model.*;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
+import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public interface MetricService {
      * @param code metric code
      * @return metric model, null if not found
      */
-    PrimeMetric getByCode(String code);
+    PrimeMetric getPrimeMetricByCode(String code);
     
     /**
      * Get metric models by codes.
@@ -29,8 +30,17 @@ public interface MetricService {
      * @param codes metric codes list
      * @return metric model map, key is metric code, value is metric model
      */
-    Map<String, PrimeMetric> getByCodes(List<String> codes);
-    
+    Map<String, PrimeMetric> getPrimeMetricByCodeBatch(List<String> codes);
+
+
+    /**
+     * Get metric DAO by code.
+     * @param code metric code
+     * @return metric DAO, null if not found
+     */
+    MetricDAO getMetricDaoByCode(String code);
+
+
     /**
      * Validate metric codes exist.
      *

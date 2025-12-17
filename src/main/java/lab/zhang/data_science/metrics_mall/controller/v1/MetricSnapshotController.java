@@ -9,8 +9,10 @@ import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricSnapshotVO;
 import lab.zhang.data_science.metrics_mall.service.MetricSnapshotService;
-import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMap;
+import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -21,10 +23,14 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Metric Snapshot", description = "GMS (Get Metric Snapshot) APIs")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class MetricSnapshotController extends BaseController {
 
-    private final MetricSnapshotService metricSnapshotService;
-    private final MetricSnapshotStructMap metricSnapshotStructMap;
+    @Autowired
+    private MetricSnapshotService metricSnapshotService;
+
+    @Autowired
+    private MetricSnapshotStructMapper metricSnapshotStructMapper;
 
     /**
      * Query metric snapshot.
@@ -40,15 +46,20 @@ public class MetricSnapshotController extends BaseController {
             @RequestHeader(value = "X-Request-ID", required = false) String requestIdStr,
             @RequestParam(value = "traceId", required = false) String traceIdStr,
             @Valid @RequestBody MetricSnapshotQO qo) {
+        log.info("[snap] param: entityCode={}, entityId={}, metrics={}, snapshot={}, atomic={}",
+                qo.getEc(), qo.getEid(), qo.getMetrics(), qo.getSnapshotTs(), qo.getIsAtomic());
 
-        // Convert QO to Model
-        MetricSnapshotDTO dto = metricSnapshotStructMap.qoToDto(qo);
-
-        // Call service layer
+        MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo);
+        if (dto == null) {
+            throw new IllegalArgumentException("[snap] invalid parameter");
+        }
+        // query
         MetricSnapshot model = metricSnapshotService.querySnapshot(dto);
+        if (model == null) {
+            throw new IllegalArgumentException("[snap] metric not found");
+        }
 
-        // Convert Model to DTO
-        MetricSnapshotVO vo = metricSnapshotStructMap.modelToVo(model);
+        MetricSnapshotVO vo = metricSnapshotStructMapper.modelToVo(model);
 
         return ApiResponse.success(vo);
     }

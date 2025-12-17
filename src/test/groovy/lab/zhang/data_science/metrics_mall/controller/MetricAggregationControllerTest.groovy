@@ -8,15 +8,13 @@ import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.AggregationVO
-import lab.zhang.data_science.metrics_mall.pojo.vo.MetricAggregationVO
 import lab.zhang.data_science.metrics_mall.pojo.vo.BriefMetricVO.PrettyBriefMetricVO
+import lab.zhang.data_science.metrics_mall.pojo.vo.MetricAggregationVO
 import lab.zhang.data_science.metrics_mall.service.MetricAggregationService
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricAggregationStructMapper
-import org.spockframework.spring.SpringBean
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -28,22 +26,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author Rongjin Zhang
  */
-@WebMvcTest(controllers = [MetricAggregationController.class])
 class MetricAggregationControllerTest extends Specification {
 
-    @Autowired
     MockMvc mockMvc
 
-    @SpringBean
     MetricAggregationService metricAggregationService = Mock()
 
-    @SpringBean
     MetricAggregationStructMapper metricAggregationStructMapper = Mock()
 
-    @Autowired
-    ObjectMapper objectMapper
+    MetricAggregationController controller
+
+    ObjectMapper objectMapper = new ObjectMapper()
 
     private static final String API_KEY = "test-api-key"
+
+    def setup() {
+        controller = new MetricAggregationController(metricAggregationService, metricAggregationStructMapper)
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+    }
 
     def "test query aggregation success"() {
         given:
@@ -56,14 +56,14 @@ class MetricAggregationControllerTest extends Specification {
                 .interval("1h")
                 .groupBy(["city", "os"])
                 .filters([MetricAggregationQO.FieldConditionQO.builder()
-                        .field("channel")
-                        .op("=")
-                        .value("tiktok")
-                        .build()])
+                                  .field("channel")
+                                  .op("=")
+                                  .value("tiktok")
+                                  .build()])
                 .orderBys([MetricAggregationQO.OrderByQO.builder()
-                        .field("pay_amount")
-                        .sort("desc")
-                        .build()])
+                                   .field("pay_amount")
+                                   .sort("desc")
+                                   .build()])
                 .limit(100)
                 .build()
 
@@ -71,7 +71,7 @@ class MetricAggregationControllerTest extends Specification {
         def precision2 = 2
 
         def meta = [
-                "pay_amount": PrimeMetric.builder()
+                "pay_amount"  : PrimeMetric.builder()
                         .name("支付金额")
                         .unit("CNY")
                         .precision(precision2)
@@ -84,10 +84,10 @@ class MetricAggregationControllerTest extends Specification {
         ]
 
         def dimMap = ["bucket_time": TypedValue.of("2024-05-20 10:00:00"),
-                      "city": TypedValue.of("Beijing"),
-                      "os": TypedValue.of("iOS")]
-        def valueMap = ["pay_amount": TypedValue.of(5000.00, precision2),
-                              "pay_user_cnt": TypedValue.of(200.0, precision0)]
+                      "city"       : TypedValue.of("Beijing"),
+                      "os"         : TypedValue.of("iOS")]
+        def valueMap = ["pay_amount"  : TypedValue.of(5000.00, precision2),
+                        "pay_user_cnt": TypedValue.of(200.0, precision0)]
         def dimensionValueMap = [(dimMap): valueMap]
 
         def result = new MetricAggregation(meta, dimensionValueMap)
@@ -95,7 +95,7 @@ class MetricAggregationControllerTest extends Specification {
         def dto = MetricAggregationDTO.builder().build()
 
         def metaVO = [
-                "pay_amount": PrettyBriefMetricVO.builder()
+                "pay_amount"  : PrettyBriefMetricVO.builder()
                         .name("支付金额")
                         .unit("CNY")
                         .precision(2)
@@ -109,9 +109,9 @@ class MetricAggregationControllerTest extends Specification {
         def vo = MetricAggregationVO.builder()
                 .meta(metaVO)
                 .rows([AggregationVO.builder()
-                        .dimensionMap(dimMap)
-                        .valueMap(valueMap)
-                        .build()])
+                               .dimensionMap(dimMap)
+                               .valueMap(valueMap)
+                               .build()])
                 .build()
 
         metricAggregationStructMapper.qoToDto(_ as MetricAggregationQO) >> dto
@@ -159,12 +159,12 @@ class MetricAggregationControllerTest extends Specification {
         ]
 
         def multiDimMap1 = ["bucket_time": TypedValue.of("2024-05-20 10:00:00"),
-                        "city": TypedValue.of("Beijing"),
-                        "os": TypedValue.of("iOS")]
+                            "city"       : TypedValue.of("Beijing"),
+                            "os"         : TypedValue.of("iOS")]
         def multiMetricValueMap1 = ["pay_amount": TypedValue.of(5000.00, precision1)]
         def multiDimMap2 = ["bucket_time": TypedValue.of("2024-05-20 11:00:00"),
-                        "city": TypedValue.of("Shanghai"),
-                        "os": TypedValue.of("iOS")]
+                            "city"       : TypedValue.of("Shanghai"),
+                            "os"         : TypedValue.of("iOS")]
         def multiMetricValueMap2 = ["pay_amount": TypedValue.of(3000.00, precision1)]
         def valueMap = [(multiDimMap1): multiMetricValueMap1, (multiDimMap2): multiMetricValueMap2]
 
@@ -172,12 +172,12 @@ class MetricAggregationControllerTest extends Specification {
 
         def dto = MetricAggregationDTO.builder().build()
         def multiTestDimMap1 = ["bucket_time": TypedValue.of("2024-05-20 10:00:00"),
-                       "city": TypedValue.of("Beijing"),
-                       "os": TypedValue.of("iOS")]
+                                "city"       : TypedValue.of("Beijing"),
+                                "os"         : TypedValue.of("iOS")]
         def multiTestMetricMap1 = ["pay_amount": TypedValue.of(5000.00, precision1)]
         def multiTestDimMap2 = ["bucket_time": TypedValue.of("2024-05-20 11:00:00"),
-                       "city": TypedValue.of("Shanghai"),
-                       "os": TypedValue.of("iOS")]
+                                "city"       : TypedValue.of("Shanghai"),
+                                "os"         : TypedValue.of("iOS")]
         def multiTestMetricMap2 = ["pay_amount": TypedValue.of(3000.00, precision1)]
         def vo = MetricAggregationVO.builder()
                 .meta([:])

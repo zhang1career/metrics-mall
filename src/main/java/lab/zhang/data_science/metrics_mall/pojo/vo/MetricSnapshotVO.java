@@ -43,6 +43,6 @@ public class MetricSnapshotVO {
      * Only present when snapshotTs is 0 or specified.
      */
     @JsonProperty("_ts")
-    private Map<String, Long> sampleTimeMap;
+    private Map<String, Long> snapshotTsMap;
 }
 

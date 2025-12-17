@@ -30,7 +30,18 @@ public class TypedValue implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Default precision for decimal values.
+     */
+    private static final Integer PRECISION_DEFAULT = 2;
 
+    /**
+     * Create TypedValue from raw Object value.
+     * Decimal values use default precision.
+     *
+     * @param value raw value
+     * @return TypedValue instance
+     */
     public static TypedValue of(Object value) {
         if (value == null) {
             return nullValue();
@@ -41,9 +52,9 @@ public class TypedValue implements Serializable {
         } else if (value instanceof Long) {
             return new TypedValue(value, ValueTypeEnum.LONG);
         } else if (value instanceof Double || value instanceof Float) {
-            throw new IllegalArgumentException("Precision must be specified for decimal values.");
+            return new TypedValue(value, ValueTypeEnum.DECIMAL, PRECISION_DEFAULT);
         } else if (value instanceof BigDecimal) {
-            throw new IllegalArgumentException("Precision must be specified for decimal values.");
+            return new TypedValue(value, ValueTypeEnum.DECIMAL, PRECISION_DEFAULT);
         } else if (value instanceof Boolean) {
             return new TypedValue(value, ValueTypeEnum.BOOLEAN);
         } else {
@@ -51,6 +62,13 @@ public class TypedValue implements Serializable {
         }
     }
 
+    /**
+     * Create TypedValue from raw Object value with specified precision for decimal types.
+     *
+     * @param value     raw value
+     * @param precision precision for decimal types
+     * @return TypedValue instance
+     */
     public static TypedValue of(Object value, Integer precision) {
         if (value == null) {
             return nullValue();
@@ -151,6 +169,16 @@ public class TypedValue implements Serializable {
             case BOOLEAN -> getBooleanValue();
             default -> value;  // Return raw value for complex types
         };
+    }
+
+    /**
+     * Get value as String
+     *
+     * @return String representation of the value
+     */
+    public String getValueStr() {
+        Object val = getValue();
+        return val != null ? val.toString() : null;
     }
 
     /**

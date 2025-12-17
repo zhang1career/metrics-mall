@@ -23,7 +23,7 @@ public class EntityMetaDAO extends BaseDAO {
      * Primary key id.
      */
     @TableId(type = IdType.AUTO)
-    private Long id;
+    private Integer id;
     
     /**
      * Entity code (unique), e.g., user, device, trans.

@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date 2025-01-16
  */
 @SpringBootApplication
+@MapperScan("lab.zhang.data_science.metrics_mall.mapper")
 public class MetricsMallApplication {
 
     public static void main(String[] args) {

@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
 import java.util.Map;
 
 /**
- * Metric query item model.
+ * Multifaceted Metric query item model for service layer.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetricDimensionDTO {
+public class EchoMetricDTO {
 
     /**
      * Metric code.
@@ -23,7 +23,18 @@ public class MetricDimensionDTO {
     private String code;
 
     /**
+     * Metric version.
+     */
+    private Integer version;
+
+    /**
      * Dimension conditions map.
      */
     private Map<String, TypedValue> dimensionMap;
+
+    /**
+     * Snapshot timestamp in milliseconds.
+     * 0 means return latest snapshot time, null means not return timestamp.
+     */
+    private Long snapshotTs;
 }

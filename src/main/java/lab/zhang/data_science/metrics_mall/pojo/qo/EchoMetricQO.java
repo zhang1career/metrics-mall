@@ -15,7 +15,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VersionedMetricDimensionQO {
+public class EchoMetricQO {
 
     /**
      * Metric code.
