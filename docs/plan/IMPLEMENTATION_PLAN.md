@@ -63,7 +63,7 @@
 
 ## 2. MVP阶段详细计划 (Week 1-4)
 
-### 2.1 Week 1-2: 基础设施搭建
+### 2.1 Week 1-2: 基础设施搭建与快照写入功能设计
 
 #### 2.1.1 任务清单
 
@@ -72,6 +72,13 @@
 - [ ] ClickHouse单节点部署
 - [ ] MySQL数据库初始化
 - [ ] 基础监控配置（Prometheus + Grafana）
+- [ ] **快照写入功能接口设计与数据模型设计**
+  - 完成快照写入API接口详细设计（POST /api/v1/m_snap/write）
+  - 完成快照查询API接口详细设计（POST /api/v1/m_snap）
+  - 完成Redis Hash数据模型设计（热存储）
+  - 完成ClickHouse表结构设计（冷存储，MVP阶段使用JSON+物化列混合方案）
+  - 完成DTO和POJO类设计（MetricSnapshotWriteQO、MetricSnapshotWriteDTO等）
+  - 完成op_log表设计（用于可解释性追溯）
 
 #### 2.1.2 数据库Schema
 
@@ -89,11 +96,30 @@ CREATE TABLE `metric` (
     `agg_type`    INT UNSIGNED NOT NULL DEFAULT '0' COMMENT '0=sum, 1=avg, 2=max, 3=min, 4=count',
     `unit`        VARCHAR(32)  NOT NULL DEFAULT '' COMMENT 'unit of the metric',
     `validation`  VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'valid range, json format',
+    `op_id`       BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作日志ID，用于可解释性追溯',
+    `client_write_only` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否仅允许客户端写入：0=否，1=是',
     `ct`          INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Create time, UNIX timestamp in seconds',
     `ut`          INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Update time, UNIX timestamp in seconds',
     PRIMARY KEY (`id`),
     UNIQUE INDEX `uni_metric_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='metric definition';
+
+-- 操作日志表（用于可解释性追溯）
+CREATE TABLE `op_log` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `event`       TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作类型：0=create_metric, 1=create_metric_version, 2=update_metric, 3=set_main, 4=rollback',
+    `table_name` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '操作的表名：metric, metric_version等',
+    `record_id`  BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作的记录ID',
+    `src`         TEXT COMMENT '操作前的快照（JSON格式），用于恢复',
+    `mod`         TEXT COMMENT '修改详情（JSON格式），记录变更内容',
+    `operator`    BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作者用户ID',
+    `ct`          INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间，UNIX时间戳（秒）',
+    PRIMARY KEY (`id`),
+    INDEX `idx_table_record` (`table_name`, `record_id`),
+    INDEX `idx_event` (`event`),
+    INDEX `idx_operator` (`operator`),
+    INDEX `idx_ct` (`ct`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表，用于记录所有对metric表及相关表的修改操作';
 
 -- 实体元数据表
 CREATE TABLE `entity_meta` (
@@ -144,6 +170,36 @@ CREATE TABLE metrics_detail (
 PARTITION BY toYYYYMM(date)
 ORDER BY (metric_name, date, timestamp)
 SETTINGS index_granularity = 8192;
+
+-- 快照日志表（MVP阶段：JSON + 物化列混合方案）
+CREATE TABLE dwd_metric_snapshot_log (
+    `event_time` DateTime64(3) COMMENT '快照写入时间',
+    `project` LowCardinality(String),
+    `entity_type` LowCardinality(String),
+    `entity_id` String,
+    `biz_id` String,
+    `trace_id` String COMMENT '分布式追踪ID',
+    
+    -- 原始JSON存储（保留灵活性）
+    `context_json` String COMMENT '原始上下文JSON，支持任意字段',
+    
+    -- 物化列（高频查询的维度，手动配置）
+    `campaign_id` String MATERIALIZED JSONExtractString(context_json, 'campaign_id'),
+    `ad_group_id` String MATERIALIZED JSONExtractString(context_json, 'ad_group_id'),
+    `keyword` String MATERIALIZED JSONExtractString(context_json, 'keyword'),
+    
+    -- Map作为fallback（兼容未注册维度）
+    `context_data` Map(String, String) MATERIALIZED 
+        JSONExtractKeysAndValues(context_json, 'String'),
+    
+    -- 使用 Map 存储动态指标
+    `metrics_data` Map(String, Float64) COMMENT '指标数值集合',
+    `metrics_op_id` Map(String, UInt64) COMMENT '指标操作日志ID集合，用于可解释性追溯'
+)
+ENGINE = MergeTree()
+ORDER BY (project, event_time, biz_id, trace_id)
+PARTITION BY toYYYYMMDD(event_time)
+TTL event_time + INTERVAL 6 MONTH;
 ```
 
 #### 2.1.3 部署方案
@@ -259,7 +315,7 @@ volumes:
 
 ---
 
-### 2.2 Week 3: 数据链路开发
+### 2.2 Week 3: 数据链路开发与快照写入热存储实现
 
 #### 2.2.1 任务清单
 
@@ -267,6 +323,16 @@ volumes:
 - [ ] SDK开发（Java版，支持JSON上报）
 - [ ] GMS接口实现（Redis查询）
 - [ ] 基础API框架搭建
+- [ ] **快照写入功能热存储（Redis）实现**
+  - 实现快照写入接口（POST /api/v1/m_snap/write）
+  - 实现Redis Hash写入逻辑（Key格式：snap:{project}:{biz_id}）
+  - 实现TTL设置和过期策略（默认24小时，最长7天）
+  - 实现参数校验（必填项、数量限制、大小限制、指标写入约束检查）
+  - 实现op_id获取和存储逻辑（从metric表查询op_id并存储）
+  - 实现Lua脚本原子操作（用于客户端写入快照数据的"读取-修改-写入"场景）
+  - 实现Kafka异步发送逻辑（异步写入，不阻塞主流程）
+  - 实现异常处理和错误返回
+  - 完成单元测试
 
 #### 2.2.2 API设计
 
@@ -341,6 +407,94 @@ Response:
 }
 ```
 
+**快照写入接口**
+
+```http
+POST /api/v1/m_snap/write
+Content-Type: application/json
+X-API-Key: {api_key}
+
+Request Body:
+{
+  "project": "credit_loan",
+  "entity_type": "user",
+  "entity_id": "u88888",
+  "biz_id": "txn_20231212_001",
+  "trace_id": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+  "write_mode": 0,
+  "ttl_seconds": 86400,
+  "metrics": {
+    "risk_score": 85.5,
+    "ctr_rate": 0.12
+  },
+  "context": {
+    "client_ip": "10.0.0.1",
+    "device_model": "iPhone 15",
+    "campaign_id": "camp_20231212"
+  }
+}
+
+Response:
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "biz_id": "txn_20231212_001",
+    "write_time": 1701234567890,
+    "snapshot_count": 2
+  }
+}
+```
+
+**快照查询接口**
+
+```http
+POST /api/v1/m_snap
+Content-Type: application/json
+X-API-Key: {api_key}
+
+Request Body:
+{
+  "biz_id": "txn_20231212_001"
+}
+
+或
+
+{
+  "trace_id": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+}
+
+Response:
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "biz_id": "txn_20231212_001",
+    "trace_id": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+    "timestamp": 1701234567890,
+    "entity": {
+      "type": "user",
+      "id": "u88888"
+    },
+    "metrics": {
+      "risk_score": {
+        "value": 85.5,
+        "op_id": 12345
+      },
+      "ctr_rate": {
+        "value": 0.12,
+        "op_id": 12346
+      }
+    },
+    "context": {
+      "client_ip": "10.0.0.1",
+      "device_model": "iPhone 15",
+      "campaign_id": "camp_20231212"
+    }
+  }
+}
+```
+
 #### 2.2.3 Flink任务设计
 
 **Flink任务流程**
@@ -400,13 +554,23 @@ TTL: 24小时
 
 ---
 
-### 2.3 Week 4: 验证与优化
+### 2.3 Week 4: 快照写入冷存储实现与查询接口
 
 #### 2.3.1 任务清单
 
 - [ ] GMA接口实现（ClickHouse聚合查询）
-- [ ] 压测验证（模拟10万行/天）
-- [ ] 性能优化
+- [ ] **快照写入功能冷存储（ClickHouse）异步写入实现**
+  - 实现Flink/Consumer消费逻辑（消费topic_metric_snapshot）
+  - 实现数据清洗和格式转换（Flatten Map，时间戳规范化）
+  - 实现ClickHouse批量写入（批次大小5000条或1秒）
+  - 实现容错和重试机制（死信队列、定期重试）
+- [ ] **快照查询接口实现**
+  - 实现快照查询接口（POST /api/v1/m_snap）
+  - 实现热存储查询逻辑（优先查询Redis，通过biz_id查询）
+  - 实现冷存储查询逻辑（降级查询ClickHouse，支持biz_id和trace_id查询）
+  - 实现查询降级逻辑（Redis未命中时自动降级到ClickHouse）
+  - 实现op_id返回逻辑（查询结果中包含每个指标的op_id）
+- [ ] 性能优化和压测
 - [ ] 监控告警配置
 
 #### 2.3.2 API设计
@@ -511,10 +675,16 @@ groups:
 
 ## 3. Alpha阶段详细计划 (Week 5-8)
 
-### 3.1 Week 5-6: 多指标支持与管理后台
+### 3.1 Week 5-6: 快照写入功能测试完善与多指标支持
 
 #### 3.1.1 任务清单
 
+- [ ] **快照写入功能测试与文档完善**
+  - 完成端到端测试（写入→查询全流程验证）
+  - 完成压测验证（5000 QPS持续10分钟）
+  - 完成数据一致性验证（Redis和ClickHouse数据一致性）
+  - 完善API文档（Swagger文档）
+  - 完善运维文档（监控告警配置说明）
 - [ ] 支持10+指标
 - [ ] 管理后台开发（Dashboard、指标管理、用户管理）
 - [ ] API Key认证机制
@@ -987,6 +1157,13 @@ spec:
 - API接口测试（GMS/GMA）
 - 数据链路测试（SDK→Kafka→Flink→Redis/ClickHouse）
 - 数据库操作测试
+- **快照写入功能集成测试**
+  - 快照写入接口测试（同步写入Redis，异步发送Kafka）
+  - 快照查询接口测试（热存储查询、冷存储查询、降级逻辑）
+  - 数据一致性测试（Redis和ClickHouse数据一致性验证）
+  - op_id追溯测试（验证op_id正确存储和查询）
+  - 并发写入测试（Lua脚本原子性验证）
+  - 异常场景测试（Redis失败、Kafka失败、参数校验失败）
 
 ### 6.3 性能测试
 
@@ -996,6 +1173,11 @@ spec:
 - GMS: P99延迟<10ms，支持1000 QPS
 - GMA: P95延迟<1s，支持10 QPS
 - 数据写入: 支持10万行/天
+- **快照写入功能性能测试**:
+  - 快照写入接口: P99延迟<20ms，支持5000+ QPS
+  - 快照查询接口（热数据）: P99延迟<10ms
+  - 快照查询接口（冷数据）: P95延迟<1s
+  - 压测场景: 5000 QPS持续10分钟
 
 ### 6.4 端到端测试
 
@@ -1003,17 +1185,27 @@ spec:
 - 用户注册→创建指标→SDK上报→查询指标
 - 多租户数据隔离
 - 配额限制与超限处理
+- **快照写入功能端到端测试**:
+  - 完整流程: 写入快照→查询快照（热存储）→查询快照（冷存储）→op_id追溯
+  - 客户端主导模式: 客户端提供指标值→写入快照→验证数据一致性
+  - 服务端主导模式: 服务端查询指标值→写入快照→验证数据一致性
+  - 动态维度测试: 写入自定义维度→查询验证→ClickHouse物化列查询
+  - 可解释性测试: 查询快照→获取op_id→追溯指标定义变更历史
 
 ---
 
 ## 7. 风险与应对
 
-| 风险项 | 影响 | 概率 | 应对措施 |
-|--------|------|------|----------|
-| 性能不达标 | 高 | 中 | 提前进行性能测试，及时优化 |
-| 数据丢失 | 高 | 低 | 配置Kafka副本，定期备份 |
-| 客户获取困难 | 高 | 中 | 提前准备营销材料，建立案例库 |
-| 技术难点 | 中 | 中 | 预留缓冲时间，寻求外部支持 |
+| 风险项 | 影响 | 概率 | 应对措施 | 风险等级 |
+|--------|------|------|----------|----------|
+| 性能不达标 | 高 | 中 | 提前进行性能测试，及时优化 | 🟡 中 |
+| 数据丢失 | 高 | 低 | 配置Kafka副本，定期备份 | 🟡 中 |
+| 客户获取困难 | 高 | 中 | 提前准备营销材料，建立案例库 | 🟡 中 |
+| 技术难点 | 中 | 中 | 预留缓冲时间，寻求外部支持 | 🟢 低 |
+| **Redis写入性能不达标（快照写入）** | 高 | 中 | 1) 使用Pipeline批量操作 2) 连接池优化 3) 考虑使用Redis Cluster | 🟡 中 |
+| **Kafka发送失败导致数据丢失（快照写入）** | 高 | 低 | 1) 本地日志记录 2) 死信队列 3) 定期补偿机制 | 🟡 中 |
+| **ClickHouse写入延迟（快照写入）** | 中 | 中 | 1) 批量写入优化 2) 异步写入不阻塞主流程 3) 监控告警 | 🟢 低 |
+| **接口设计变更（快照写入）** | 中 | 中 | 1) 提前评审接口设计 2) 保持向后兼容 3) 版本管理 | 🟡 中 |
 
 ---
 
@@ -1025,6 +1217,16 @@ spec:
 - [ ] GMA延迟<1s（P95）
 - [ ] 系统可用性>99%
 - [ ] 支持1个指标端到端流程
+- [ ] **快照写入功能验收标准**
+  - [ ] 快照写入接口P99延迟<20ms
+  - [ ] 快照写入接口支持5000+ QPS
+  - [ ] 快照查询接口P99延迟<10ms（热数据）
+  - [ ] 快照查询接口P95延迟<1s（冷数据）
+  - [ ] 数据一致性验证通过（Redis和ClickHouse数据一致）
+  - [ ] 单元测试覆盖率>80%
+  - [ ] 压测验证通过（5000 QPS持续10分钟）
+  - [ ] 接口文档完善
+  - [ ] 监控告警配置完成
 
 ### Alpha阶段检查点（Week 8结束）
 
@@ -1032,6 +1234,11 @@ spec:
 - [ ] 管理后台功能完整
 - [ ] 1个客户成功接入
 - [ ] API文档完善
+- [ ] **快照写入功能完整验收**
+  - [ ] 端到端测试通过
+  - [ ] 压测验证通过
+  - [ ] 数据一致性验证通过
+  - [ ] API文档和运维文档完善
 
 ### Beta阶段检查点（Week 12结束）
 
