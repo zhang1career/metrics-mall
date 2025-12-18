@@ -9,10 +9,10 @@ import lab.zhang.data_science.metrics_mall.enums.ValueTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.metric.AlphaMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
-import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.AlphaMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
-import lab.zhang.data_science.metrics_mall.pojo.dto.EchoMetricDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.BriefMetricVO.PrettyBriefMetricVO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO;
@@ -56,22 +56,22 @@ public interface MetricStructMapper {
     //==================== PrimeMetric Model ====================
 
     /**
-     * Convert MetricDAO to MetricModel.
+     * Convert MetricMetaDAO to MetricModel.
      *
-     * @param dao metric entity
+     * @param dao metric meta entity
      * @return MetricModel
      */
     @Mapping(target = "metricType", expression = "java(mapMetricType(dao.getMetricType()))")
     @Mapping(target = "aggregationType", expression = "java(mapAggregationType(dao.getAggregationType()))")
-    PrimeMetric daoToPrimeModel(MetricDAO dao);
+    PrimeMetric daoToPrimeModel(MetricMetaDAO dao);
 
     /**
-     * Convert list of MetricDAO to list of MetricModel.
+     * Convert list of MetricMetaDAO to list of MetricModel.
      *
-     * @param daoList metric entity list
+     * @param daoList metric meta entity list
      * @return MetricModel list
      */
-    List<PrimeMetric> daoToPrimeModelBatch(List<MetricDAO> daoList);
+    List<PrimeMetric> daoToPrimeModelBatch(List<MetricMetaDAO> daoList);
 
 
     //==================== Dimension ====================
@@ -210,7 +210,7 @@ public interface MetricStructMapper {
      * Convert EchoMetricDAO to EchoMetric.
      *
      * @param echo echo metric DAO
-     * @param meta metric DAO
+     * @param meta metric meta DAO
      * @return echo metric model
      */
     @Mapping(target = "value", expression = "java(typedValueOf(echo.getA(), meta.getValueType()))")
@@ -220,7 +220,7 @@ public interface MetricStructMapper {
     @Mapping(target = "precision", source = "meta.precision")
     @Mapping(target = "unit", source = "meta.unit")
     @Mapping(target = "validationMap", source = "meta.validation")
-    EchoMetric echoMetricDaoToModel(EchoMetricDAO echo, MetricDAO meta);
+    EchoMetric echoMetricDaoToModel(EchoMetricDAO echo, MetricMetaDAO meta);
 
 
     //==================== EchoMetric DAO ====================

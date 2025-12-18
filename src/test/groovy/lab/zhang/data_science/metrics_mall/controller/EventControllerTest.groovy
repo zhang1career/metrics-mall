@@ -2,6 +2,7 @@ package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.controller.v1.EventController
+import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.EventAcceptanceResult
 import lab.zhang.data_science.metrics_mall.pojo.dto.EventDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EventBatchQO
@@ -39,7 +40,9 @@ class EventControllerTest extends Specification {
 
     def setup() {
         controller = new EventController(eventService, eventStructMapper)
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build()
     }
 
     def "test report success"() {
@@ -136,7 +139,8 @@ class EventControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(eventBatchQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test report validation error missing timestamp"() {
@@ -155,7 +159,8 @@ class EventControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(eventBatchQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test report validation error missing value"() {
@@ -174,7 +179,8 @@ class EventControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(eventBatchQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test report events validation error empty"() {
@@ -200,7 +206,8 @@ class EventControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(eventBatchQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     /**

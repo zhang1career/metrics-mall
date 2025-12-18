@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 /**
- * Entity meta information entity.
+ * entity meta entity.
  *
  * @author Rongjin Zhang
  * 

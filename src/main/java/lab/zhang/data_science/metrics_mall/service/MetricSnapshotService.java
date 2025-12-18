@@ -2,6 +2,7 @@ package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO;
 
 /**
  * Metric service interface.
@@ -16,5 +17,13 @@ public interface MetricSnapshotService {
      * @return metric snapshot result containing values and timestamps
      */
     MetricSnapshot querySnapshot(MetricSnapshotDTO dto);
+
+    /**
+     * Write metric snapshot values.
+     *
+     * @param dto metric snapshot write model
+     * @return op_log id
+     */
+    Long writeSnapshot(MetricSnapshotWriteDTO dto);
 }
 

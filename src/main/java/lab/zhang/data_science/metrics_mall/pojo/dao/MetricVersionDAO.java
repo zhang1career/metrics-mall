@@ -29,14 +29,19 @@ public class MetricVersionDAO extends BaseDAO {
     /**
      * Metric id (refer to metric).
      */
-    @TableField("metric_id")
+    @TableField("mid")
     private Long metricId;
     
     /**
      * Version number.
      */
     private Integer version;
-    
+
+    /**
+     * Whether this version is the main version: 0=no, 1=yes.
+     */
+    private Integer isMain;
+
     /**
      * Metric status: 0=OFFLINE, 1=DEV, 2=TEST, 3=GRAY, 4=ONLINE, 5=DEPRECATED.
      */
@@ -47,7 +52,7 @@ public class MetricVersionDAO extends BaseDAO {
      * Timestamp when metric went online, UNIX timestamp in milliseconds.
      */
     @TableField("begin_status_t")
-    private Long beginStatusTime;
+    private Long beginStatusTs;
     
     /**
      * Calculation logic.

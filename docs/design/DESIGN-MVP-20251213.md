@@ -44,7 +44,7 @@
 
 后端的处理逻辑是：
 1. API服务接收入参`ec=user`和`eid=10000001`；解析`metrics[0].dims.city=Beijing`得到`city=Beijing`；
-2. 联表查询`entity_meta`、`dim`和`x`表，通过`entity_meta.code=user`和`x.alias=city`，把统一维度代号`city`替换为真实的维度代号`dim.code=born_city`，同时得到数值的获取方式`x.data_uri`。
+2. 联表查询`entity_meta`、`metric_meta`和`x`表，通过`entity_meta.code=user`和`x.alias=city`，把统一维度代号`city`替换为真实的维度代号`metric_meta.code=born_city`，同时得到数值的获取方式`x.data_uri`。
 3. 拼接 Redis Key: mx:user:10000001:login_count:born_city_Beijing；
 
 查询设备（40000001）在北京的登陆次数：
@@ -67,7 +67,7 @@
 
 后端的处理逻辑是：
 1. API服务接收入参`ec=device`和`eid=40000001`；解析`metrics[0].dims.city=Beijing`得到`city=Beijing`；
-2. 联表查询`entity_meta`、`dim`和`x`表，通过`entity_meta.code=device`和`x.alias=city`，把统一维度代号`city`替换为真实的维度代号`dim.code=produce_city`，同时得到数值的获取方式`x.data_uri`。
+2. 联表查询`entity_meta`、`metric_meta`和`x`表，通过`entity_meta.code=device`和`x.alias=city`，把统一维度代号`city`替换为真实的维度代号`metric_meta.code=produce_city`，同时得到数值的获取方式`x.data_uri`。
 3. 拼接 Redis Key: mx:device:40000001:login_count:produce_city_Beijing；
 
 
@@ -81,7 +81,7 @@
 #### 2. 智能参数校验(运营/调用方价值)
 
 对于GMS接口，当传入`ec=transaction`且`dims={"os_version": "14.0"}`（经过解析统一维度代号而得到）时，后端的处理逻辑是：
-1. 联表查询`entity_meta`、`dim`和`x`表;
+1. 联表查询`entity_meta`、`metric_meta`和`x`表;
 2. 判断：发现“交易”实体并没有关联“操作系统版本”维度；
 3. 动作：直接返回 400 Bad Request，无需去 Redis 查，节省了一次网络IO。
 

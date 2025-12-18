@@ -90,9 +90,9 @@ CREATE TABLE api_key (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='API密钥表';
 
 
--- 每个租户有独立的指标定义表，表名格式为 `{tenant_id}_metric`
--- 示例: t_abc123_metric
-CREATE TABLE t_abc123_metric (
+-- 每个租户有独立的指标定义表，表名格式为 `{tenant_id}_metric_meta`
+-- 示例: t_abc123_metric_meta
+CREATE TABLE t_abc123_metric_meta (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     code VARCHAR(128) NOT NULL COMMENT '指标代码',
     name VARCHAR(256) NOT NULL DEFAULT '' COMMENT '指标名称（中文）',
@@ -102,6 +102,7 @@ CREATE TABLE t_abc123_metric (
     agg_type INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '聚合类型: 0=sum, 1=avg, 2=max, 3=min, 4=count',
     unit VARCHAR(32) NOT NULL DEFAULT '' COMMENT '单位',
     validation VARCHAR(500) NOT NULL DEFAULT '' COMMENT '验证规则（JSON格式）',
+    card_max INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '基数限制',
     ct INT UNSIGNED NOT NULL DEFAULT 0,
     ut INT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
@@ -109,9 +110,9 @@ CREATE TABLE t_abc123_metric (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='指标定义表';
 
 -- 为租户创建指标定义表
-CREATE PROCEDURE create_tenant_metric_table(IN p_tenant_id VARCHAR(64))
+CREATE PROCEDURE create_tenant_metric_meta_table(IN p_tenant_id VARCHAR(64))
 BEGIN
-    SET @sql = CONCAT('CREATE TABLE IF NOT EXISTS ', p_tenant_id, '_metric (
+    SET @sql = CONCAT('CREATE TABLE IF NOT EXISTS ', p_tenant_id, '_metric_meta (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         code VARCHAR(128) NOT NULL,
         name VARCHAR(256) NOT NULL DEFAULT "",
@@ -121,6 +122,7 @@ BEGIN
         agg_type INT UNSIGNED NOT NULL DEFAULT 0,
         unit VARCHAR(32) NOT NULL DEFAULT "",
         validation VARCHAR(500) NOT NULL DEFAULT "",
+        card_max INT UNSIGNED NOT NULL DEFAULT 0,
         ct INT UNSIGNED NOT NULL DEFAULT 0,
         ut INT UNSIGNED NOT NULL DEFAULT 0,
         PRIMARY KEY (id),
@@ -138,7 +140,6 @@ CREATE TABLE t_abc123_dim (
     name VARCHAR(256) NOT NULL DEFAULT '',
     value_type INT UNSIGNED NOT NULL DEFAULT 0,
     validation VARCHAR(500) NOT NULL DEFAULT '',
-    card_limit INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '基数限制',
     ct INT UNSIGNED NOT NULL DEFAULT 0,
     ut INT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
@@ -155,8 +156,8 @@ CREATE TABLE t_abc123_entity_meta (
 
 CREATE TABLE t_abc123_metric_lineage (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    src_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '源指标ID',
-    dest_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标指标ID',
+    src_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '源指标ID, refer to t_abc123_metric_meta.id',
+    dest_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '目标指标ID, refer to t_abc123_metric_meta.id',
     depend_type INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '依赖类型: 0=derived, 1=aggregated, 2=joined',
     trans_logic TEXT COMMENT '转换逻辑（SQL或Flink代码）',
     ct INT UNSIGNED NOT NULL DEFAULT 0,

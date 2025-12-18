@@ -102,7 +102,7 @@ CREATE TABLE `metric` (
     `ut`          INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Update time, UNIX timestamp in seconds',
     PRIMARY KEY (`id`),
     UNIQUE INDEX `uni_metric_code` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='metric definition';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='metric meta';
 
 -- 操作日志表（用于可解释性追溯）
 CREATE TABLE `op_log` (
@@ -128,7 +128,7 @@ CREATE TABLE `entity_meta` (
     `name`        VARCHAR(256) NOT NULL DEFAULT '' COMMENT '用户, 设备, 交易单',
     PRIMARY KEY (`id`),
     UNIQUE INDEX `uni_entity_code` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='entity meta information';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='entity meta';
 
 -- 维度定义表
 CREATE TABLE `dim` (
@@ -147,13 +147,13 @@ CREATE TABLE `dim` (
 -- 实体与维度关联表
 CREATE TABLE `x` (
     `eid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的entity',
-    `did`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的dim',
+    `mid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的metric_meta',
     `alias`       VARCHAR(256)    NOT NULL DEFAULT '' COMMENT 'dimension alias',
     `data_uri`    VARCHAR(1024)   NOT NULL DEFAULT '' COMMENT '数据来源的地址',
     `is_hot`      TINYINT         NOT NULL DEFAULT 0 COMMENT '是否热维度，0=no, 1=yes',
-    PRIMARY KEY (`eid`, `did`),
+    PRIMARY KEY (`eid`, `mid`),
     UNIQUE INDEX `uni_entity_dim_alias` (`eid`, `alias`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='entity meta and dimension relationship';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='entity and metric relationship';
 ```
 
 **ClickHouse Schema (冷存储)**

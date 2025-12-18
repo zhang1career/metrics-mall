@@ -55,14 +55,14 @@ ALTER TABLE `metric` ADD UNIQUE INDEX `uni_metric_code_version` (`code`, `versio
 ```sql
 CREATE TABLE `metric_version` (
     `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `metric_id`   BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'refer to metric.id',
+    `mid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'refer to metric_meta.id',
     `version`     INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'version number',
     `calc_logic`  TEXT COMMENT 'calculation logic',
     `change_log`  TEXT COMMENT 'change log',
     `ct`          INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Create time, UNIX timestamp in seconds',
     `ut`          INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Update time, UNIX timestamp in seconds',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uni_metric_version` (`metric_id`, `version`),
+    UNIQUE KEY `uni_metric_version` (`mid`, `version`),
 ) COMMENT 'metric version';
 ```
 

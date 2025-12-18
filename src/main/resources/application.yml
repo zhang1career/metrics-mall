@@ -36,3 +36,8 @@ springdoc:
     try-it-out-enabled: true
   # 需要扫描的包路径（可选，如果不设置则扫描所有包）
   packages-to-scan: lab.zhang.data_science.metrics_mall
+
+# MyBatis Plus configuration
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true

@@ -6,17 +6,20 @@ import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO;
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotWriteQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricSnapshotVO;
 import lab.zhang.data_science.metrics_mall.service.MetricSnapshotService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMapper;
+import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Metric snapshot controller for handling GMS queries.
+ * Metric snapshot controller for handling GMS queries and writes.
  *
  * @author Rongjin Zhang
  */
@@ -32,6 +35,9 @@ public class MetricSnapshotController extends BaseController {
     @Autowired
     private MetricSnapshotStructMapper metricSnapshotStructMapper;
 
+    @Autowired
+    private MetricStructMapper metricStructMapper;
+
     /**
      * Query metric snapshot.
      *
@@ -46,10 +52,10 @@ public class MetricSnapshotController extends BaseController {
             @RequestHeader(value = "X-Request-ID", required = false) String requestIdStr,
             @RequestParam(value = "traceId", required = false) String traceIdStr,
             @Valid @RequestBody MetricSnapshotQO qo) {
-        log.info("[snap] param: entityCode={}, entityId={}, metrics={}, snapshot={}, atomic={}",
+        log.info("[snap] query, param: entityCode={}, entityId={}, metrics={}, snapshot={}, atomic={}",
                 qo.getEc(), qo.getEid(), qo.getMetrics(), qo.getSnapshotTs(), qo.getIsAtomic());
 
-        MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo);
+        MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo, metricStructMapper);
         if (dto == null) {
             throw new IllegalArgumentException("[snap] invalid parameter");
         }
@@ -59,8 +65,38 @@ public class MetricSnapshotController extends BaseController {
             throw new IllegalArgumentException("[snap] metric not found");
         }
 
-        MetricSnapshotVO vo = metricSnapshotStructMapper.modelToVo(model);
+        MetricSnapshotVO vo = metricSnapshotStructMapper.modelToVo(model, metricStructMapper);
 
         return ApiResponse.success(vo);
+    }
+
+    /**
+     * Write metric snapshot.
+     *
+     * @param apiKey API key from request header
+     * @param qo     metric snapshot write query object
+     * @return metric snapshot write response
+     */
+    @Operation(summary = "Write metric snapshot", description = "Write metric snapshot values to cache")
+    @PostMapping("/m_snap/write")
+    public ApiResponse<Long> writeSnapshot(
+            @RequestHeader("X-API-Key") String apiKey,
+            @RequestHeader(value = "X-Request-ID", required = false) String requestIdStr,
+            @RequestParam(value = "traceId", required = false) String traceIdStr,
+            @Valid @RequestBody MetricSnapshotWriteQO qo) {
+        log.info("[snap] write, param: entityCode={}, entityId={}, metrics={}, snapshotTs={}",
+                qo.getEc(), qo.getEid(), qo.getMetrics(), qo.getSnapshotTs());
+
+        MetricSnapshotWriteDTO dto = metricSnapshotStructMapper.writeQoToDto(qo, metricStructMapper);
+        if (dto == null) {
+            throw new IllegalArgumentException("[snap] invalid parameter");
+        }
+
+        Long opLogId = metricSnapshotService.writeSnapshot(dto);
+        if (opLogId == null) {
+            throw new IllegalArgumentException("[snap] write, entity meta is not found");
+        }
+
+        return ApiResponse.success(opLogId);
     }
 }

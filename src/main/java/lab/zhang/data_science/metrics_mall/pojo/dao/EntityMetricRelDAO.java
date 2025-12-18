@@ -6,28 +6,27 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * Execution event relation entity for database (table x)
- * Represents the relationship between events, rules and rule groups
+ * Entity_meta - Metric_meta Relation DAO for database
  *
  * @author Rongjin Zhang
  */
 @Data
 @TableName("x")
-public class EntityMetaDimensionRelationDAO {
+public class EntityMetricRelDAO {
 
     /**
      * Entity ID (part of composite primary key, unsigned integer)
      */
     @TableId
     @TableField("eid")
-    private Long entityId;
+    private Long entityMetaId;
 
     /**
-     * Dimension ID (part of composite primary key)
+     * Dimension ID (part of composite primary key, unsigned integer)
      */
     @TableId
-    @TableField("did")
-    private Long dimensionId;
+    @TableField("mid")
+    private Long metricMetaId;
 
     /**
      * Dimension alias name
@@ -38,10 +37,5 @@ public class EntityMetaDimensionRelationDAO {
      * Data URI
      */
     private String dataUri;
-
-    /**
-     * Is hot dimension
-     */
-    private Integer isHot;
 }
 

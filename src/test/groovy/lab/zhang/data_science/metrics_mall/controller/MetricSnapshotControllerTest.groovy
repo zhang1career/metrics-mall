@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService
 import lab.zhang.data_science.metrics_mall.common.TypedValue
 import lab.zhang.data_science.metrics_mall.controller.v1.MetricSnapshotController
+import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.Entity
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric
@@ -15,6 +16,7 @@ import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricSnapshotVO
 import lab.zhang.data_science.metrics_mall.service.MetricSnapshotService
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMapper
+import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -37,6 +39,8 @@ class MetricSnapshotControllerTest extends Specification {
 
     MetricSnapshotStructMapper metricSnapshotStructMap = Mock()
 
+    MetricStructMapper metricStructMapper = Mock()
+
     MetricSnapshotCacheService metricSnapshotCacheService = Mock()
 
     MetricSnapshotController controller
@@ -49,7 +53,10 @@ class MetricSnapshotControllerTest extends Specification {
         controller = new MetricSnapshotController()
         controller.metricSnapshotService = metricSnapshotService
         controller.metricSnapshotStructMapper = metricSnapshotStructMap
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+        controller.metricStructMapper = metricStructMapper
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build()
     }
 
     def "test query snapshot success"() {
@@ -59,6 +66,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .eid(12345678L)
                 .metrics([EchoMetricQO.builder()
                                   .code("coin_balance")
+                                  .alias("balance")
                                   .dims(createDimMap("city", "Beijing"))
                                   .build()])
                 .snapshotTs(0L)
@@ -88,9 +96,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")
@@ -115,10 +123,12 @@ class MetricSnapshotControllerTest extends Specification {
                 .metrics([
                         EchoMetricQO.builder()
                                 .code("coin_balance")
+                                .alias("balance")
                                 .dims(createDimMap("city", "Beijing"))
                                 .build(),
                         EchoMetricQO.builder()
                                 .code("risk_score")
+                                .alias("score")
                                 .dims(createDimMap("os", "ios"))
                                 .build()
                 ])
@@ -162,9 +172,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")
@@ -186,6 +196,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .eid(12345678L)
                 .metrics([EchoMetricQO.builder()
                                   .code("coin_balance")
+                                  .alias("balance")
                                   .build()])
                 .build()
 
@@ -212,9 +223,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(null)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")
@@ -234,6 +245,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .eid(12345678L)
                 .metrics([EchoMetricQO.builder()
                                   .code("coin_balance")
+                                  .alias("balance")
                                   .build()])
                 .build()
 
@@ -244,7 +256,8 @@ class MetricSnapshotControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(snapshotQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test query snapshot validation error missing entity id"() {
@@ -253,6 +266,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .ec("user")
                 .metrics([EchoMetricQO.builder()
                                   .code("coin_balance")
+                                  .alias("balance")
                                   .build()])
                 .build()
 
@@ -263,7 +277,8 @@ class MetricSnapshotControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(snapshotQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     /**

@@ -1,6 +1,6 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
-import lab.zhang.data_science.metrics_mall.pojo.dto.EchoMetricDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO;
 import org.mapstruct.Mapper;
 

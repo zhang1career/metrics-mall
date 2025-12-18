@@ -1,21 +1,25 @@
 package lab.zhang.data_science.metrics_mall.pojo.dto;
 
+import cn.hutool.core.collection.ListUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 /**
- * Multifaceted Metric query item model for service layer.
+ * Metric write model for service layer.
+ *
+ * @author Rongjin Zhang
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EchoMetricDTO {
+public class MetricWriteDTO {
 
     /**
      * Metric code.
@@ -33,8 +37,20 @@ public class EchoMetricDTO {
     private Map<String, TypedValue> dimensionMap;
 
     /**
-     * Snapshot timestamp in milliseconds.
-     * 0 means return latest snapshot time, null means not return timestamp.
+     * Metric value.
      */
-    private Long snapshotTs;
+    private String value;
+
+
+    /**
+     * Get dimension code list.
+     * @return dimension code list
+     */
+    public List<String> getDimensionCodeList() {
+        if (dimensionMap == null) {
+            return ListUtil.empty();
+        }
+        return dimensionMap.keySet().stream().toList();
+    }
 }
+

@@ -3,6 +3,7 @@ package lab.zhang.data_science.metrics_mall.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.common.TypedValue
 import lab.zhang.data_science.metrics_mall.controller.v1.MetricAggregationController
+import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.MetricAggregation
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO
@@ -42,7 +43,9 @@ class MetricAggregationControllerTest extends Specification {
 
     def setup() {
         controller = new MetricAggregationController(metricAggregationService, metricAggregationStructMapper)
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build()
     }
 
     def "test query aggregation success"() {
@@ -227,7 +230,8 @@ class MetricAggregationControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(aggregationQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test query aggregation validation error missing time range"() {
@@ -243,7 +247,8 @@ class MetricAggregationControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(aggregationQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test query aggregation validation error missing start time"() {
@@ -262,7 +267,8 @@ class MetricAggregationControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(aggregationQO)))
 
         then:
-        response.andExpect(status().isBadRequest())
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(400))
     }
 }
 

@@ -39,10 +39,5 @@ public class DimensionDAO extends BaseDAO {
      * Valid range of dimension values, JSON format.
      */
     private String validation;
-    
-    /**
-     * Max value of cardinality.
-     */
-    private Integer cardLimit;
 }
 

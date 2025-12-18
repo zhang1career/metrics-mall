@@ -10,7 +10,7 @@ import lombok.*;
 import java.util.Map;
 
 /**
- * Metric definition entity.
+ * Metric meta information entity.
  *
  * @author Rongjin Zhang
  */
@@ -19,8 +19,8 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("metric")
-public class MetricDAO extends BaseDAO {
+@TableName("metric_meta")
+public class MetricMetaDAO extends BaseDAO {
 
     /**
      * Primary key id.
@@ -73,5 +73,10 @@ public class MetricDAO extends BaseDAO {
      * Valid range of metric values.
      */
     private Map<String, TypedValue> validation;
+
+    /**
+     * Max value of cardinality.
+     */
+    private Integer cardMax;
 }
 
