@@ -5,7 +5,6 @@ import lab.zhang.data_science.metrics_mall.pojo.dao.DimensionDAO
 import lab.zhang.data_science.metrics_mall.pojo.qo.DimensionQO
 import spock.lang.Specification
 
-import java.util.Date
 
 /**
  * Test for DimensionStructMapper.

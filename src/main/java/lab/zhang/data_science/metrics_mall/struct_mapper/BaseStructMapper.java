@@ -1,12 +1,18 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
+import lab.zhang.data_science.metrics_mall.enums.AggregationTypeEnum;
+import lab.zhang.data_science.metrics_mall.enums.MetricTypeEnum;
 import lab.zhang.data_science.metrics_mall.enums.OpEventEnum;
 import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import static lab.zhang.data_science.metrics_mall.constant.NumConst.ZERO_L;
+import static lab.zhang.data_science.metrics_mall.util.TimeUtil.parseSecondsFromExpression;
 
 public interface BaseStructMapper {
     // time
@@ -31,6 +37,24 @@ public interface BaseStructMapper {
         return date != null ? date.getTime() : ZERO_L;
     }
 
+    /**
+     * Map String date representation to LocalDateTime.
+     * @param dateStr date string
+     * @return LocalDateTime object
+     */
+    default LocalDateTime mapDateStrToLocalDateTime(String dateStr) {
+        Date date = DateUtil.parse(dateStr);
+        return LocalDateTimeUtil.of(date);
+    }
+
+    /**
+     * Map LocalDateTime to String date representation.
+     * @param exp time expression
+     * @return seconds
+     */
+    default Long mapExpressionToSeconds(String exp) {
+        return parseSecondsFromExpression(exp);
+    }
 
     // enums
 
@@ -68,6 +92,26 @@ public interface BaseStructMapper {
      */
     default Integer mapSourceTypeToInt(SnapshotSourceTypeEnum sourceType) {
         return sourceType != null ? sourceType.getId() : null;
+    }
+
+    /**
+     * Map Integer to MetricTypeEnum.
+     *
+     * @param id metric type id
+     * @return MetricTypeEnum
+     */
+    default MetricTypeEnum mapMetricType(Integer id) {
+        return MetricTypeEnum.fromId(id);
+    }
+
+    /**
+     * Map Integer to AggregationTypeEnum.
+     *
+     * @param id aggregation type id
+     * @return AggregationTypeEnum
+     */
+    default AggregationTypeEnum mapAggregationType(Integer id) {
+        return AggregationTypeEnum.fromId(id);
     }
 
 

@@ -12,6 +12,7 @@ import lab.zhang.data_science.metrics_mall.service.MetricAggregationService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricAggregationStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -25,8 +26,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MetricAggregationController extends BaseV1Controller {
 
-    private final MetricAggregationService metricAggregationService;
-    private final MetricAggregationStructMapper metricAggregationStructMapper;
+    @Autowired
+    private MetricAggregationService metricAggregationService;
+
+    @Autowired
+    private MetricAggregationStructMapper metricAggregationStructMapper;
 
     /**
      * Query metric aggregation.

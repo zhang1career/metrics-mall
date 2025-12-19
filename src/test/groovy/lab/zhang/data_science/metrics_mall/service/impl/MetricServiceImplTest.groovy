@@ -75,7 +75,26 @@ class MetricServiceImplTest extends Specification {
         service.checkHotBatch("", []) == [:]
     }
 
-    def "test getNearestVersionBatch success with required version"() {
+    def "test chooseVersionBatch success with exact required version"() {
+        given:
+        def codes = [METRIC_CODE]
+        def required = [(METRIC_CODE): 2]
+        def available = [
+                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(1).build(),
+                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(2).build(),
+                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(3).build()
+        ]
+
+        when:
+        def result = service.chooseVersionBatch(codes, required)
+
+        then:
+        1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> available
+        result.size() == 1
+        result.get(METRIC_CODE) == 2
+    }
+
+    def "test chooseVersionBatch no exact match found"() {
         given:
         def codes = [METRIC_CODE]
         def required = [(METRIC_CODE): 2]
@@ -85,15 +104,14 @@ class MetricServiceImplTest extends Specification {
         ]
 
         when:
-        def result = service.getNearestVersionBatch(codes, required)
+        def result = service.chooseVersionBatch(codes, required)
 
         then:
         1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> available
-        result.size() == 1
-        result.get(METRIC_CODE) == 1
+        result.isEmpty()
     }
 
-    def "test getNearestVersionBatch success with null required version"() {
+    def "test chooseVersionBatch success with null required version"() {
         given:
         def codes = [METRIC_CODE]
         def required = [(METRIC_CODE): null]
@@ -103,7 +121,7 @@ class MetricServiceImplTest extends Specification {
         ]
 
         when:
-        def result = service.getNearestVersionBatch(codes, required)
+        def result = service.chooseVersionBatch(codes, required)
 
         then:
         1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> available
@@ -111,13 +129,13 @@ class MetricServiceImplTest extends Specification {
         result.get(METRIC_CODE) == 2
     }
 
-    def "test getNearestVersionBatch no versions found"() {
+    def "test chooseVersionBatch no versions found"() {
         given:
         def codes = [METRIC_CODE]
         def required = [(METRIC_CODE): 1]
 
         when:
-        def result = service.getNearestVersionBatch(codes, required)
+        def result = service.chooseVersionBatch(codes, required)
 
         then:
         1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> []

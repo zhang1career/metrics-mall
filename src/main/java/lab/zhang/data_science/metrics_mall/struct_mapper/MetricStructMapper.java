@@ -3,8 +3,6 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.map.MapUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lab.zhang.data_science.metrics_mall.enums.AggregationTypeEnum;
-import lab.zhang.data_science.metrics_mall.enums.MetricTypeEnum;
 import lab.zhang.data_science.metrics_mall.enums.ValueTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.metric.AlphaMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
@@ -14,6 +12,7 @@ import lab.zhang.data_science.metrics_mall.pojo.dao.metric.AlphaMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO;
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.BriefMetricVO.PrettyBriefMetricVO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO;
 import org.mapstruct.Mapper;
@@ -32,28 +31,21 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface MetricStructMapper extends BaseStructMapper {
 
-    /**
-     * Map Integer to MetricTypeEnum.
-     *
-     * @param id metric type id
-     * @return MetricTypeEnum
-     */
-    default MetricTypeEnum mapMetricType(Integer id) {
-        return MetricTypeEnum.fromId(id);
-    }
-
-    /**
-     * Map Integer to AggregationTypeEnum.
-     *
-     * @param id aggregation type id
-     * @return AggregationTypeEnum
-     */
-    default AggregationTypeEnum mapAggregationType(Integer id) {
-        return AggregationTypeEnum.fromId(id);
-    }
-
-
     //==================== PrimeMetric Model ====================
+
+    /**
+     * Convert MetricQO to PrimeMetric.
+     *
+     * @param qo metric query object
+     * @return PrimeMetric model
+     */
+    @Mapping(target = "metricType", expression = "java(mapMetricType(qo.getMetricType()))")
+    @Mapping(target = "aggregationType", expression = "java(mapAggregationType(qo.getAggregationType()))")
+    @Mapping(target = "value", ignore = true)
+    @Mapping(target = "snapshotTs", ignore = true)
+    @Mapping(target = "createTime", ignore = true)
+    @Mapping(target = "updateTime", ignore = true)
+    PrimeMetric qoToPrimeModel(MetricQO qo);
 
     /**
      * Convert MetricMetaDAO to MetricModel.
@@ -76,6 +68,19 @@ public interface MetricStructMapper extends BaseStructMapper {
      * @return MetricModel list
      */
     List<PrimeMetric> daoToPrimeModelBatch(List<MetricMetaDAO> daoList);
+
+    /**
+     * Convert PrimeMetric to MetricMetaDAO.
+     *
+     * @param model PrimeMetric model
+     * @return MetricMetaDAO entity
+     */
+    @Mapping(target = "metricType", expression = "java(model.getMetricType() != null ? model.getMetricType().getId() : null)")
+    @Mapping(target = "aggregationType", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getId() : null)")
+    @Mapping(target = "validation", ignore = true)
+    @Mapping(target = "ct", expression = "java(model.getCreateTime() != null ? model.getCreateTime().getTime() : null)")
+    @Mapping(target = "ut", expression = "java(model.getUpdateTime() != null ? model.getUpdateTime().getTime() : null)")
+    MetricMetaDAO primeModelToDao(PrimeMetric model);
 
 
     //==================== Dimension ====================

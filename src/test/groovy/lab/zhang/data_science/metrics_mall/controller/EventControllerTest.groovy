@@ -39,7 +39,9 @@ class EventControllerTest extends Specification {
     private static final String API_KEY = "test-api-key"
 
     def setup() {
-        controller = new EventController(eventService, eventStructMapper)
+        controller = new EventController()
+        controller.eventService = eventService
+        controller.eventStructMapper = eventStructMapper
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build()

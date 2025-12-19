@@ -1,8 +1,10 @@
 package lab.zhang.data_science.metrics_mall.service.impl;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricVersionMapper;
@@ -25,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static lab.zhang.data_science.metrics_mall.constant.NumConst.ONE;
+import static lab.zhang.data_science.metrics_mall.constant.NumConst.ZERO;
 
 /**
  * Metric service implementation.
@@ -154,67 +157,136 @@ public class MetricServiceImpl implements MetricService {
     }
 
     @Override
-    public Map<String, Integer> getNearestVersionBatch(List<String> metricCodeList, Map<String, Integer> requiredVersionMap) {
+    public Map<String, Integer> chooseVersionBatch(List<String> metricCodeList, Map<String, Integer> requiredVersionMap) {
         if (log.isDebugEnabled()) {
-            log.debug("[metric] get version, param: metricCodes={}, requiredVersions={}", metricCodeList, requiredVersionMap);
+            log.debug("[metric] choose version, param: metricCodes={}, requiredVersions={}", metricCodeList, requiredVersionMap);
         }
         if (CollectionUtils.isEmpty(metricCodeList)) {
-            throw new IllegalArgumentException("[metric] nearest version, metricCodeList cannot be empty");
+            throw new IllegalArgumentException("[metric] choose version, metricCodeList cannot be empty");
         }
-        if (requiredVersionMap == null) {
-            throw new IllegalArgumentException("[metric] nearest version, requiredVersionMap should not be null");
-        }
+
+        // unique metric codes
         Set<String> metricCodeSet = new HashSet<>(metricCodeList);
+
+        // clone the required version map
+        Map<String, Integer> tempVersionMap = requiredVersionMap != null
+                ? ObjectUtil.cloneByStream(requiredVersionMap)
+                : MapUtil.empty();
+        // supplement with default versions
+        for (String _metricCode : metricCodeList) {
+            if (tempVersionMap.containsKey(_metricCode)) {
+                tempVersionMap.putIfAbsent(_metricCode, ZERO);
+                continue;
+            }
+            tempVersionMap.put(_metricCode, ZERO);
+        }
+
+        // query available versions
         List<MetricVersionDTO> availableList = metricVersionMapper.getMetricVersionBatch(metricCodeSet);
         if (CollectionUtils.isEmpty(availableList)) {
-            log.warn("[metric] get version, no data found: metricCodes={}", metricCodeList);
+            log.warn("[metric] choose version, no data found: metricCodes={}", metricCodeList);
             return MapUtil.empty();
         }
-        Map<String, List<MetricVersionDTO>> availableListOfMetric = availableList.stream()
-                .collect(Collectors.groupingBy(MetricVersionDTO::getMetricCode));
 
         Map<String, Integer> retMap = new HashMap<>();
-        for (Map.Entry<String, List<MetricVersionDTO>> entry : availableListOfMetric.entrySet()) {
-            String code = entry.getKey();
-            List<MetricVersionDTO> _availableList = entry.getValue();
-            Integer requiredVersion = requiredVersionMap.get(code);
-            // choose main version if no version required
+        // filter availableList by tempVersionMap
+        for (MetricVersionDTO available : availableList) {
+            String code = available.getMetricCode();
+            // already found
+            if (retMap.containsKey(code)) {
+                continue;
+            }
+            Integer requiredVersion = tempVersionMap.get(code);
             if (requiredVersion == null) {
-                Integer mainVersion = getMainVersion(_availableList);
-                if (mainVersion == null) {
-                    throw new IllegalStateException("[metric] get version, no main version found, metricCode=" + code);
+                throw new IllegalStateException("[metric] choose version, required version never should be null, metricCode=" + code);
+            }
+            // default version
+            if (requiredVersion.equals(ZERO)) {
+                // choose main version
+                if (available.getIsMain() != null && available.getIsMain().equals(ONE)) {
+                    retMap.put(code, available.getVersion());
                 }
-                retMap.put(code, mainVersion);
                 continue;
             }
-            // choose nearest version
-            List<Integer> avList = _availableList.stream()
-                    .map(MetricVersionDTO::getVersion)
-                    .collect(Collectors.toList());
-            Integer nearestVersion = doGetNearestVersion(avList, requiredVersion);
-            if (nearestVersion == null) {
-                log.warn("[metric] get version, no version near before the required one, metricCode=" + code + ", requiredVersion=" + requiredVersion);
-                continue;
+            // specified version - exact match only
+            if (requiredVersion.equals(available.getVersion())) {
+                retMap.put(code, available.getVersion());
             }
-            retMap.put(code, nearestVersion);
         }
 
         return retMap;
     }
 
-    private Integer getMainVersion(List<MetricVersionDTO> vList) {
-        return vList.stream()
-                .filter(v -> v.getIsMain() != null && v.getIsMain().equals(ONE))
-                .map(MetricVersionDTO::getVersion)
-                .findFirst()
-                .orElse(null);
+    @Override
+    public PrimeMetric get(Long id) {
+        if (id == null) {
+            return null;
+        }
+        MetricMetaDAO dao = metricMapper.selectById(id);
+        if (dao == null) {
+            return null;
+        }
+        return metricStructMapper.daoToPrimeModel(dao);
     }
 
-    private Integer doGetNearestVersion(List<Integer> availableVersionList, Integer requiredVersion) {
-        return availableVersionList.stream()
-                .filter(av -> av <= requiredVersion)
-                .max(Comparator.naturalOrder())
-                .orElse(null);
+    @Override
+    public List<PrimeMetric> list(PrimeMetric queryModel) {
+        LambdaQueryWrapper<MetricMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
+        if (queryModel != null) {
+            if (queryModel.getCode() != null) {
+                queryWrapper.eq(MetricMetaDAO::getCode, queryModel.getCode());
+            }
+            if (queryModel.getName() != null) {
+                queryWrapper.like(MetricMetaDAO::getName, queryModel.getName());
+            }
+            if (queryModel.getMetricType() != null) {
+                queryWrapper.eq(MetricMetaDAO::getMetricType, queryModel.getMetricType().getId());
+            }
+            if (queryModel.getAggregationType() != null) {
+                queryWrapper.eq(MetricMetaDAO::getAggregationType, queryModel.getAggregationType().getId());
+            }
+        }
+        List<MetricMetaDAO> daoList = metricMapper.selectList(queryWrapper);
+        return metricStructMapper.daoToPrimeModelBatch(daoList);
+    }
+
+    @Override
+    public boolean insert(PrimeMetric model) {
+        if (model == null) {
+            return false;
+        }
+        MetricMetaDAO dao = metricStructMapper.primeModelToDao(model);
+        if (dao == null) {
+            return false;
+        }
+        dao.setTimeOnCreate();
+        int rows = metricMapper.insert(dao);
+        if (rows > 0) {
+            model.setId(dao.getId());
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean update(PrimeMetric model) {
+        if (model == null || model.getId() == null) {
+            return false;
+        }
+        MetricMetaDAO dao = metricStructMapper.primeModelToDao(model);
+        if (dao == null) {
+            return false;
+        }
+        dao.setTimeOnUpdate();
+        return metricMapper.updateById(dao) > 0;
+    }
+
+    @Override
+    public boolean delete(Long id) {
+        if (id == null) {
+            return false;
+        }
+        return metricMapper.deleteById(id) > 0;
     }
 }
 

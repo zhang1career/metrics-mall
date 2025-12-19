@@ -31,7 +31,9 @@ class DimensionControllerTest extends Specification {
     ObjectMapper objectMapper = new ObjectMapper()
 
     def setup() {
-        controller = new DimensionController(dimensionService, dimensionStructMapper)
+        controller = new DimensionController()
+        controller.dimensionService = dimensionService
+        controller.dimensionStructMapper = dimensionStructMapper
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build()

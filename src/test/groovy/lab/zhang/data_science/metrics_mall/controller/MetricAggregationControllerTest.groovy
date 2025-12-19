@@ -42,7 +42,9 @@ class MetricAggregationControllerTest extends Specification {
     private static final String API_KEY = "test-api-key"
 
     def setup() {
-        controller = new MetricAggregationController(metricAggregationService, metricAggregationStructMapper)
+        controller = new MetricAggregationController()
+        controller.metricAggregationService = metricAggregationService
+        controller.metricAggregationStructMapper = metricAggregationStructMapper
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build()

@@ -86,7 +86,7 @@ class DimensionServiceImplTest extends Specification {
         then:
         1 * dimensionStructMapper.modelToDao(model) >> dao
         1 * dimensionMapper.insert(_ as DimensionDAO) >> 1
-        result == true
+        result
     }
 
     def "test update success"() {
@@ -100,7 +100,7 @@ class DimensionServiceImplTest extends Specification {
         then:
         1 * dimensionStructMapper.modelToDao(model) >> dao
         1 * dimensionMapper.updateById(_ as DimensionDAO) >> 1
-        result == true
+        result
     }
 
     def "test delete success"() {
@@ -112,7 +112,7 @@ class DimensionServiceImplTest extends Specification {
 
         then:
         1 * dimensionMapper.deleteById(id) >> 1
-        result == true
+        result
     }
 }
 

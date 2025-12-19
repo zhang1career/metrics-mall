@@ -161,27 +161,24 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
         // validate metric list
         List<EchoMetricDTO> metricList = dto.getMetricList();
         if (CollectionUtils.isEmpty(metricList)) {
-            throw new IllegalArgumentException("[snap] metric list is empty");
+            throw new IllegalArgumentException("metric list is empty");
         }
 
         // validate entity meta
         Entity entity = entityService.getEntity(dto.getEntityCode(), dto.getEntityId());
         if (entity == null) {
-            log.warn("[snap] write, entity meta is not found: entityCode={}, entityId={}",
-                    dto.getEntityCode(), dto.getEntityId());
-            return null;
+            throw new IllegalArgumentException("entity not found, entityCode=" + dto.getEntityCode());
         }
 
         for (EchoMetricDTO echoMetricDTO : metricList) {
             if (echoMetricDTO == null) {
-                throw new IllegalArgumentException("[snap] write, metric write dto is null");
+                throw new IllegalArgumentException("metric write dto is null");
             }
             if (StrUtil.isBlank(echoMetricDTO.getCode())) {
-                throw new IllegalArgumentException("[snap] write, metric code is empty");
+                throw new IllegalArgumentException("metric code is empty");
             }
             if (StrUtil.isBlank(echoMetricDTO.getValue())) {
-                throw new IllegalArgumentException(String.format("[snap] write, metric value is empty: metricCode=%s",
-                        echoMetricDTO.getCode()));
+                throw new IllegalArgumentException("metric value is empty: metricCode=" + echoMetricDTO.getCode());
             }
         }
         List<String> metricCodeList = metricList.stream()
@@ -195,11 +192,11 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
                 requiredVersionMap.put(echoMetricDTO.getCode(), echoMetricDTO.getVersion());
             }
         }
-        Map<String, Integer> nearestVersionMap = metricService.getNearestVersionBatch(metricCodeList, requiredVersionMap);
+        Map<String, Integer> nearestVersionMap = metricService.chooseVersionBatch(metricCodeList, requiredVersionMap);
         Map<String, Integer> acutalVersionMap = new HashMap<>();
         for (String code : metricCodeList) {
             if (!nearestVersionMap.containsKey(code) || nearestVersionMap.get(code) == null) {
-                throw new IllegalArgumentException("[snap] write, no version near before required one");
+                throw new IllegalArgumentException("[snap] write, no exact version found for required one");
             }
             Integer nearestVersion = nearestVersionMap.get(code);
             // choose main version by default

@@ -81,12 +81,52 @@ public interface MetricService {
     Map<String, Boolean> checkHotBatch(String metricCode, List<String> dimensionCodeList);
 
     /**
-     * Get metric version list by codes.
+     * Choose metric version by codes.
      *
      * @param metricCodeList metric codes list
      * @param requiredVersionMap required version map, key is metric code, value is required version
-     * @return metric version map, key is metric code, value is nearest version
+     * @return metric version map, key is metric code, value is chosen version (exact match or main version if default)
      */
-    Map<String, Integer> getNearestVersionBatch(List<String> metricCodeList, Map<String, Integer> requiredVersionMap);
+    Map<String, Integer> chooseVersionBatch(List<String> metricCodeList, Map<String, Integer> requiredVersionMap);
+
+    /**
+     * Get metric by id.
+     *
+     * @param id metric id
+     * @return PrimeMetric model, null if not found
+     */
+    PrimeMetric get(Long id);
+
+    /**
+     * List metrics by query criteria.
+     *
+     * @param queryModel query criteria
+     * @return list of PrimeMetric model
+     */
+    List<PrimeMetric> list(PrimeMetric queryModel);
+
+    /**
+     * Insert a new metric.
+     *
+     * @param model PrimeMetric model
+     * @return true if success
+     */
+    boolean insert(PrimeMetric model);
+
+    /**
+     * Update an existing metric.
+     *
+     * @param model PrimeMetric model
+     * @return true if success
+     */
+    boolean update(PrimeMetric model);
+
+    /**
+     * Delete a metric by id.
+     *
+     * @param id metric id
+     * @return true if success
+     */
+    boolean delete(Long id);
 }
 

@@ -39,7 +39,7 @@ public interface MetricSnapshotStructMapper {
                 .entityId(qo.getEid())
                 .metricList(metricStructMapper.echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs()))
                 .snapshotTs(qo.getSnapshotTs())
-                .isAtomic(qo.getIsAtomic() != null ? qo.getIsAtomic().equals(1) : false)
+                .isAtomic(qo.getIsAtomic() != null && qo.getIsAtomic().equals(1))
                 .build();
     }
 

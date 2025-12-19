@@ -41,8 +41,6 @@ class MetricSnapshotControllerTest extends Specification {
 
     MetricStructMapper metricStructMapper = Mock()
 
-    MetricSnapshotCacheService metricSnapshotCacheService = Mock()
-
     MetricSnapshotController controller
 
     ObjectMapper objectMapper = new ObjectMapper()
@@ -96,9 +94,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")
@@ -172,9 +170,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")
@@ -223,9 +221,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(null)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")

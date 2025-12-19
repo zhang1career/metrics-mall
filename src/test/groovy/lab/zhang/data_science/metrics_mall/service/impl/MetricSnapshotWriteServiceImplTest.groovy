@@ -8,7 +8,6 @@ import lab.zhang.data_science.metrics_mall.model.Entity
 import lab.zhang.data_science.metrics_mall.model.OpLog
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
-import lab.zhang.data_science.metrics_mall.pojo.dto.MetricWriteDTO
 import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO
 import lab.zhang.data_science.metrics_mall.service.EntityService
 import lab.zhang.data_science.metrics_mall.service.MetricService
@@ -16,7 +15,6 @@ import lab.zhang.data_science.metrics_mall.service.OpLogService
 import org.apache.commons.lang3.tuple.Pair
 import spock.lang.Specification
 
-import java.math.BigInteger
 
 /**
  * Test for MetricSnapshotServiceImpl write operations.
@@ -73,7 +71,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message == "[snap] metric list is empty"
+        exception.message == "metric list is empty"
         0 * entityService.getEntity(_, _)
     }
 
@@ -90,13 +88,13 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message == "[snap] metric list is empty"
+        exception.message == "metric list is empty"
         0 * entityService.getEntity(_, _)
     }
 
     def "test writeSnapshot with entity not found should return all rejected"() {
         given:
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -114,15 +112,13 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        result == null
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID)
-        0 * cacheService.put(_, _, _, _, _, _, _, _)
+        thrown(IllegalArgumentException)
     }
 
     def "test writeSnapshot success with single metric"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -141,7 +137,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
         1 * opLogService.insert(_ as OpLog) >> insertedOpLog
@@ -154,13 +150,13 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot success with multiple metrics"() {
         given:
         def entity = createEntity()
-        def metricDTO1 = MetricWriteDTO.builder()
+        def metricDTO1 = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
                 .dimensionMap(null)
                 .build()
-        def metricDTO2 = MetricWriteDTO.builder()
+        def metricDTO2 = EchoMetricDTO.builder()
                 .code(METRIC_CODE_2)
                 .version(VERSION)
                 .value(METRIC_VALUE_2)
@@ -179,7 +175,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1, METRIC_CODE_2], [(METRIC_CODE_1): VERSION, (METRIC_CODE_2): VERSION]) >> [(METRIC_CODE_1): VERSION, (METRIC_CODE_2): VERSION]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1, METRIC_CODE_2], [(METRIC_CODE_1): VERSION, (METRIC_CODE_2): VERSION]) >> [(METRIC_CODE_1): VERSION, (METRIC_CODE_2): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
         1 * metricService.validateCode(METRIC_CODE_2) >> Pair.of(true, "")
@@ -194,7 +190,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with null snapshotTs should use current timestamp"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -213,7 +209,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
         1 * opLogService.insert(_ as OpLog) >> insertedOpLog
@@ -227,7 +223,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with zero snapshotTs should use current timestamp"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -246,7 +242,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
         1 * opLogService.insert(_ as OpLog) >> insertedOpLog
@@ -260,7 +256,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with null version should use nearest version"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(null)
                 .value(METRIC_VALUE_1)
@@ -279,7 +275,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): null]) >> [(METRIC_CODE_1): 2]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): null]) >> [(METRIC_CODE_1): 2]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
         1 * opLogService.insert(_ as OpLog) >> insertedOpLog
@@ -292,7 +288,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         given:
         def entity = createEntity()
         entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        def metricDTO1 = MetricWriteDTO.builder()
+        def metricDTO1 = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -316,7 +312,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with empty metric code should throw exception"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code("")
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -341,7 +337,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with null metric code should throw exception"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(null)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -366,7 +362,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with empty metric value should throw exception"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value("")
@@ -391,7 +387,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with null metric value should throw exception"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(null)
@@ -416,7 +412,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with metric not found should skip metric"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -435,7 +431,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(false, "metric not found")
         1 * opLogService.insert(_ as OpLog) >> insertedOpLog
@@ -448,7 +444,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         given:
         def entity = createEntity()
         def dimensionMap = ["city": TypedValue.of("Beijing")]
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -466,7 +462,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         1 * metricService.checkHotBatch(METRIC_CODE_1, ["city"]) >> ["city": false]
         0 * metricService.getMetricDaoByCode(_)
         def exception = thrown(IllegalArgumentException)
@@ -476,7 +472,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with version mismatch should throw exception"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -493,7 +489,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): 2]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): 2]
         0 * metricService.checkHotBatch(_, _)
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("version not match required one strictly")
@@ -502,7 +498,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with cache exception should log error and continue"() {
         given:
         def entity = createEntity()
-        def metricDTO = MetricWriteDTO.builder()
+        def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
                 .value(METRIC_VALUE_1)
@@ -521,7 +517,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
         then:
         1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getNearestVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
+        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
         1 * opLogService.insert(_ as OpLog) >> insertedOpLog

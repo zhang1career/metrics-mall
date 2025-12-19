@@ -34,7 +34,6 @@ class MetricSnapshotServiceImplTest extends Specification {
     private static final String METRIC_CODE_2 = "level"
     private static final Integer VERSION = 1
     private static final Long SNAPSHOT_TS = 1715000001000L
-    private static final Long CURRENT_TS = System.currentTimeMillis()
     private static final String METRIC_VALUE_1 = "1050.5"
     private static final String METRIC_VALUE_2 = "10"
 

@@ -11,6 +11,7 @@ import lab.zhang.data_science.metrics_mall.service.DimensionService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.DimensionStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +27,11 @@ import java.util.List;
 @Slf4j
 public class DimensionController extends BaseV1Controller {
 
-    private final DimensionService dimensionService;
-    private final DimensionStructMapper dimensionStructMapper;
+    @Autowired
+    private DimensionService dimensionService;
+
+    @Autowired
+    private DimensionStructMapper dimensionStructMapper;
 
     /**
      * Get dimension by id.

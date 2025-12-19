@@ -11,6 +11,7 @@ import lab.zhang.data_science.metrics_mall.pojo.qo.EventBatchQO;
 import lab.zhang.data_science.metrics_mall.service.EventService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.EventStructMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -28,9 +29,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class EventController extends BaseV1Controller {
-    
-    private final EventService eventService;
-    private final EventStructMapper eventStructMapper;
+
+    @Autowired
+    private EventService eventService;
+
+    @Autowired
+    private EventStructMapper eventStructMapper;
     
     /**
      * Report events.

@@ -1,7 +1,5 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO.FieldConditionDTO;
@@ -14,12 +12,8 @@ import lab.zhang.data_science.metrics_mall.pojo.vo.MetricAggregationVO;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
 
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static lab.zhang.data_science.metrics_mall.util.TimeUtil.parseSecondsFromExpression;
 
 /**
  * Mapper for converting MetricAggregation related objects.
@@ -31,43 +25,11 @@ import static lab.zhang.data_science.metrics_mall.util.TimeUtil.parseSecondsFrom
         uses = {
                 MetricStructMapper.class
         })
-public interface MetricAggregationStructMapper {
-
-    /**
-     * Parse start time from MetricAggregationQO.
-     * @param qo metric aggregation QO
-     * @return start time as LocalDateTime
-     */
-    default LocalDateTime parseStartTimeFromQo(MetricAggregationQO qo) {
-        String dateStr = qo.getTimeRange().getStart();
-        Date date = DateUtil.parse(dateStr);
-        return LocalDateTimeUtil.of(date);
-    }
-
-    /**
-     * Parse stop time from MetricAggregationQO.
-     * @param qo metric aggregation QO
-     * @return stop time as LocalDateTime
-     */
-    default LocalDateTime parseStopTimeFromQo(MetricAggregationQO qo) {
-        String dateStr = qo.getTimeRange().getStop();
-        Date date = DateUtil.parse(dateStr);
-        return LocalDateTimeUtil.of(date);
-    }
-
-
-    /**
-     * Parse interval in seconds from MetricAggregationQO.
-     * @param qo metric aggregation QO
-     * @return interval in seconds
-     */
-    default Long parseSecondsFromQo(MetricAggregationQO qo) {
-        return parseSecondsFromExpression(qo.getInterval());
-    }
-
+public interface MetricAggregationStructMapper extends BaseStructMapper {
 
     /**
      * Convert FieldConditionQO to FieldConditionDTO.
+     *
      * @param qo field condition QO
      * @return field condition DTO
      */
@@ -76,6 +38,7 @@ public interface MetricAggregationStructMapper {
 
     /**
      * Convert list of FieldConditionQO to list of FieldConditionDTO.
+     *
      * @param qoList list of field condition QO
      * @return list of field condition DTO
      */
@@ -84,6 +47,7 @@ public interface MetricAggregationStructMapper {
 
     /**
      * Convert OrderByQO to OrderByDTO.
+     *
      * @param qo order by QO
      * @return order by DTO
      */
@@ -91,6 +55,7 @@ public interface MetricAggregationStructMapper {
 
     /**
      * Convert list of OrderByQO to list of OrderByDTO.
+     *
      * @param qoList list of order by QO
      * @return list of order by DTO
      */
@@ -104,9 +69,9 @@ public interface MetricAggregationStructMapper {
      * @return metric aggregation DTO
      */
     @Mapping(target = "metricCodeSet", expression = "java(new HashSet<>(qo.getMetricCodes()))")
-    @Mapping(target = "startTime", expression = "java(parseStartTimeFromQo(qo))")
-    @Mapping(target = "stopTime", expression = "java(parseStopTimeFromQo(qo))")
-    @Mapping(target = "intervalInSeconds", expression = "java(parseSecondsFromQo(qo))")
+    @Mapping(target = "startTime", expression = "java(mapDateStrToLocalDateTime(qo.getTimeRange().getStart()))")
+    @Mapping(target = "stopTime", expression = "java(mapDateStrToLocalDateTime(qo.getTimeRange().getStop()))")
+    @Mapping(target = "intervalInSeconds", expression = "java(mapExpressionToSeconds(qo.getInterval()))")
     @Mapping(target = "groupByList", source = "groupBy")
     @Mapping(target = "filterList", expression = "java(condQoToDtoBatch(qo.getFilters()))")
     @Mapping(target = "orderByList", expression = "java(orderByQoToDtoBatch(qo.getOrderBys()))")

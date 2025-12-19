@@ -4,6 +4,7 @@ import lab.zhang.data_science.metrics_mall.common.TypedValue
 import lab.zhang.data_science.metrics_mall.enums.AggregationTypeEnum
 import lab.zhang.data_science.metrics_mall.enums.MetricTypeEnum
 import lab.zhang.data_science.metrics_mall.enums.ValueTypeEnum
+import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO
@@ -100,7 +101,7 @@ class MetricStructMapperTest extends Specification {
 
     def "test echoMetricModelToDao success"() {
         given:
-        def model = lab.zhang.data_science.metrics_mall.model.metric.EchoMetric.builder()
+        def model = EchoMetric.builder()
                 .code("m1")
                 .value(TypedValue.of(10.5))
                 .snapshotTs(1000L)
