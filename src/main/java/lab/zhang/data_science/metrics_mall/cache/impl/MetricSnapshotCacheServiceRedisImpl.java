@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lab.zhang.data_science.metrics_mall.constant.StrConst;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.AlphaMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
 import lombok.RequiredArgsConstructor;
@@ -91,13 +90,14 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
                     Integer version,
                     Map<String, TypedValue> dimensionMap,
                     Long snapshotTs,
+                    Integer sourceType,
                     String value) {
         if (StrUtil.isBlank(entityCode)) {
             log.warn("[cache] put echoMetric, invalid entity for put operation");
             return;
         }
         if (StrUtil.isBlank(metricCode)) {
-            log.warn("[cache] put echoMetric, metric code is empty");
+            log.warn("[cache] put echoMetric, metricCode is empty");
             return;
         }
         if (version == null) {
@@ -105,7 +105,11 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
             return;
         }
         if (snapshotTs == null) {
-            log.warn("[cache] put echoMetric, snapshot timestamp is null");
+            log.warn("[cache] put echoMetric, snapshotTs is null");
+            return;
+        }
+        if (sourceType == null) {
+            log.warn("[cache] put echoMetric, sourceType is null");
             return;
         }
         if (StrUtil.isBlank(value)) {
@@ -117,7 +121,7 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
 
         try {
             EchoMetricDAO existing = get(entityCode, entityId, metricCode, version, dimensionMap);
-            EchoMetricDAO updated = buildUpdatedMetric(existing, value, snapshotTs);
+            EchoMetricDAO updated = buildUpdatedMetric(existing, value, snapshotTs, sourceType);
             String jsonValue = objectMapper.writeValueAsString(updated);
             stringRedisTemplate.opsForValue().set(key, jsonValue);
             if (log.isDebugEnabled()) {
@@ -170,7 +174,7 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
                     TypedValue dimValue = entry.getValue();
                     String valueStr = dimValue != null && dimValue.getValue() != null
                             ? dimValue.getValue().toString()
-                            : StrConst.EMPTY_STRING;
+                            : StrUtil.EMPTY;
                     return dimCode + DIMENSION_KEY_VALUE_SEPARATOR + valueStr;
                 })
                 .collect(Collectors.joining(DIMENSION_SEPARATOR));
@@ -181,11 +185,14 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
      * Build updated EchoMetricDAO by overwriting "a" and "ts", and appending previous value to history.
      * History list keeps at most MAX_HISTORY_SIZE items.
      */
-    private EchoMetricDAO buildUpdatedMetric(EchoMetricDAO existing, String newValue, Long newSnapshotTs) {
-        EchoMetricDAO updated = EchoMetricDAO.builder().build();
-
+    private EchoMetricDAO buildUpdatedMetric(EchoMetricDAO existing,
+                                             String newValue,
+                                             Long newSnapshotTs,
+                                             Integer sourceType) {
+        EchoMetricDAO updated = new EchoMetricDAO();
         updated.setA(newValue);
         updated.setTs(newSnapshotTs);
+        updated.setS(sourceType);
 
         List<AlphaMetricDAO> history = new ArrayList<>();
         if (existing != null && existing.getA() != null && existing.getTs() != null) {

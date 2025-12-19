@@ -56,5 +56,28 @@ public class PrimeMetric extends BetaMetric {
      * Update time.
      */
     Date updateTime;
+
+
+    public void setCreateTimeByTimestamp(long timestamp) {
+        this.createTime = new Date(timestamp);
+    }
+
+    public long getCreateTimeInTimestamp() {
+        if (this.createTime == null) {
+            return 0;
+        }
+        return this.createTime.getTime();
+    }
+
+    public void setUpdateTimeByTimestamp(long timestamp) {
+        this.updateTime = new Date(timestamp);
+    }
+
+    public long getUpdateTimeInTimestamp() {
+        if (this.createTime == null) {
+            return 0;
+        }
+        return this.updateTime.getTime();
+    }
 }
 

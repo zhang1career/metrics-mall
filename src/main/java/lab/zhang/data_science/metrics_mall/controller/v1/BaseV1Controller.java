@@ -1,6 +1,6 @@
 package lab.zhang.data_science.metrics_mall.controller.v1;
 
-import lab.zhang.data_science.metrics_mall.constant.ApiPathConstant;
+import lab.zhang.data_science.metrics_mall.constant.ApiPathConst;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
  *
  * @author Rongjin Zhang
  */
-@RequestMapping(ApiPathConstant.API_V1)
-public abstract class BaseController {
+@RequestMapping(ApiPathConst.API_V1)
+public abstract class BaseV1Controller {
     // Base class for all v1 controllers
 }
 

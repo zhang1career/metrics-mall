@@ -2,31 +2,34 @@ package lab.zhang.data_science.metrics_mall.pojo.dao;
 
 import lab.zhang.data_science.metrics_mall.util.TimeUtil;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
+@NoArgsConstructor
 abstract public class BaseDAO {
 
     /**
-     * Create time (UNIX timestamp in seconds)
+     * Create time (UNIX timestamp in milliseconds)
      */
-    protected Integer ct;
+    protected Long ct;
 
     /**
-     * Update time (UNIX timestamp in seconds)
+     * Update time (UNIX timestamp in milliseconds)
      */
-    protected Integer ut;
+    protected Long ut;
 
 
     public void setTimeOnCreate() {
         // Set time fields (UNIX timestamp in seconds)
         long currentTime = TimeUtil.getCurrentTime();
-        this.ct = (int) currentTime;
-        this.ut = (int) currentTime;
+        this.ct = currentTime;
+        this.ut = currentTime;
     }
 
     public void setTimeOnUpdate() {
         // Set update time (UNIX timestamp in seconds)
-        long currentTime = TimeUtil.getCurrentTime();
-        this.ut = (int) currentTime;
+        this.ut = TimeUtil.getCurrentTime();
     }
 }

@@ -1,10 +1,13 @@
 package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import lab.zhang.data_science.metrics_mall.components.RequestContext
 import lab.zhang.data_science.metrics_mall.controller.v1.MetricSnapshotController
+import lab.zhang.data_science.metrics_mall.enums.OpEventEnum
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO
-import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotWriteQO
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO
 import lab.zhang.data_science.metrics_mall.service.MetricSnapshotService
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMapper
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper
@@ -12,6 +15,8 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+
+import java.math.BigInteger
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -32,6 +37,8 @@ class MetricSnapshotWriteControllerTest extends Specification {
 
     MetricStructMapper metricStructMapper = Mock()
 
+    RequestContext requestContext = Mock()
+
     MetricSnapshotController controller
 
     ObjectMapper objectMapper = new ObjectMapper()
@@ -43,6 +50,7 @@ class MetricSnapshotWriteControllerTest extends Specification {
         controller.metricSnapshotService = metricSnapshotService
         controller.metricSnapshotStructMapper = metricSnapshotStructMapper
         controller.metricStructMapper = metricStructMapper
+        controller.requestContext = requestContext
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build()
@@ -50,7 +58,7 @@ class MetricSnapshotWriteControllerTest extends Specification {
 
     def "test write snapshot success"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
                 .metrics([EchoMetricQO.builder()
@@ -63,15 +71,15 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .snapshotTs(1715000001000L)
                 .build()
 
-        def writeResult = 1L
+        def writeResult = BigInteger.valueOf(10000001L)
 
-        metricSnapshotStructMapper.writeQoToDto(_ as MetricSnapshotWriteQO, _) >> {
-            def dto = new lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO()
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+            def dto = new MetricSnapshotDTO()
             dto.setEntityCode("user")
             dto.setEntityId(12345678L)
             return dto
         }
-        metricSnapshotService.writeSnapshot(_ as lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO) >> writeResult
+        metricSnapshotService.writeSnapshot(_ as MetricSnapshotDTO) >> writeResult
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap/write")
@@ -80,20 +88,32 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        1 * requestContext.setEvent(OpEventEnum.CREATE_METRIC_SNAPSHOT)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-                .andExpect(jsonPath('$.data').value(1))
+                .andExpect(jsonPath('$.data').value(10000001))
     }
 
-    def "test write snapshot with invalid parameter mapping"() {
+    def "test write snapshot with entity not found"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
-                .metrics([])
+                .metrics([EchoMetricQO.builder()
+                                  .code("coin_balance")
+                                  .alias("balance")
+                                  .v(1)
+                                  .value(1050.5)
+                                  .build()])
                 .build()
 
-        metricSnapshotStructMapper.writeQoToDto(_ as MetricSnapshotWriteQO, _) >> null
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+            def dto = new MetricSnapshotDTO()
+            dto.setEntityCode("user")
+            dto.setEntityId(12345678L)
+            return dto
+        }
+        metricSnapshotService.writeSnapshot(_ as MetricSnapshotDTO) >> null
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap/write")
@@ -102,13 +122,14 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        1 * requestContext.setEvent(OpEventEnum.CREATE_METRIC_SNAPSHOT)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test write snapshot multiple metrics"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
                 .metrics([
@@ -127,15 +148,15 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 ])
                 .build()
 
-        def writeResult = 1L
+        def writeResult = BigInteger.valueOf(10000002L)
 
-        metricSnapshotStructMapper.writeQoToDto(_ as MetricSnapshotWriteQO, _) >> {
-            def dto = new lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO()
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+            def dto = new MetricSnapshotDTO()
             dto.setEntityCode("user")
             dto.setEntityId(12345678L)
             return dto
         }
-        metricSnapshotService.writeSnapshot(_ as lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO) >> writeResult
+        metricSnapshotService.writeSnapshot(_ as MetricSnapshotDTO) >> writeResult
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap/write")
@@ -144,14 +165,15 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        1 * requestContext.setEvent(OpEventEnum.CREATE_METRIC_SNAPSHOT)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-                .andExpect(jsonPath('$.data').value(1))
+                .andExpect(jsonPath('$.data').value(10000002))
     }
 
     def "test write snapshot with partial rejection"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
                 .metrics([
@@ -170,15 +192,15 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 ])
                 .build()
 
-        def writeResult = 1L
+        def writeResult = BigInteger.valueOf(10000003L)
 
-        metricSnapshotStructMapper.writeQoToDto(_ as MetricSnapshotWriteQO, _) >> {
-            def dto = new lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO()
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+            def dto = new MetricSnapshotDTO()
             dto.setEntityCode("user")
             dto.setEntityId(12345678L)
             return dto
         }
-        metricSnapshotService.writeSnapshot(_ as lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO) >> writeResult
+        metricSnapshotService.writeSnapshot(_ as MetricSnapshotDTO) >> writeResult
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap/write")
@@ -187,14 +209,15 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        1 * requestContext.setEvent(OpEventEnum.CREATE_METRIC_SNAPSHOT)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-                .andExpect(jsonPath('$.data').value(1))
+                .andExpect(jsonPath('$.data').value(10000003))
     }
 
     def "test write snapshot validation error missing entity code"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .eid(12345678L)
                 .metrics([EchoMetricQO.builder()
                                   .code("coin_balance")
@@ -210,13 +233,14 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        0 * requestContext.setEvent(_)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test write snapshot validation error missing entity id"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .metrics([EchoMetricQO.builder()
                                   .code("coin_balance")
@@ -232,13 +256,14 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        0 * requestContext.setEvent(_)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test write snapshot validation error missing metric code"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
                 .metrics([EchoMetricQO.builder()
@@ -254,13 +279,14 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        0 * requestContext.setEvent(_)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(400))
     }
 
     def "test write snapshot validation error missing metric value"() {
         given:
-        def writeQO = MetricSnapshotWriteQO.builder()
+        def writeQO = MetricSnapshotQO.builder()
                 .ec("user")
                 .eid(12345678L)
                 .metrics([EchoMetricQO.builder()
@@ -276,6 +302,7 @@ class MetricSnapshotWriteControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(writeQO)))
 
         then:
+        0 * requestContext.setEvent(_)
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(400))
     }

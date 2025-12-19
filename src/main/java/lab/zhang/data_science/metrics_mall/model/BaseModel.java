@@ -1,10 +1,14 @@
 package lab.zhang.data_science.metrics_mall.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Date;
 
 @Data
+@SuperBuilder
+@NoArgsConstructor
 abstract public class BaseModel {
 
     Date createTime;
@@ -12,25 +16,25 @@ abstract public class BaseModel {
     Date updateTime;
 
 
-    public void setCreateTimeByTimestamp(Integer timestamp) {
-        this.createTime = new Date((long) timestamp * 1000);
+    public void setCreateTimeByTimestamp(long timestamp) {
+        this.createTime = new Date(timestamp);
     }
 
-    public int getCreateTimeInTimestamp() {
+    public long getCreateTimeInTimestamp() {
         if (this.createTime == null) {
             return 0;
         }
-        return (int) (this.createTime.getTime() / 1000);
+        return this.createTime.getTime();
     }
 
-    public void setUpdateTimeByTimestamp(Integer timestamp) {
-        this.updateTime = new Date((long) timestamp * 1000);
+    public void setUpdateTimeByTimestamp(long timestamp) {
+        this.updateTime = new Date(timestamp);
     }
 
-    public int getUpdateTimeInTimestamp() {
+    public long getUpdateTimeInTimestamp() {
         if (this.createTime == null) {
             return 0;
         }
-        return (int) (this.updateTime.getTime() / 1000);
+        return this.updateTime.getTime();
     }
 }

@@ -2,10 +2,8 @@ package lab.zhang.data_science.metrics_mall.pojo.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 
@@ -14,8 +12,9 @@ import java.util.Map;
  *
  * @author Rongjin Zhang
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class MetricVO extends BaseVO {

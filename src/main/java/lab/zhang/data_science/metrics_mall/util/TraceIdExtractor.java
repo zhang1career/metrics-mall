@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 
 import java.math.BigInteger;
 
+
 /**
  * Trace ID extractor utility
  * Extracts trace ID from request parameters or headers
@@ -14,19 +15,9 @@ import java.math.BigInteger;
 public class TraceIdExtractor {
 
     /**
-     * Trace ID parameter name
-     */
-    private static final String TRACE_ID_PARAM = "traceId";
-
-    /**
-     * Trace ID header name
-     */
-    private static final String TRACE_ID_HEADER = "X-Request-Id";
-
-    /**
      * Extract trace ID from parameter first, then from header
      *
-     * @param paramValue parameter value (can be null)
+     * @param paramValue  parameter value (can be null)
      * @param headerValue header value (can be null)
      * @return trace ID as BigInteger, BigInteger.ZERO if not found or invalid
      */
@@ -45,24 +36,6 @@ public class TraceIdExtractor {
         } catch (NumberFormatException e) {
             return BigInteger.ZERO;
         }
-    }
-
-    /**
-     * Get trace ID parameter name
-     *
-     * @return parameter name
-     */
-    public static String getTraceIdParam() {
-        return TRACE_ID_PARAM;
-    }
-
-    /**
-     * Get trace ID header name
-     *
-     * @return header name
-     */
-    public static String getTraceIdHeader() {
-        return TRACE_ID_HEADER;
     }
 }
 

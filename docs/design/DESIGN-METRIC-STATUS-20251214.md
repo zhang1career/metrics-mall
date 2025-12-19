@@ -41,14 +41,15 @@
 ### 2.1 状态定义
 
 **指标状态枚举**:
+
 ```java
-public enum MetricStatus {
-    OFFLINE(0, "下线"),    // 下线，不计算，不保留历史数据，不可被业务系统调用
-    DEV(1, "开发中"),      // 研发环境，指标开发中，只能被开发环境的业务系统调用
-    TEST(2, "测试中"),     // 测试环境，验证中，只能被测试环境的业务系统调用
-    GRAY(3, "灰度"),       // 灰度，验证中，只能被灰度环境的业务系统调用
-    ONLINE(4, "上线"),     // 上线，可被灰度/生产环境的业务系统调用
-    DEPRECATED(5, "废弃"), // 废弃，不再计算，但保留历史数据
+public enum LifeStatus {
+   OFFLINE(0, "下线"),    // 下线，不计算，不保留历史数据，不可被业务系统调用
+   DEV(1, "开发中"),      // 研发环境，指标开发中，只能被开发环境的业务系统调用
+   TEST(2, "测试中"),     // 测试环境，验证中，只能被测试环境的业务系统调用
+   GRAY(3, "灰度"),       // 灰度，验证中，只能被灰度环境的业务系统调用
+   ONLINE(4, "上线"),     // 上线，可被灰度/生产环境的业务系统调用
+   DEPRECATED(5, "废弃"), // 废弃，不再计算，但保留历史数据
 }
 ```
 
@@ -74,7 +75,7 @@ public enum MetricStatus {
 **扩展metric表**:
 ```sql
 ALTER TABLE `metric_version` 
-ADD COLUMN `metric_status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'metric status, 0=OFFLINE, 1=DEV, 2=TEST, 3=GRAY, 4=ONLINE, 5=DEPRECATED',
+ADD COLUMN `life_status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'metric status, 0=OFFLINE, 1=DEV, 2=TEST, 3=GRAY, 4=ONLINE, 5=DEPRECATED',
 ADD COLUMN `begin_status_t` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'timestamp when metric went online, unix timestamp in milliseconds',
 ```
 
@@ -92,7 +93,7 @@ POST /api/v1/m/{metric_code}/versions/{version}/status
 **请求体**:
 ```json
 {
-   "metric_status": 4
+   "life_status": 4
 }
 ```
 
@@ -101,7 +102,7 @@ POST /api/v1/m/{metric_code}/versions/{version}/status
 **请求体**:
 ```json
 {
-  "metric_status": 4
+  "life_status": 4
 }
 ```
 
@@ -112,7 +113,7 @@ POST /api/v1/m/{metric_code}/versions/{version}/status
   "errmsg": "",
   "data": {
     "metric_code": "risk_score",
-    "metric_status": 4,
+    "life_status": 4,
     "begin_status_ts": 1701234567
   }
 }
@@ -138,7 +139,7 @@ GET /api/v1/m/{metric_code}/versions/{version}/status
   "data": {
     "metric_code": "risk_score",
     "version": 1,
-    "metric_status": 4,
+    "life_status": 4,
     "begin_status_ts": 1701234567,
     "health": {
       "data_quality": 0,
@@ -193,11 +194,11 @@ GET /api/v1/m/{metric_code}/versions/{version}/history
     "history": [
       {
         "from": {
-          "metric_status": 1,
+          "life_status": 1,
           "begin_status_ts": 123456789000
         },
         "to": {
-          "metric_status": 2,
+          "life_status": 2,
           "begin_status_ts": 123456789000
         },
         "operator": "admin",
@@ -210,12 +211,12 @@ GET /api/v1/m/{metric_code}/versions/{version}/history
 
 **2.5 批量查询指标详情**
 ```
-GET /api/v1/m?metric_code={metric_code}&metric_status={metric_status}
+GET /api/v1/m?metric_code={metric_code}&life_status={life_status}
 ```
 
 ***参数说明**:
 - `metric_code`: 可选，过滤指标代码，多个指标用逗号分隔；
-- `metric_status`: 可选，过滤指标状态，多个状态用逗号分隔。
+- `life_status`: 可选，过滤指标状态，多个状态用逗号分隔。
 
 **响应**:
 ```json
@@ -227,19 +228,19 @@ GET /api/v1/m?metric_code={metric_code}&metric_status={metric_status}
       {
         "metric_code": "risk_score",
         "version": 1001,
-        "metric_status": 5,
+        "life_status": 5,
         "begin_status_ts": 1701234567
       },
       {
         "metric_code": "coin_balance",
         "version": 1002,
-        "metric_status": 4,
+        "life_status": 4,
         "begin_status_ts": 1700000000
       },
       {
         "metric_code": "login_count",
         "version": 0,
-        "metric_status": 2,
+        "life_status": 2,
         "begin_status_ts": 0
       }
     ]
@@ -362,11 +363,11 @@ GET /api/v1/m/dashboard
         "version": 1001,
         "event": 1,
         "from": {
-          "metric_status": 1,
+          "life_status": 1,
           "begin_status_ts": 123456789000
         },
         "to": {
-          "metric_status": 2,
+          "life_status": 2,
           "begin_status_ts": 123456789000
         },
         "operator": "admin",

@@ -6,7 +6,7 @@ package lab.zhang.data_science.metrics_mall.constant;
  * @author Rongjin Zhang
  * 
  */
-public final class ApiPathConstant {
+public final class ApiPathConst {
 
     /**
      * API base path prefix.
@@ -18,11 +18,12 @@ public final class ApiPathConstant {
      */
     public static final String API_V1 = API_BASE + "/v1";
 
+
     /**
      * Private constructor to prevent instantiation.
      */
-    private ApiPathConstant() {
-        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    private ApiPathConst() {
+        throw new UnsupportedOperationException(ErrorMsgConst.UTILITY_CLASS_CANNOT_BE_INSTANTIATED);
     }
 }
 

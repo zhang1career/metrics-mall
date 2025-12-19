@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @author Rongjin Zhang
  */
 @Mapper(componentModel = "spring")
-public interface MetricStructMapper {
+public interface MetricStructMapper extends BaseStructMapper {
 
     /**
      * Map Integer to MetricTypeEnum.
@@ -63,6 +63,10 @@ public interface MetricStructMapper {
      */
     @Mapping(target = "metricType", expression = "java(mapMetricType(dao.getMetricType()))")
     @Mapping(target = "aggregationType", expression = "java(mapAggregationType(dao.getAggregationType()))")
+    @Mapping(target = "value", ignore = true)
+    @Mapping(target = "snapshotTs", ignore = true)
+    @Mapping(target = "createTime", expression = "java(dao.getCt() != null ? new java.util.Date(dao.getCt()) : null)")
+    @Mapping(target = "updateTime", expression = "java(dao.getUt() != null ? new java.util.Date(dao.getUt()) : null)")
     PrimeMetric daoToPrimeModel(MetricMetaDAO dao);
 
     /**
@@ -102,8 +106,10 @@ public interface MetricStructMapper {
      * @param dao alpha metric DAO
      * @return alpha metric model
      */
-    @Mapping(target = "value", expression = "java(lab.zhang.data_science.metrics_mall.common.TypedValue.of(dao.getA()))")
+    @Mapping(target = "value", expression = "java(mapObjToTypedValue(dao.getA()))")
+    @Mapping(target = "code",  ignore = true)
     @Mapping(target = "snapshotTs", source = "ts")
+    @Mapping(target = "sourceType", expression = "java(mapSourceType(dao.getS()))")
     AlphaMetric alphaMetricDaoToModel(AlphaMetricDAO dao);
 
     /**
@@ -123,6 +129,7 @@ public interface MetricStructMapper {
      */
     @Mapping(target = "a", expression = "java(model.getValue() != null ? model.getValue().getValueStr() : null)")
     @Mapping(target = "ts", source = "snapshotTs")
+    @Mapping(target = "s", expression = "java(mapSourceTypeToInt(model.getSourceType()))")
     AlphaMetricDAO alphaMetricModelToDao(AlphaMetric model);
 
     /**
@@ -137,13 +144,24 @@ public interface MetricStructMapper {
     //==================== EchoMetric DTO ====================
 
     /**
+     * Map Object to String.
+     * @param value object value
+     * @return string value
+     */
+    default String mapObjectToString(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    /**
      * Convert EchoMetricQO to EchoMetricDTO.
      *
      * @param qo                echo metric query object
      * @param snapshotTs snapshot timestamp
      * @return echo metric DTO
      */
+    @Mapping(target = "code", source = "qo.code")
     @Mapping(target = "version", source = "qo.v")
+    @Mapping(target = "value", source = "qo.value")
     @Mapping(target = "dimensionMap", expression = "java(dimensionQoToDto(qo.getDims()))")
     @Mapping(target = "snapshotTs", source = "snapshotTs")
     EchoMetricDTO echoQoToDto(EchoMetricQO qo, Long snapshotTs);
@@ -233,6 +251,7 @@ public interface MetricStructMapper {
      */
     @Mapping(target = "a", expression = "java(model.getValue() != null ? model.getValue().getValueStr() : null)")
     @Mapping(target = "ts", source = "snapshotTs")
+    @Mapping(target = "s", expression = "java(mapSourceTypeToInt(model.getSourceType()))")
     @Mapping(target = "h", source = "historyList")
     EchoMetricDAO echoMetricModelToDao(EchoMetric model);
 
@@ -285,6 +304,8 @@ public interface MetricStructMapper {
     @Mapping(target = "valueType", expression = "java(model.getValue() != null && model.getValue().getType() != null ? model.getValue().getType().getId() : null)")
     @Mapping(target = "aggregationType", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getId() : null)")
     @Mapping(target = "validation", ignore = true)
+    @Mapping(target = "create_ts", expression = "java(model.getCreateTime() != null ? String.valueOf(model.getCreateTimeInTimestamp()) : null)")
+    @Mapping(target = "update_ts", expression = "java(model.getUpdateTime() != null ? String.valueOf(model.getUpdateTimeInTimestamp()) : null)")
     MetricVO modelToVo(PrimeMetric model);
 }
 

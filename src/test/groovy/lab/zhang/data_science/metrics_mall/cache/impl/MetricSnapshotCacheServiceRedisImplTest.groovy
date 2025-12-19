@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.ValueOperations
 import org.springframework.test.util.ReflectionTestUtils
 import spock.lang.Specification
 
+import java.util.stream.Collectors
+
 /**
  * Test for MetricSnapshotCacheServiceRedisImpl.
  *
@@ -208,7 +210,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
         def key = buildExpectedKey(dimensionMap)
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         1 * valueOperations.get(key) >> null
@@ -229,7 +231,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
                 .build()
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         1 * valueOperations.get(key) >> existingJson
@@ -251,7 +253,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
         def existingJson = '{"a":"1000.0","ts":1715000000000}'
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         1 * valueOperations.get(key) >> existingJson
@@ -281,7 +283,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
         def existingJson = '{"a":"1000.0","ts":1715000000000}'
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         1 * valueOperations.get(key) >> existingJson
@@ -294,7 +296,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put null entity code"() {
         when:
-        cacheService.put(null, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(null, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         0 * valueOperations.get(_)
@@ -303,7 +305,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put empty entity code"() {
         when:
-        cacheService.put("", ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put("", ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         0 * valueOperations.get(_)
@@ -312,7 +314,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put null metric code"() {
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, null, VERSION, null, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, null, VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         0 * valueOperations.get(_)
@@ -321,7 +323,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put empty metric code"() {
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, "", VERSION, null, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, "", VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         0 * valueOperations.get(_)
@@ -330,7 +332,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put null version"() {
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, null, null, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, null, null, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         0 * valueOperations.get(_)
@@ -339,7 +341,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put null snapshot ts"() {
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, null, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, null, 0, METRIC_VALUE)
 
         then:
         0 * valueOperations.get(_)
@@ -348,7 +350,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put null value"() {
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, null)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, null)
 
         then:
         0 * valueOperations.get(_)
@@ -357,7 +359,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def "test put empty value"() {
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, "")
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, "")
 
         then:
         0 * valueOperations.get(_)
@@ -370,7 +372,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
         def key = buildExpectedKey(dimensionMap)
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         1 * valueOperations.get(key) >> null
@@ -384,10 +386,10 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
         given:
         def dimensionMap = [:]
         dimensionMap.put("city", TypedValue.nullValue())
-        def key = buildExpectedKey(dimensionMap)
+        def key = buildExpectedKey(dimensionMap as Map<String, TypedValue>)
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap as Map<String, TypedValue>, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         1 * valueOperations.get(key) >> null
@@ -400,10 +402,10 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
         def dimensionMap = [:]
         dimensionMap.put("zebra", TypedValue.of("z"))
         dimensionMap.put("apple", TypedValue.of("a"))
-        def key = buildExpectedKey(dimensionMap)
+        def key = buildExpectedKey(dimensionMap as Map<String, TypedValue>)
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, METRIC_VALUE)
+        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap as Map<String, TypedValue>, SNAPSHOT_TS, 0, METRIC_VALUE)
 
         then:
         1 * valueOperations.get(key) >> null
@@ -450,7 +452,7 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
                                 : ""
                         return dimCode + "_" + valueStr
                     })
-                    .collect(java.util.stream.Collectors.joining(","))
+                    .collect(Collectors.joining(","))
             keyBuilder.append(dimensionStr)
         }
 

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Metric Aggregation", description = "GMA (Get Metric Aggregate) APIs")
 @RestController
 @RequiredArgsConstructor
-public class MetricAggregationController extends BaseController {
+public class MetricAggregationController extends BaseV1Controller {
 
     private final MetricAggregationService metricAggregationService;
     private final MetricAggregationStructMapper metricAggregationStructMapper;

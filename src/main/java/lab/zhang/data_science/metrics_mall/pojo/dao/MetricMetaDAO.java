@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 
@@ -16,7 +17,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("metric_meta")

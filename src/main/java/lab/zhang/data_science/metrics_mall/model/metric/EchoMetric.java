@@ -38,7 +38,8 @@ public class EchoMetric extends BetaMetric {
      * @return the latest sampled value before or at the snapshot time, or null if none found
      */
     public AlphaMetric getBackNearest(Long snapshotTs) {
-        List<AlphaMetric> tempList = new ArrayList<>(List.of(new AlphaMetric(this.getCode(), this.getValue(), this.getSnapshotTs())));
+        List<AlphaMetric> tempList = new ArrayList<>(List.of(new AlphaMetric(
+                this.getCode(), this.getValue(), this.getSnapshotTs(), this.getSourceType())));
         if (this.historyList != null) {
             tempList.addAll(this.historyList);
         }

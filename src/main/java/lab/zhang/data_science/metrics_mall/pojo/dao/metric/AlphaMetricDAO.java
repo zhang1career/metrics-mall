@@ -26,4 +26,9 @@ public class AlphaMetricDAO {
      * Metric snapshot timestamp, in milliseconds.
      */
     private Long ts;
+
+    /**
+     * Source type of metric value
+     */
+    private Integer s;
 }

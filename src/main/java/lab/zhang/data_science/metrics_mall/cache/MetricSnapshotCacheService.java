@@ -10,7 +10,7 @@ import java.util.Map;
  * <p>
  * Cache Schema:
  * key = (entity.meta.code, entity.id, metricCode, dimensionMap, version)
- * value = {"a": value, "ts": snapshotTs, "h": [{"a": value1, "ts": snapshotTs1}]}
+ * value = {"a": value, "ts": snapshotTs, "s": 0, "h": [{"a": value1, "ts": snapshotTs1, "s": 1}]}
  * <p>
  * Notice of key construction:
  * - all keys are prefixed with 'mx:' to denote metric snapshot.
@@ -48,6 +48,7 @@ public interface MetricSnapshotCacheService {
      * @param version      metric version
      * @param dimensionMap dimension map, key is dimension code, value is dimension value
      * @param snapshotTs   metric snapshot timestamp
+     * @param sourceType   source type of metric value
      * @param value        metric value to put into cache
      */
     void put(String entityCode,
@@ -56,6 +57,7 @@ public interface MetricSnapshotCacheService {
              Integer version,
              Map<String, TypedValue> dimensionMap,
              Long snapshotTs,
+             Integer sourceType,
              String value);
 }
 

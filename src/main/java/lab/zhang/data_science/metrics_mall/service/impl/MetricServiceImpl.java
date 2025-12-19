@@ -16,6 +16,7 @@ import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -60,7 +61,7 @@ public class MetricServiceImpl implements MetricService {
         if (metricDAO == null) {
             return null;
         }
-
+        // todo: should not convert only MetricMetaDAO to PrimeMetric
         return metricStructMapper.daoToPrimeModel(metricDAO);
     }
 
@@ -89,6 +90,21 @@ public class MetricServiceImpl implements MetricService {
         LambdaQueryWrapper<MetricMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MetricMetaDAO::getCode, code);
         return metricMapper.selectOne(queryWrapper);
+    }
+
+    @Override
+    public Pair<Boolean, String> validateCode(String code) {
+        if (StrUtil.isBlank(code)) {
+            return Pair.of(false, "[valid] metric code is blank");
+        }
+
+        LambdaQueryWrapper<MetricMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MetricMetaDAO::getCode, code);
+        MetricMetaDAO metricMetaDAO =  metricMapper.selectOne(queryWrapper);
+        if (metricMetaDAO == null) {
+            return Pair.of(false, "metric not found: code=" + code);
+        }
+        return Pair.of(true, StrUtil.EMPTY);
     }
 
     @Override

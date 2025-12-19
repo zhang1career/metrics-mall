@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.config;
 
+import lab.zhang.data_science.metrics_mall.config.interpreters.RequestContextWebFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +18,8 @@ import org.springframework.context.annotation.Configuration;
 public class WebFluxConfig {
 
     @Bean
-    public TraceLoggingWebFilter traceLoggingWebFilter() {
-        return new TraceLoggingWebFilter();
+    public RequestContextWebFilter requestContextWebFilter() {
+        return new RequestContextWebFilter();
     }
 
     public WebFluxConfig() {

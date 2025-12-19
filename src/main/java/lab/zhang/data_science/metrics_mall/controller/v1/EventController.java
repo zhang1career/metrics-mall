@@ -27,7 +27,7 @@ import java.util.List;
 @Tag(name = "Event", description = "Event reporting APIs")
 @RestController
 @RequiredArgsConstructor
-public class EventController extends BaseController {
+public class EventController extends BaseV1Controller {
     
     private final EventService eventService;
     private final EventStructMapper eventStructMapper;

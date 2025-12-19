@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 public class TimeUtil {
     public static long getCurrentTime() {
-        return System.currentTimeMillis() / 1000;
+        return System.currentTimeMillis();
     }
 
     public static long dateTimeToTimestamp(LocalDateTime dateTime) {

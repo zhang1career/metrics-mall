@@ -1,9 +1,10 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import lab.zhang.data_science.metrics_mall.pojo.dto.EventDTO;
-import lab.zhang.data_science.metrics_mall.pojo.vo.EventResponseVO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EventQO;
+import lab.zhang.data_science.metrics_mall.pojo.vo.EventResponseVO;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
@@ -11,7 +12,6 @@ import java.util.List;
  * Mapper for converting Event related objects.
  *
  * @author Rongjin Zhang
- * 
  */
 @Mapper(componentModel = "spring")
 public interface EventStructMapper {
@@ -32,6 +32,7 @@ public interface EventStructMapper {
     }
 
 
+    @Mapping(target = "dimensionMap", source = "dim")
     EventDTO qoToDto(EventQO qo);
 
     List<EventDTO> qoToDtoBatch(List<EventQO> qoList);

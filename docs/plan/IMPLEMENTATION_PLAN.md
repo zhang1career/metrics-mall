@@ -77,7 +77,7 @@
   - 完成快照查询API接口详细设计（POST /api/v1/m_snap）
   - 完成Redis Hash数据模型设计（热存储）
   - 完成ClickHouse表结构设计（冷存储，MVP阶段使用JSON+物化列混合方案）
-  - 完成DTO和POJO类设计（MetricSnapshotWriteQO、MetricSnapshotWriteDTO等）
+  - 完成DTO和POJO类设计（MetricSnapshotQO、MetricSnapshotWriteDTO等）
   - 完成op_log表设计（用于可解释性追溯）
 
 #### 2.1.2 数据库Schema

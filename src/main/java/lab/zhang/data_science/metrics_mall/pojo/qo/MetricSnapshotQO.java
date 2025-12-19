@@ -50,5 +50,24 @@ public class MetricSnapshotQO {
      */
     private Integer isAtomic;
 
+
+    /**
+     * Validation group for create operation
+     */
+    public interface Create {
+    }
+
+    /**
+     * Validation group for update operation
+     */
+    public interface Update {
+    }
+
+    /**
+     * Validation group for query operation
+     */
+    public interface Query {
+    }
+
 }
 

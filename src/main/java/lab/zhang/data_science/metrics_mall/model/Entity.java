@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.model;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 
 /**
@@ -12,7 +13,7 @@ import lombok.*;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Entity extends BaseModel {

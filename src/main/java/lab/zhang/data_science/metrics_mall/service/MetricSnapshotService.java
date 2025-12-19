@@ -2,7 +2,8 @@ package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
-import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotWriteDTO;
+
+import java.math.BigInteger;
 
 /**
  * Metric service interface.
@@ -22,8 +23,8 @@ public interface MetricSnapshotService {
      * Write metric snapshot values.
      *
      * @param dto metric snapshot write model
-     * @return op_log id
+     * @return trace id of the write operation
      */
-    Long writeSnapshot(MetricSnapshotWriteDTO dto);
+    BigInteger writeSnapshot(MetricSnapshotDTO dto);
 }
 

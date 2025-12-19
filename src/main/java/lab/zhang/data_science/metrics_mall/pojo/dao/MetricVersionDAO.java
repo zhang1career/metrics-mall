@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Metric version entity.
@@ -14,7 +15,7 @@ import lombok.*;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("metric_version")
@@ -43,10 +44,10 @@ public class MetricVersionDAO extends BaseDAO {
     private Integer isMain;
 
     /**
-     * Metric status: 0=OFFLINE, 1=DEV, 2=TEST, 3=GRAY, 4=ONLINE, 5=DEPRECATED.
+     * Life status: 0=OFFLINE, 1=DEV, 2=TEST, 3=GRAY, 4=ONLINE, 5=DEPRECATED.
      */
-    @TableField("metric_status")
-    private Integer metricStatus;
+    @TableField("life_status")
+    private Integer lifeStatus;
     
     /**
      * Timestamp when metric went online, UNIX timestamp in milliseconds.

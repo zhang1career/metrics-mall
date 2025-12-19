@@ -4,9 +4,8 @@ import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
-import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelsDTO;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +32,6 @@ public interface MetricService {
      */
     Map<String, PrimeMetric> getPrimeMetricByCodeBatch(List<String> codes);
 
-
     /**
      * Get metric DAO by code.
      *
@@ -42,6 +40,12 @@ public interface MetricService {
      */
     MetricMetaDAO getMetricDaoByCode(String code);
 
+    /**
+     * Validate metric code format.
+     * @param code metric code
+     * @return pair of validation result and message. If valid, first is true and second is empty string.
+     */
+    Pair<Boolean, String> validateCode(String code);
 
     /**
      * Validate metric codes exist.
