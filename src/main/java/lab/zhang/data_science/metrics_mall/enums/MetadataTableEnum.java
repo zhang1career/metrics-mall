@@ -21,7 +21,6 @@ public enum MetadataTableEnum {
 
 
     private final Integer id;
-
     private final String tableName;
 
 

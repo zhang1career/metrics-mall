@@ -3,10 +3,7 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lab.zhang.data_science.metrics_mall.enums.AggregationTypeEnum;
-import lab.zhang.data_science.metrics_mall.enums.MetricTypeEnum;
-import lab.zhang.data_science.metrics_mall.enums.OpEventEnum;
-import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
+import lab.zhang.data_science.metrics_mall.enums.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -39,6 +36,7 @@ public interface BaseStructMapper {
 
     /**
      * Map String date representation to LocalDateTime.
+     *
      * @param dateStr date string
      * @return LocalDateTime object
      */
@@ -49,6 +47,7 @@ public interface BaseStructMapper {
 
     /**
      * Map LocalDateTime to String date representation.
+     *
      * @param exp time expression
      * @return seconds
      */
@@ -67,6 +66,7 @@ public interface BaseStructMapper {
     default OpEventEnum mapEvent(Integer value) {
         return OpEventEnum.fromId(value);
     }
+
     /**
      * Map OpEventEnum to Integer.
      *
@@ -79,14 +79,17 @@ public interface BaseStructMapper {
 
     /**
      * Map Integer to SnapshotSourceTypeEnum.
+     *
      * @param value source type value
      * @return SnapshotSourceTypeEnum
      */
     default SnapshotSourceTypeEnum mapSourceType(Integer value) {
         return SnapshotSourceTypeEnum.fromId(value);
     }
+
     /**
      * Map SnapshotSourceTypeEnum to Integer.
+     *
      * @param sourceType snapshot source type enum
      * @return source type value
      */
@@ -114,11 +117,30 @@ public interface BaseStructMapper {
         return AggregationTypeEnum.fromId(id);
     }
 
+    /**
+     * Map Integer to LifeStatusEnum.
+     *
+     * @param id life status id
+     * @return LifeStatusEnum
+     */
+    default LifeStatusEnum mapLifeStatus(Integer id) {
+        return LifeStatusEnum.fromId(id);
+    }
+    /**
+     * Map LifeStatusEnum to Integer.
+     *
+     * @param lifeStatus life status enum
+     * @return life status id
+     */
+    default Integer mapLifeStatusToInt(LifeStatusEnum lifeStatus) {
+        return lifeStatus != null ? lifeStatus.getId() : null;
+    }
 
     // TypedValue
 
     /**
      * Map Object to TypedValue.
+     *
      * @param valueObj object value
      * @return TypedValue
      */

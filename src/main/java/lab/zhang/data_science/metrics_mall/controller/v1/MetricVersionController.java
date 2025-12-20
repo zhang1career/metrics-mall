@@ -5,8 +5,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.MetricVersion;
+import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricVersionQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVersionVO;
+import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lab.zhang.data_science.metrics_mall.service.MetricVersionService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricVersionStructMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class MetricVersionController extends BaseV1Controller {
+
+    @Autowired
+    private MetricService metricService;
 
     @Autowired
     private MetricVersionService metricVersionService;
@@ -58,9 +64,22 @@ public class MetricVersionController extends BaseV1Controller {
     @GetMapping("/metric_versions")
     public ApiResponse<List<MetricVersionVO>> list(MetricVersionQO qo) {
         log.info("[metric_version] list, param: {}", qo);
-        MetricVersion queryModel = metricVersionStructMapper.qoToModel(qo);
-        List<MetricVersion> modelList = metricVersionService.list(queryModel);
-        return ApiResponse.success(metricVersionStructMapper.modelToVoBatch(modelList));
+
+        // Resolve metric meta id
+        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
+        if (primeMetric == null) {
+            throw new IllegalArgumentException("[metric_version] list, metric meta not found: metricCode=" + qo.getMetricCode());
+        }
+        Long metricMetaId = primeMetric.getId();
+        if (metricMetaId == null) {
+            throw new IllegalStateException("[metric_version] list, metric meta id is null: metricCode=" + qo.getMetricCode());
+        }
+
+        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo, metricMetaId);
+        List<MetricVersion> modelList = metricVersionService.list(dto);
+        List<MetricVersionVO> resultList = metricVersionStructMapper.modelToVoBatch(modelList);
+
+        return ApiResponse.success(resultList);
     }
 
     /**
@@ -73,8 +92,21 @@ public class MetricVersionController extends BaseV1Controller {
     @PostMapping("/metric_versions")
     public ApiResponse<Boolean> insert(@Valid @RequestBody MetricVersionQO qo) {
         log.info("[metric_version] insert, param: {}", qo);
-        MetricVersion model = metricVersionStructMapper.qoToModel(qo);
-        return ApiResponse.success(metricVersionService.insert(model));
+
+        // Resolve metric meta id
+        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
+        if (primeMetric == null) {
+            throw new IllegalArgumentException("[metric_version] list, metric meta not found: metricCode=" + qo.getMetricCode());
+        }
+        Long metricMetaId = primeMetric.getId();
+        if (metricMetaId == null) {
+            throw new IllegalStateException("[metric_version] list, metric meta id is null: metricCode=" + qo.getMetricCode());
+        }
+
+        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo, metricMetaId);
+        boolean result = metricVersionService.insert(dto);
+
+        return ApiResponse.success(result);
     }
 
     /**
@@ -85,12 +117,24 @@ public class MetricVersionController extends BaseV1Controller {
      * @return success response
      */
     @Operation(summary = "Update metric version", description = "Update an existing metric version")
-    @PutMapping("/metric_versions/{id}")
+    @PutMapping("/metric_versions")
     public ApiResponse<Boolean> update(@PathVariable Long id, @Valid @RequestBody MetricVersionQO qo) {
         log.info("[metric_version] update, id: {}, param: {}", id, qo);
-        MetricVersion model = metricVersionStructMapper.qoToModel(qo);
-        model.setId(id);
-        return ApiResponse.success(metricVersionService.update(model));
+
+        // Resolve metric meta id
+        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
+        if (primeMetric == null) {
+            throw new IllegalArgumentException("[metric_version] list, metric meta not found: metricCode=" + qo.getMetricCode());
+        }
+        Long metricMetaId = primeMetric.getId();
+        if (metricMetaId == null) {
+            throw new IllegalStateException("[metric_version] list, metric meta id is null: metricCode=" + qo.getMetricCode());
+        }
+
+        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo, metricMetaId);
+        boolean result = metricVersionService.update(dto);
+
+        return ApiResponse.success(result);
     }
 
     /**

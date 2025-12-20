@@ -1,18 +1,29 @@
 package lab.zhang.data_science.metrics_mall.pojo.dto;
 
+import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Metric and Dimension relation DTO.
  */
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetricVersionDTO {
+public class MetricVersionDTO extends BaseDTO {
+
+    /**
+     * Metric version id.
+     */
+    private Long id;
+
+    /**
+     * Metric id.
+     */
+    private Long metricId;
 
     /**
      * Metric code.
@@ -28,4 +39,14 @@ public class MetricVersionDTO {
      * Whether this version is the main version: 0=no, 1=yes.
      */
     private Integer isMain;
+
+    /**
+     * Life status
+     */
+    private LifeStatusEnum lifeStatus;
+
+    /**
+     * Calculation logic.
+     */
+    private String calcLogic;
 }

@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.model;
 
+import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,7 +28,7 @@ public class MetricVersion extends BaseModel {
 
     private Integer isMain;
 
-    private Integer lifeStatus;
+    private LifeStatusEnum lifeStatus;
 
     private String calcLogic;
 

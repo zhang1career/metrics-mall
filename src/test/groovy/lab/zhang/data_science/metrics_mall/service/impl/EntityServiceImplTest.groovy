@@ -28,13 +28,13 @@ class EntityServiceImplTest extends Specification {
         service.entityMetaStructMapper = entityMetaStructMapper
     }
 
-    def "test getEntity success"() {
+    def "test getEntityByCode success"() {
         given:
         def dao = EntityMetaDAO.builder().code(ENTITY_CODE).name("User").build()
         def meta = EntityMeta.builder().code(ENTITY_CODE).name("User").build()
 
         when:
-        def result = service.getEntity(ENTITY_CODE, ENTITY_ID)
+        def result = service.getEntityByCode(ENTITY_CODE, ENTITY_ID)
 
         then:
         1 * entityMetaMapper.selectOne(_ as LambdaQueryWrapper) >> dao
@@ -44,9 +44,9 @@ class EntityServiceImplTest extends Specification {
         result.id == ENTITY_ID
     }
 
-    def "test getEntity not found"() {
+    def "test getEntityByCode not found"() {
         when:
-        def result = service.getEntity(ENTITY_CODE, ENTITY_ID)
+        def result = service.getEntityByCode(ENTITY_CODE, ENTITY_ID)
 
         then:
         1 * entityMetaMapper.selectOne(_ as LambdaQueryWrapper) >> null

@@ -72,7 +72,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         then:
         def exception = thrown(IllegalArgumentException)
         exception.message == "metric list is empty"
-        0 * entityService.getEntity(_, _)
+        0 * entityService.getEntityByCode(_, _)
     }
 
     def "test writeSnapshot with null metric list should throw exception"() {
@@ -89,7 +89,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         then:
         def exception = thrown(IllegalArgumentException)
         exception.message == "metric list is empty"
-        0 * entityService.getEntity(_, _)
+        0 * entityService.getEntityByCode(_, _)
     }
 
     def "test writeSnapshot with entity not found should return all rejected"() {
@@ -106,7 +106,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .metricList([metricDTO] as List<EchoMetricDTO>)
                 .build()
 
-        entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> null
+        entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> null
 
         when:
         def result = service.writeSnapshot(dto)
@@ -136,7 +136,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
@@ -174,7 +174,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1, METRIC_CODE_2], [(METRIC_CODE_1): VERSION, (METRIC_CODE_2): VERSION]) >> [(METRIC_CODE_1): VERSION, (METRIC_CODE_2): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
@@ -208,7 +208,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
@@ -241,7 +241,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
@@ -274,7 +274,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): null]) >> [(METRIC_CODE_1): 2]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
@@ -287,7 +287,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     def "test writeSnapshot with null metric in list should ignore null metric"() {
         given:
         def entity = createEntity()
-        entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         def metricDTO1 = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
@@ -324,7 +324,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .metricList([metricDTO] as List<EchoMetricDTO>)
                 .snapshotTs(SNAPSHOT_TS)
                 .build()
-        entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
 
         when:
         service.writeSnapshot(dto)
@@ -349,7 +349,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .metricList([metricDTO] as List<EchoMetricDTO>)
                 .snapshotTs(SNAPSHOT_TS)
                 .build()
-        entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
 
         when:
         service.writeSnapshot(dto)
@@ -374,7 +374,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .metricList([metricDTO] as List<EchoMetricDTO>)
                 .snapshotTs(SNAPSHOT_TS)
                 .build()
-        entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
 
         when:
         service.writeSnapshot(dto)
@@ -399,7 +399,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .metricList([metricDTO] as List<EchoMetricDTO>)
                 .snapshotTs(SNAPSHOT_TS)
                 .build()
-        entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
 
         when:
         service.writeSnapshot(dto)
@@ -430,7 +430,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(false, "metric not found")
@@ -461,7 +461,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         1 * metricService.checkHotBatch(METRIC_CODE_1, ["city"]) >> ["city": false]
         0 * metricService.getMetricDaoByCode(_)
@@ -488,7 +488,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): 2]
         0 * metricService.checkHotBatch(_, _)
         def exception = thrown(IllegalArgumentException)
@@ -516,7 +516,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
         1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")

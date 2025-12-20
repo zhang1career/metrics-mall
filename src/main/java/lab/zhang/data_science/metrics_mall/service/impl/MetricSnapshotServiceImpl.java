@@ -68,7 +68,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
         }
 
         // validate entity meta
-        Entity entity = entityService.getEntity(dto.getEntityCode(), dto.getEntityId());
+        Entity entity = entityService.getEntityByCode(dto.getEntityCode(), dto.getEntityId());
         if (entity == null) {
             log.warn("[snap] entity not found: entityCode={}, entityId={}",
                     dto.getEntityCode(), dto.getEntityId());
@@ -165,7 +165,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
         }
 
         // validate entity meta
-        Entity entity = entityService.getEntity(dto.getEntityCode(), dto.getEntityId());
+        Entity entity = entityService.getEntityByCode(dto.getEntityCode(), dto.getEntityId());
         if (entity == null) {
             throw new IllegalArgumentException("entity not found, entityCode=" + dto.getEntityCode());
         }

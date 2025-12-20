@@ -5,7 +5,7 @@ server:
 
 # Metrics-mall configuration
 metrics_mall:
-  # Environment type: TEST, GRAY or PRODUCTION
+  # Environment type: TEST, GRAY or PROD
   environment: TEST
 
 spring:

@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.enums;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Getter;
  * 
  */
 @Getter
+@AllArgsConstructor
 public enum MetricTypeEnum {
     
     /**
@@ -25,14 +27,11 @@ public enum MetricTypeEnum {
      * Composite metric.
      */
     COMPOSITE(2, "COMPOSITE");
-    
+
+
     private final Integer id;
     private final String name;
-    
-    MetricTypeEnum(Integer id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+
     
     /**
      * Get enum by id.

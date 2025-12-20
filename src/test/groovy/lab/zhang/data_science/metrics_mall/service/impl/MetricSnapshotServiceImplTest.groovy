@@ -59,7 +59,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         then:
         def exception = thrown(IllegalArgumentException)
         exception.message == "[snap] metric list is empty"
-        0 * entityService.getEntity(_, _)
+        0 * entityService.getEntityByCode(_, _)
     }
 
     def "test querySnapshot with null metric list should throw exception"() {
@@ -76,7 +76,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         then:
         def exception = thrown(IllegalArgumentException)
         exception.message == "[snap] metric list is empty"
-        0 * entityService.getEntity(_, _)
+        0 * entityService.getEntityByCode(_, _)
     }
 
     def "test querySnapshot with entity not found should return null"() {
@@ -92,14 +92,14 @@ class MetricSnapshotServiceImplTest extends Specification {
                 .metricList([metricDTO])
                 .build()
 
-        entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> null
+        entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> null
 
         when:
         def result = service.querySnapshot(dto)
 
         then:
         result == null
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID)
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID)
         0 * cacheService.get(_, _, _, _, _)
     }
 
@@ -125,7 +125,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO
         1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO, metricMetaDAO) >> echoMetric
@@ -161,7 +161,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO
         1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO, metricMetaDAO) >> echoMetric
@@ -197,7 +197,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO
         1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO, metricMetaDAO) >> echoMetric
@@ -239,7 +239,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO1
         1 * metricService.getMetricDaoByCode(METRIC_CODE_2) >> metricMetaDAO2
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO1
@@ -275,7 +275,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO1
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO1
         1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO1, metricMetaDAO1) >> echoMetric1
@@ -303,7 +303,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> null
         0 * cacheService.get(_, _, _, _, _)
         result != null
@@ -330,7 +330,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> null
         1 * metricStructMapper.echoMetricDaoToModel(null, metricMetaDAO) >> null
@@ -361,7 +361,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO
         1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO, metricMetaDAO) >> echoMetric
@@ -394,7 +394,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, dimensionMap) >> echoMetricMetaDAO
         1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO, metricMetaDAO) >> echoMetric
@@ -424,7 +424,7 @@ class MetricSnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        1 * entityService.getEntity(ENTITY_CODE, ENTITY_ID) >> entity
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.getMetricDaoByCode(METRIC_CODE_1) >> metricMetaDAO
         1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO
         1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO, metricMetaDAO) >> echoMetric

@@ -24,19 +24,32 @@ public class EntityServiceImpl implements EntityService {
 
 
     @Override
-    public Entity getEntity(String entityCode, Long entityId) {
+    public EntityMeta getEntityMetaByCode(String entityCode) {
         // query
         LambdaQueryWrapper<EntityMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(EntityMetaDAO::getCode, entityCode);
         EntityMetaDAO entityMetaDAO = entityMetaMapper.selectOne(queryWrapper);
         if (entityMetaDAO == null) {
             if (log.isDebugEnabled()) {
+                log.debug("[entity_meta] entity meta not found: entityCode={}", entityCode);
+            }
+            return null;
+        }
+
+        return entityMetaStructMapper.daoToModel(entityMetaDAO);
+    }
+
+    @Override
+    public Entity getEntityByCode(String entityCode, Long entityId) {
+        // query
+        EntityMeta entityMeta = getEntityMetaByCode(entityCode);
+        if (entityMeta == null) {
+            if (log.isDebugEnabled()) {
                 log.debug("[entity] entity meta not found: entityCode={}", entityCode);
             }
             return null;
         }
 
-        EntityMeta entityMeta = entityMetaStructMapper.daoToModel(entityMetaDAO);
         return Entity.builder()
                 .meta(entityMeta)
                 .id(entityId)

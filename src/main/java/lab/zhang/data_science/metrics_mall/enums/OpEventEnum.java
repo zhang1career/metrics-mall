@@ -61,7 +61,7 @@ public enum OpEventEnum {
     /**
      * Event value. Note: not final because we assign auto ids in static block.
      */
-    private Integer id;
+    private final Integer id;
 
     /**
      * Event name.

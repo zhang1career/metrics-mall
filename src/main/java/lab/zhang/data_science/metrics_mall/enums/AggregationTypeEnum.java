@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.enums;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Getter;
  * 
  */
 @Getter
+@AllArgsConstructor
 public enum AggregationTypeEnum {
     
     /**
@@ -35,14 +37,11 @@ public enum AggregationTypeEnum {
      * Count aggregation.
      */
     COUNT(4, "count");
-    
+
+
     private final Integer id;
     private final String name;
-    
-    AggregationTypeEnum(Integer id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+
     
     /**
      * Get enum by id.

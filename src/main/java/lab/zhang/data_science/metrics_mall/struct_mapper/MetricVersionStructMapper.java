@@ -2,6 +2,7 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import lab.zhang.data_science.metrics_mall.model.MetricVersion;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricVersionDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricVersionQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVersionVO;
 import org.mapstruct.Mapper;
@@ -16,15 +17,31 @@ import java.util.List;
  * @date 2025-12-19
  */
 @Mapper(componentModel = "spring")
-public interface MetricVersionStructMapper {
+public interface MetricVersionStructMapper extends BaseStructMapper {
 
     /**
-     * Convert QO to Model.
+     * Convert QO to DTO.
      *
      * @param qo metric version query object
-     * @return metric version model
+     * @return metric version data transfer object
      */
-    MetricVersion qoToModel(MetricVersionQO qo);
+    @Mapping(target = "metricId", source = "metricId")
+    @Mapping(target = "version", source = "qo.version")
+    @Mapping(target = "isMain", source = "qo.isMain")
+    @Mapping(target = "lifeStatus", expression = "java(mapLifeStatus(qo.getLifeStatus()))")
+    @Mapping(target = "calcLogic", source = "qo.calcLogic")
+    MetricVersionDTO qoToDto(MetricVersionQO qo, Long metricId);
+
+    /**
+     * Convert DTO to DAO.
+     *
+     * @param dto metric version data transfer object
+     * @return metric version entity
+     */
+    @Mapping(target = "lifeStatus", expression = "java(mapLifeStatusToInt(dto.getLifeStatus()))")
+    @Mapping(target = "ct", ignore = true)
+    @Mapping(target = "ut", ignore = true)
+    MetricVersionDAO dtoToDao(MetricVersionDTO dto);
 
     /**
      * Convert DAO to Model.
@@ -43,16 +60,6 @@ public interface MetricVersionStructMapper {
      * @return list of metric version model
      */
     List<MetricVersion> daoToModelBatch(List<MetricVersionDAO> daoList);
-
-    /**
-     * Convert Model to DAO.
-     *
-     * @param model metric version model
-     * @return metric version entity
-     */
-    @Mapping(target = "ct", expression = "java(model.getCreateTime() != null ? model.getCreateTime().getTime() : null)")
-    @Mapping(target = "ut", expression = "java(model.getUpdateTime() != null ? model.getUpdateTime().getTime() : null)")
-    MetricVersionDAO modelToDao(MetricVersion model);
 
     /**
      * Convert Model to VO.
