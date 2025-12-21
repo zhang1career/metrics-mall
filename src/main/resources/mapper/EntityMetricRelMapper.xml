@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lab.zhang.data_science.metrics_mall.mapper.EntityMetricRelMapper">
+
+    <!-- Update by primary key, updating non-null fields except primary key -->
+    <update id="updateByPrimaryKey">
+        UPDATE x
+        <set>
+            <if test="rel.alias != null">
+                alias = #{rel.alias},
+            </if>
+            <if test="rel.dataUri != null">
+                dataUri = #{rel.dataUri},
+            </if>
+        </set>
+        WHERE eid = #{rel.entityMetaId}
+        AND mid = #{rel.metricMetaId}
+    </update>
+
+</mapper>

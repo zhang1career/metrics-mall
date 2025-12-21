@@ -9,7 +9,7 @@ import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO.FieldCond
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO.OrderByQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.AggregationVO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricAggregationVO;
-import org.mapstruct.MapperConfig;
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
@@ -20,11 +20,8 @@ import java.util.stream.Collectors;
  *
  * @author Rongjin Zhang
  */
-@MapperConfig(
-        componentModel = "spring",
-        uses = {
-                MetricStructMapper.class
-        })
+@Mapper(componentModel = "spring",
+        config = BaseAggregationStructMapper.class)
 public interface MetricAggregationStructMapper extends BaseStructMapper {
 
     /**
@@ -33,7 +30,7 @@ public interface MetricAggregationStructMapper extends BaseStructMapper {
      * @param qo field condition QO
      * @return field condition DTO
      */
-    @Mapping(target = "value", expression = "java(TypedValue.of(qo.getValue()))")
+    @Mapping(target = "value", expression = "java(mapTypedValue(qo.getValue()))")
     FieldConditionDTO condQoToDto(FieldConditionQO qo);
 
     /**
@@ -68,7 +65,7 @@ public interface MetricAggregationStructMapper extends BaseStructMapper {
      * @param qo metric aggregation QO
      * @return metric aggregation DTO
      */
-    @Mapping(target = "metricCodeSet", expression = "java(new HashSet<>(qo.getMetricCodes()))")
+    @Mapping(target = "metricCodeSet", expression = "java(mapListToSet(qo.getMetricCodes()))")
     @Mapping(target = "startTime", expression = "java(mapDateStrToLocalDateTime(qo.getTimeRange().getStart()))")
     @Mapping(target = "stopTime", expression = "java(mapDateStrToLocalDateTime(qo.getTimeRange().getStop()))")
     @Mapping(target = "intervalInSeconds", expression = "java(mapExpressionToSeconds(qo.getInterval()))")

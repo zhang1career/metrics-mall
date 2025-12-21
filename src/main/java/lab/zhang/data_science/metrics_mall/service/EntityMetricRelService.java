@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO;
 
 import java.util.List;
 
@@ -14,13 +15,18 @@ public interface EntityMetricRelService {
     /**
      * Create entity metric relation.
      *
-     * @param entityMetaId entity meta id
-     * @param metricMetaId metric meta id
-     * @param alias alias name
-     * @param dataUri data URI
+     * @param dto entity metric relation DTO
      * @return true if success
      */
-    boolean create(Long entityMetaId, Long metricMetaId, String alias, String dataUri);
+    boolean create(EntityMetricRelDTO dto);
+
+    /**
+     * Update entity metric relation.
+     *
+     * @param dto entity metric relation DTO
+     * @return true if success
+     */
+    boolean update(EntityMetricRelDTO dto);
 
     /**
      * Get entity metric relation by entity meta id and metric meta id.
@@ -53,17 +59,6 @@ public interface EntityMetricRelService {
      * @return entity metric relation DAO list
      */
     List<EntityMetricRelDAO> list();
-
-    /**
-     * Update entity metric relation.
-     *
-     * @param entityMetaId entity meta id
-     * @param metricMetaId metric meta id
-     * @param alias alias name
-     * @param dataUri data URI
-     * @return true if success
-     */
-    boolean update(Long entityMetaId, Long metricMetaId, String alias, String dataUri);
 
     /**
      * Delete entity metric relation by entity meta id and metric meta id.

@@ -2,7 +2,6 @@ package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.common.TypedValue
-import lab.zhang.data_science.metrics_mall.controller.v1.MetricAggregationController
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.MetricAggregation
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric

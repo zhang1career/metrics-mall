@@ -94,9 +94,9 @@ public class MetricVersionServiceImpl implements MetricVersionService {
             return false;
         }
         // validate existence
-        MetricVersion existedModel = getByMetricIdAndVersion(dto.getMetricId(), dto.getVersion());
-        if (existedModel != null) {
-            throw new IllegalStateException("metric version existed, version: " + existedModel.getVersion());
+        MetricVersion existingModel = getByMetricIdAndVersion(dto.getMetricId(), dto.getVersion());
+        if (existingModel != null) {
+            throw new IllegalStateException("metric version existed, version: " + existingModel.getVersion());
         }
         // validate isMain
         if (dto.getIsMain() != null) {
@@ -115,8 +115,8 @@ public class MetricVersionServiceImpl implements MetricVersionService {
             dto.setLifeStatus(LifeStatusEnum.OFFLINE);
         }
 
+        dto.setTimeOnCreate();
         MetricVersionDAO dao = metricVersionStructMapper.dtoToDao(dto);
-        dao.setTimeOnCreate();
         int rows = metricVersionMapper.insert(dao);
         if (rows > 0) {
             dto.setId(dao.getId());
@@ -139,18 +139,20 @@ public class MetricVersionServiceImpl implements MetricVersionService {
             return false;
         }
         // validate existence
-        MetricVersion existedModel = getByMetricIdAndVersion(dto.getMetricId(), dto.getVersion());
-        if (existedModel == null) {
-            throw new IllegalStateException("metric version not existed, version: " + existedModel.getVersion());
+        MetricVersion existingModel = getByMetricIdAndVersion(dto.getMetricId(), dto.getVersion());
+        if (existingModel == null) {
+            throw new IllegalStateException("metric version not existed, version: " + dto.getVersion());
         }
+        // set id
+        dto.setId(existingModel.getId());
         // validate isMain
         if (dto.getIsMain() != null) {
-            if (existedModel.getIsMain() != 0 && dto.getIsMain() != 0) {
+            if (existingModel.getIsMain() != 0 && dto.getIsMain() != 0) {
                 throw new IllegalStateException("updating version cannot be main, version: " + dto.getVersion());
             }
         }
         // validate life status
-        Set<LifeStatusEnum> availableLifeStatusSet = lifeStatusConfig.getAvailableLifeStatusTransitions(existedModel.getLifeStatus());
+        Set<LifeStatusEnum> availableLifeStatusSet = lifeStatusConfig.getAvailableLifeStatusTransitions(existingModel.getLifeStatus());
         if (dto.getLifeStatus() != null) {
             if (!availableLifeStatusSet.contains(dto.getLifeStatus())) {
                 throw new IllegalStateException("updating version life status invalid, version: " + dto.getVersion()
@@ -158,8 +160,8 @@ public class MetricVersionServiceImpl implements MetricVersionService {
             }
         }
 
+        dto.setTimeOnUpdate();
         MetricVersionDAO dao = metricVersionStructMapper.dtoToDao(dto);
-        dao.setTimeOnUpdate();
         return metricVersionMapper.updateById(dao) > 0;
     }
 

@@ -57,6 +57,7 @@ public class MetricMetaDAO extends BaseDAO {
     /**
      * Decimal precision for FLOAT type metrics.
      */
+    @TableField("`precision`")
     private Integer precision;
 
     /**
@@ -73,7 +74,7 @@ public class MetricMetaDAO extends BaseDAO {
     /**
      * Valid range of metric values.
      */
-    private Map<String, TypedValue> validation;
+    private String validation;
 
     /**
      * Max value of cardinality.

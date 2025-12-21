@@ -28,4 +28,9 @@ public class MetricDimensionRelDTO {
      * Is hot dimension.
      */
     private Integer isHot;
+
+    /**
+     * Validation rules in JSON format.
+     */
+    private String validation;
 }

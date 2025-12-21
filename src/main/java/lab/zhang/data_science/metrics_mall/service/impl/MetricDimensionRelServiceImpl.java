@@ -1,16 +1,18 @@
 package lab.zhang.data_science.metrics_mall.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import lab.zhang.data_science.metrics_mall.mapper.DimensionMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper;
-import lab.zhang.data_science.metrics_mall.pojo.dao.DimensionDAO;
-import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.model.Dimension;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO;
+import lab.zhang.data_science.metrics_mall.service.DimensionService;
 import lab.zhang.data_science.metrics_mall.service.MetricDimensionRelService;
+import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,12 @@ import java.util.List;
 public class MetricDimensionRelServiceImpl implements MetricDimensionRelService {
 
     @Autowired
+    private MetricService metricService;
+
+    @Autowired
+    private DimensionService dimensionService;
+
+    @Autowired
     private MetricDimensionRelMapper metricDimensionRelMapper;
 
     @Autowired
@@ -37,57 +45,6 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
     @Autowired
     private DimensionMapper dimensionMapper;
 
-    @Override
-    public boolean create(Long metricMetaId, Long dimensionId, Integer isHot, String validation) {
-        if (metricMetaId == null || dimensionId == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] metricMetaId and dimensionId cannot be null");
-        }
-        if (isHot == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] isHot cannot be null");
-        }
-
-        // validate metric meta exists
-        MetricMetaDAO metricMetaDAO = metricMetaMapper.selectById(metricMetaId);
-        if (metricMetaDAO == null) {
-            log.warn("[metric_dimension_rel] metric meta not found: metricMetaId={}", metricMetaId);
-            throw new IllegalArgumentException("[metric_dimension_rel] metric meta not found: metricMetaId=" + metricMetaId);
-        }
-
-        // validate dimension exists
-        DimensionDAO dimensionDAO = dimensionMapper.selectById(dimensionId);
-        if (dimensionDAO == null) {
-            log.warn("[metric_dimension_rel] dimension not found: dimensionId={}", dimensionId);
-            throw new IllegalArgumentException("[metric_dimension_rel] dimension not found: dimensionId=" + dimensionId);
-        }
-
-        // check if relation already exists
-        LambdaQueryWrapper<MetricDimensionRelDAO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MetricDimensionRelDAO::getMetricMetaId, metricMetaId)
-                .eq(MetricDimensionRelDAO::getDimensionId, dimensionId);
-        MetricDimensionRelDAO existingRel = metricDimensionRelMapper.selectOne(queryWrapper);
-        if (existingRel != null) {
-            log.warn("[metric_dimension_rel] relation already exists: metricMetaId={}, dimensionId={}", 
-                    metricMetaId, dimensionId);
-            throw new IllegalArgumentException(
-                    String.format("[metric_dimension_rel] relation already exists: metricMetaId=%d, dimensionId=%d", 
-                            metricMetaId, dimensionId));
-        }
-
-        // insert new relation
-        MetricDimensionRelDAO dao = new MetricDimensionRelDAO();
-        dao.setMetricMetaId(metricMetaId);
-        dao.setDimensionId(dimensionId);
-        dao.setIsHot(isHot);
-        dao.setValidation(validation);
-
-        int rows = metricDimensionRelMapper.insert(dao);
-        if (rows > 0) {
-            log.info("[metric_dimension_rel] created: metricMetaId={}, dimensionId={}, isHot={}", 
-                    metricMetaId, dimensionId, isHot);
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public MetricDimensionRelDAO get(Long metricMetaId, Long dimensionId) {
@@ -126,35 +83,102 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
     }
 
     @Override
-    public boolean update(Long metricMetaId, Long dimensionId, Integer isHot, String validation) {
-        if (metricMetaId == null || dimensionId == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] metricMetaId and dimensionId cannot be null");
-        }
-        if (isHot == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] isHot cannot be null");
+    public boolean create(MetricDimensionRelDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("[metric_dimension_rel] create failed, dto cannot be null");
         }
 
-        // check if relation exists
-        MetricDimensionRelDAO existingRel = get(metricMetaId, dimensionId);
-        if (existingRel == null) {
-            log.warn("[metric_dimension_rel] relation not found: metricMetaId={}, dimensionId={}", 
-                    metricMetaId, dimensionId);
-            throw new IllegalArgumentException(
-                    String.format("[metric_dimension_rel] relation not found: metricMetaId=%d, dimensionId=%d", 
-                            metricMetaId, dimensionId));
+        // validate the metric existence
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
+        if (metricMetaDAO == null) {
+            throw new IllegalArgumentException("[metric_dimension_rel] create failed, metric meta not found: metricCode=" + dto.getMetricCode());
+        }
+        Long metricMetaId = metricMetaDAO.getId();
+
+        // validate the dimension existence
+        Dimension dimension = dimensionService.getByCode(dto.getDimensionCode());
+        if (dimension == null) {
+            throw new IllegalArgumentException("[metric_dimension_rel] create failed, dimension not found: dimensionCode=" + dto.getDimensionCode());
+        }
+        Long dimensionId = dimension.getId();
+
+        // validate the relation existence
+        QueryWrapper<MetricDimensionRelDAO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("mid", metricMetaId)
+                .eq("did", dimensionId);
+        MetricDimensionRelDAO existingRel = metricDimensionRelMapper.selectOne(queryWrapper);
+        if (existingRel != null) {
+            throw new IllegalArgumentException(String.format("[metric_dimension_rel] create failed, relation already exists: metricMetaId=%d, dimensionId=%d",
+                    metricMetaId, dimensionId));
         }
 
-        // update relation
-        UpdateWrapper<MetricDimensionRelDAO> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("mid", metricMetaId)
-                .eq("did", dimensionId)
-                .set("is_hot", isHot)
-                .set("validation", validation);
+        Integer isHot = dto.getIsHot();
+        String validation = dto.getValidation();
 
-        int rows = metricDimensionRelMapper.update(null, updateWrapper);
+        // insert new relation
+        MetricDimensionRelDAO dao = new MetricDimensionRelDAO();
+        dao.setMetricMetaId(metricMetaId);
+        dao.setDimensionId(dimensionId);
+        dao.setIsHot(isHot);
+        dao.setValidation(validation);
+
+        int rows = metricDimensionRelMapper.insert(dao);
         if (rows > 0) {
-            log.info("[metric_dimension_rel] updated: metricMetaId={}, dimensionId={}, isHot={}", 
-                    metricMetaId, dimensionId, isHot);
+            if (log.isDebugEnabled()) {
+                log.debug("[metric_dimension_rel] create success, metricMetaId={}, dimensionId={}, isHot={}",
+                        metricMetaId, dimensionId, isHot);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean update(MetricDimensionRelDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("[metric_dimension_rel] update failed, dto cannot be null");
+        }
+
+        // validate the metric existence
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
+        if (metricMetaDAO == null) {
+            throw new IllegalArgumentException("[metric_dimension_rel] update failed, metric meta not found: metricCode=" + dto.getMetricCode());
+        }
+        Long metricMetaId = metricMetaDAO.getId();
+
+        // validate the dimension existence
+        Dimension dimension = dimensionService.getByCode(dto.getDimensionCode());
+        if (dimension == null) {
+            throw new IllegalArgumentException("[metric_dimension_rel] update failed, dimension not found: dimensionCode=" + dto.getDimensionCode());
+        }
+        Long dimensionId = dimension.getId();
+
+        // validate the relation existence
+        QueryWrapper<MetricDimensionRelDAO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("mid", metricMetaId)
+                .eq("did", dimensionId);
+        MetricDimensionRelDAO existingRel = metricDimensionRelMapper.selectOne(queryWrapper);
+        if (existingRel == null) {
+            throw new IllegalArgumentException(String.format("[metric_dimension_rel] update failed, relation not exists: metricMetaId=%d, dimensionId=%d",
+                    metricMetaId, dimensionId));
+        }
+
+        Integer isHot = dto.getIsHot();
+        String validation = dto.getValidation();
+
+        // insert new relation
+        MetricDimensionRelDAO dao = new MetricDimensionRelDAO();
+        dao.setMetricMetaId(metricMetaId);
+        dao.setDimensionId(dimensionId);
+        dao.setIsHot(isHot);
+        dao.setValidation(validation);
+
+        int rows = metricDimensionRelMapper.updateByPrimaryKey(dao);
+        if (rows > 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("[metric_dimension_rel] update success, metricMetaId={}, dimensionId={}, isHot={}",
+                        metricMetaId, dimensionId, isHot);
+            }
             return true;
         }
         return false;
@@ -172,7 +196,7 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
 
         int rows = metricDimensionRelMapper.delete(queryWrapper);
         if (rows > 0) {
-            log.info("[metric_dimension_rel] deleted: metricMetaId={}, dimensionId={}", 
+            log.info("[metric_dimension_rel] deleted: metricMetaId={}, dimensionId={}",
                     metricMetaId, dimensionId);
             return true;
         }

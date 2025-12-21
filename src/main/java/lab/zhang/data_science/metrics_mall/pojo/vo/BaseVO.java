@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class BaseVO {
 
-    private String create_ts;
+    private String createTime;
 
-    private String update_ts;
+    private String updateTime;
 }

@@ -16,14 +16,12 @@ public class MetricDimensionRelDAO {
     /**
      * Dimension ID (part of composite primary key, unsigned integer)
      */
-    @TableId
-    @TableField("mid")
+    @TableId("mid")
     private Long metricMetaId;
 
     /**
      * Dimension ID (part of composite primary key, unsigned integer)
      */
-    @TableId
     @TableField("did")
     private Long dimensionId;
 

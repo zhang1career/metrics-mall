@@ -1,4 +1,4 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -112,14 +112,13 @@ public class MetricVersionController extends BaseV1Controller {
     /**
      * Update an existing metric version.
      *
-     * @param id primary key id
      * @param qo metric version query object
      * @return success response
      */
     @Operation(summary = "Update metric version", description = "Update an existing metric version")
     @PutMapping("/metric_versions")
-    public ApiResponse<Boolean> update(@PathVariable Long id, @Valid @RequestBody MetricVersionQO qo) {
-        log.info("[metric_version] update, id: {}, param: {}", id, qo);
+    public ApiResponse<Boolean> update(@Valid @RequestBody MetricVersionQO qo) {
+        log.info("[metric_version] update, param: {}", qo);
 
         // Resolve metric meta id
         PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());

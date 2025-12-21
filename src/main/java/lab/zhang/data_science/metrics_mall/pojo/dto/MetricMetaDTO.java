@@ -1,24 +1,24 @@
-package lab.zhang.data_science.metrics_mall.pojo.qo;
+package lab.zhang.data_science.metrics_mall.pojo.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lab.zhang.data_science.metrics_mall.common.TypedValue;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 
 /**
- * Metric query object for CRUD operations.
+ * Metric data transfer object.
  *
  * @author Rongjin Zhang
- * @date 2025-12-19
+ * @date 2025-12-21
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetricQO {
+public class MetricMetaDTO extends BaseDTO {
 
     private Long id;
 
@@ -40,7 +40,7 @@ public class MetricQO {
 
     private String unit;
 
-    private Map<String, Object> validation;
+    private Map<String, TypedValue> validation;
 
     private Integer cardMax;
 }

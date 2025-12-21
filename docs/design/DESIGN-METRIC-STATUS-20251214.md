@@ -76,7 +76,7 @@ public enum LifeStatus {
 ```sql
 ALTER TABLE `metric_version` 
 ADD COLUMN `life_status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'metric status, 0=OFFLINE, 1=DEV, 2=TEST, 3=GRAY, 4=ONLINE, 5=DEPRECATED',
-ADD COLUMN `begin_status_t` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'timestamp when metric went online, unix timestamp in milliseconds',
+ADD COLUMN `status_ts` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'timestamp when metric went online, unix timestamp in milliseconds',
 ```
 
 ### 2.3 API设计

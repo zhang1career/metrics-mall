@@ -1,4 +1,4 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import lab.zhang.data_science.metrics_mall.constant.ApiPathConst;
 import org.springframework.web.bind.annotation.RequestMapping;

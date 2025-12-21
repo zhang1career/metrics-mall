@@ -1,9 +1,9 @@
 package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import lab.zhang.data_science.metrics_mall.controller.v1.EntityMetaController
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.EntityMeta
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetaDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetaQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetaVO
 import lab.zhang.data_science.metrics_mall.service.EntityMetaService
@@ -46,7 +46,7 @@ class EntityMetaControllerTest extends Specification {
         def vo = EntityMetaVO.builder().id(id).build()
 
         when:
-        def response = mockMvc.perform(get("/api/v1/entity-metas/${id}"))
+        def response = mockMvc.perform(get("/api/v1/entity_metas/${id}"))
 
         then:
         1 * entityMetaService.get(id) >> model
@@ -63,7 +63,7 @@ class EntityMetaControllerTest extends Specification {
         def vo = EntityMetaVO.builder().code(code).build()
 
         when:
-        def response = mockMvc.perform(get("/api/v1/entity-metas/code/${code}"))
+        def response = mockMvc.perform(get("/api/v1/entity_metas/code/${code}"))
 
         then:
         1 * entityMetaService.getByCode(code) >> model
@@ -79,7 +79,7 @@ class EntityMetaControllerTest extends Specification {
         def voList = [EntityMetaVO.builder().id(1).build()]
 
         when:
-        def response = mockMvc.perform(get("/api/v1/entity-metas"))
+        def response = mockMvc.perform(get("/api/v1/entity_metas"))
 
         then:
         1 * entityMetaService.list() >> modelList
@@ -91,7 +91,7 @@ class EntityMetaControllerTest extends Specification {
 
     def "test count success"() {
         when:
-        def response = mockMvc.perform(get("/api/v1/entity-metas/count"))
+        def response = mockMvc.perform(get("/api/v1/entity_metas/count"))
 
         then:
         1 * entityMetaService.count() >> 10L
@@ -103,16 +103,16 @@ class EntityMetaControllerTest extends Specification {
     def "test insert success"() {
         given:
         def qo = EntityMetaQO.builder().code("user").name("User").build()
-        def model = EntityMeta.builder().code("user").name("User").build()
+        def dto = EntityMetaDTO.builder().code("user").name("User").build()
 
         when:
-        def response = mockMvc.perform(post("/api/v1/entity-metas")
+        def response = mockMvc.perform(post("/api/v1/entity_metas")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * entityMetaStructMapper.qoToModel(_ as EntityMetaQO) >> model
-        1 * entityMetaService.insert(model) >> true
+        1 * entityMetaStructMapper.qoToDto(_ as EntityMetaQO) >> dto
+        1 * entityMetaService.insert(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
@@ -120,17 +120,17 @@ class EntityMetaControllerTest extends Specification {
 
     def "test update success"() {
         given:
-        def qo = EntityMetaQO.builder().id(1).code("user").name("User").build()
-        def model = EntityMeta.builder().id(1).code("user").name("User").build()
+        def qo = EntityMetaQO.builder().code("user").name("User").build()
+        def dto = EntityMetaDTO.builder().code("user").name("User").build()
 
         when:
-        def response = mockMvc.perform(put("/api/v1/entity-metas")
+        def response = mockMvc.perform(put("/api/v1/entity_metas")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * entityMetaStructMapper.qoToModel(_ as EntityMetaQO) >> model
-        1 * entityMetaService.update(model) >> true
+        1 * entityMetaStructMapper.qoToDto(_ as EntityMetaQO) >> dto
+        1 * entityMetaService.update(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
@@ -141,7 +141,7 @@ class EntityMetaControllerTest extends Specification {
         def id = 1
 
         when:
-        def response = mockMvc.perform(delete("/api/v1/entity-metas/${id}"))
+        def response = mockMvc.perform(delete("/api/v1/entity_metas/${id}"))
 
         then:
         1 * entityMetaService.delete(id) >> true

@@ -17,8 +17,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EntityMetaQO {
 
-    private Integer id;
-
     @NotBlank(message = "Entity code cannot be blank")
     private String code;
 

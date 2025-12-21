@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.model.EntityMeta;
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetaDTO;
 
 import java.util.List;
 
@@ -44,18 +45,18 @@ public interface EntityMetaService {
     /**
      * Insert a new entity meta.
      *
-     * @param entityMeta entity meta model
+     * @param dto entity meta data transfer object
      * @return true if success
      */
-    boolean insert(EntityMeta entityMeta);
+    boolean insert(EntityMetaDTO dto);
 
     /**
      * Update an existing entity meta.
      *
-     * @param entityMeta entity meta model
+     * @param dto entity meta data transfer object
      * @return true if success
      */
-    boolean update(EntityMeta entityMeta);
+    boolean update(EntityMetaDTO dto);
 
     /**
      * Delete an entity meta by id.

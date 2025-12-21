@@ -4,6 +4,7 @@ import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricMetaDTO;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public interface MetricService {
      * @param code metric code
      * @return metric DAO, null if not found
      */
-    MetricMetaDAO getMetricDaoByCode(String code);
+    MetricMetaDAO getMetricMetaDaoByCode(String code);
 
     /**
      * Validate metric code format.
@@ -62,14 +63,6 @@ public interface MetricService {
      * @return metric aggregation result containing metadata and rows
      */
     MetricAggregation queryAggregation(MetricAggregationDTO queryModel);
-
-    /**
-     * Get metric models by codes.
-     *
-     * @param metricCodes metric codes list
-     * @return metric model map, key is metric code, value is metric model
-     */
-    Map<String, PrimeMetric> getMetricModelsByCodes(List<String> metricCodes);
 
     /**
      * Get is_hot by metric code.
@@ -100,26 +93,26 @@ public interface MetricService {
     /**
      * List metrics by query criteria.
      *
-     * @param queryModel query criteria
+     * @param dto query criteria
      * @return list of PrimeMetric model
      */
-    List<PrimeMetric> list(PrimeMetric queryModel);
+    List<PrimeMetric> list(MetricMetaDTO dto);
 
     /**
      * Insert a new metric.
      *
-     * @param model PrimeMetric model
+     * @param dto metric data transfer object
      * @return true if success
      */
-    boolean insert(PrimeMetric model);
+    boolean insert(MetricMetaDTO dto);
 
     /**
      * Update an existing metric.
      *
-     * @param model PrimeMetric model
+     * @param dto metric meta data transfer object
      * @return true if success
      */
-    boolean update(PrimeMetric model);
+    boolean update(MetricMetaDTO dto);
 
     /**
      * Delete a metric by id.

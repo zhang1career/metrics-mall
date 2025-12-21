@@ -1,11 +1,12 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
-import lab.zhang.data_science.metrics_mall.pojo.qo.MetricQO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricMetaDTO;
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricMetaQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO;
 import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper;
@@ -70,10 +71,10 @@ public class MetricController extends BaseV1Controller {
      */
     @Operation(summary = "List metrics", description = "List metrics by query criteria")
     @GetMapping("/metrics/list")
-    public ApiResponse<List<MetricVO>> list(MetricQO qo) {
+    public ApiResponse<List<MetricVO>> list(MetricMetaQO qo) {
         log.info("[metric] list, param: {}", qo);
-        PrimeMetric queryModel = metricStructMapper.qoToPrimeModel(qo);
-        List<PrimeMetric> modelList = metricService.list(queryModel);
+        MetricMetaDTO dto = metricStructMapper.qoToDto(qo);
+        List<PrimeMetric> modelList = metricService.list(dto);
         List<MetricVO> voList = modelList.stream()
                 .map(metricStructMapper::modelToVo)
                 .collect(java.util.stream.Collectors.toList());
@@ -88,26 +89,24 @@ public class MetricController extends BaseV1Controller {
      */
     @Operation(summary = "Insert metric", description = "Insert a new metric")
     @PostMapping("/metrics")
-    public ApiResponse<Boolean> insert(@Valid @RequestBody MetricQO qo) {
+    public ApiResponse<Boolean> insert(@Valid @RequestBody MetricMetaQO qo) {
         log.info("[metric] insert, param: {}", qo);
-        PrimeMetric model = metricStructMapper.qoToPrimeModel(qo);
-        return ApiResponse.success(metricService.insert(model));
+        MetricMetaDTO dto = metricStructMapper.qoToDto(qo);
+        return ApiResponse.success(metricService.insert(dto));
     }
 
     /**
      * Update an existing metric.
      *
-     * @param id primary key id
      * @param qo metric query object
      * @return success response
      */
     @Operation(summary = "Update metric", description = "Update an existing metric")
-    @PutMapping("/metrics/{id}")
-    public ApiResponse<Boolean> update(@PathVariable Long id, @Valid @RequestBody MetricQO qo) {
-        log.info("[metric] update, id: {}, param: {}", id, qo);
-        PrimeMetric model = metricStructMapper.qoToPrimeModel(qo);
-        model.setId(id);
-        return ApiResponse.success(metricService.update(model));
+    @PutMapping("/metrics")
+    public ApiResponse<Boolean> update(@Valid @RequestBody MetricMetaQO qo) {
+        log.info("[metric] update param: {}", qo);
+        MetricMetaDTO dto = metricStructMapper.qoToDto(qo);
+        return ApiResponse.success(metricService.update(dto));
     }
 
     /**

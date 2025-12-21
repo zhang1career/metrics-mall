@@ -1,7 +1,6 @@
 package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import lab.zhang.data_science.metrics_mall.controller.v1.MetricDimensionRelController
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.Dimension
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric

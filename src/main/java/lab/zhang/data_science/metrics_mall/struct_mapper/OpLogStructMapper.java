@@ -22,6 +22,8 @@ public interface OpLogStructMapper extends BaseStructMapper {
      */
     @Mapping(target = "event", expression = "java(mapEvent(dao.getEvent()))")
     @Mapping(target = "operateTime", expression = "java(mapTimestampToDate(dao.getOperateTs()))")
+    @Mapping(target = "createTime", expression = "java(mapTimestampToDate(dao.getCt()))")
+    @Mapping(target = "updateTime", ignore = true)
     OpLog daoToModel(OpLogDAO dao);
 
 
@@ -41,6 +43,7 @@ public interface OpLogStructMapper extends BaseStructMapper {
      */
     @Mapping(target = "event", expression = "java(mapEventToInt(model.getEvent()))")
     @Mapping(target = "operateTs", expression = "java(mapDateToTimestamp(model.getOperateTime()))")
+    @Mapping(target = "ct", expression = "java(mapDateToTimestamp(model.getCreateTime()))")
     OpLogDAO modelToDao(OpLog model);
 }
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
 import lab.zhang.data_science.metrics_mall.mapper.EntityMetaMapper
 import lab.zhang.data_science.metrics_mall.model.EntityMeta
 import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetaDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetaDTO
 import lab.zhang.data_science.metrics_mall.struct_mapper.EntityMetaStructMapper
 import spock.lang.Specification
 
@@ -77,28 +78,28 @@ class EntityMetaServiceImplTest extends Specification {
 
     def "test insert success"() {
         given:
-        def model = EntityMeta.builder().code("user").build()
+        def dto = EntityMetaDTO.builder().code("user").build()
         def dao = EntityMetaDAO.builder().code("user").build()
 
         when:
-        def result = service.insert(model)
+        def result = service.insert(dto)
 
         then:
-        1 * entityMetaStructMapper.modelToDao(model) >> dao
+        1 * entityMetaStructMapper.dtoToDao(dto) >> dao
         1 * entityMetaMapper.insert(_ as EntityMetaDAO) >> 1
         result
     }
 
     def "test update success"() {
         given:
-        def model = EntityMeta.builder().id(1).code("user").build()
+        def dto = EntityMetaDTO.builder().id(1).code("user").build()
         def dao = EntityMetaDAO.builder().id(1).code("user").build()
 
         when:
-        def result = service.update(model)
+        def result = service.update(dto)
 
         then:
-        1 * entityMetaStructMapper.modelToDao(model) >> dao
+        1 * entityMetaStructMapper.dtoToDao(dto) >> dao
         1 * entityMetaMapper.updateById(_ as EntityMetaDAO) >> 1
         result
     }

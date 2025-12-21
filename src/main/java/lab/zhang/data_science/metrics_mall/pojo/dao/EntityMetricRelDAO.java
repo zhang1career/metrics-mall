@@ -17,14 +17,12 @@ public class EntityMetricRelDAO {
     /**
      * Entity ID (part of composite primary key, unsigned integer)
      */
-    @TableId
-    @TableField("eid")
+    @TableId("eid")
     private Long entityMetaId;
 
     /**
      * Dimension ID (part of composite primary key, unsigned integer)
      */
-    @TableId
     @TableField("mid")
     private Long metricMetaId;
 

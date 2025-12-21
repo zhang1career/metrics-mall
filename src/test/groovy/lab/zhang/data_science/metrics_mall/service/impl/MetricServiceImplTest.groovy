@@ -35,21 +35,21 @@ class MetricServiceImplTest extends Specification {
         service.metricStructMapper = metricStructMapper
     }
 
-    def "test getMetricDaoByCode success"() {
+    def "test getMetricMetaDaoByCode success"() {
         given:
         def dao = MetricMetaDAO.builder().code(METRIC_CODE).build()
 
         when:
-        def result = service.getMetricDaoByCode(METRIC_CODE)
+        def result = service.getMetricMetaDaoByCode(METRIC_CODE)
 
         then:
         1 * metricMapper.selectOne(_) >> dao
         result == dao
     }
 
-    def "test getMetricDaoByCode blank code"() {
+    def "test getMetricMetaDaoByCode blank code"() {
         expect:
-        service.getMetricDaoByCode("") == null
+        service.getMetricMetaDaoByCode("") == null
     }
 
     def "test checkHotBatch success"() {

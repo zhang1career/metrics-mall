@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO;
 
 import java.util.List;
 
@@ -10,17 +11,6 @@ import java.util.List;
  * @author Rongjin Zhang
  */
 public interface MetricDimensionRelService {
-
-    /**
-     * Create metric dimension relation.
-     *
-     * @param metricMetaId metric meta id
-     * @param dimensionId dimension id
-     * @param isHot is hot dimension
-     * @param validation validation rule
-     * @return true if success
-     */
-    boolean create(Long metricMetaId, Long dimensionId, Integer isHot, String validation);
 
     /**
      * Get metric dimension relation by metric meta id and dimension id.
@@ -55,15 +45,20 @@ public interface MetricDimensionRelService {
     List<MetricDimensionRelDAO> list();
 
     /**
-     * Update metric dimension relation.
+     * Create metric dimension relation.
      *
-     * @param metricMetaId metric meta id
-     * @param dimensionId dimension id
-     * @param isHot is hot dimension
-     * @param validation validation rule
+     * @param dto metric dimension relation DTO
      * @return true if success
      */
-    boolean update(Long metricMetaId, Long dimensionId, Integer isHot, String validation);
+    boolean create(MetricDimensionRelDTO dto);
+
+    /**
+     * Update metric dimension relation.
+     *
+     * @param dto metric dimension relation DTO
+     * @return true if success
+     */
+    boolean update(MetricDimensionRelDTO dto);
 
     /**
      * Delete metric dimension relation by metric meta id and dimension id.

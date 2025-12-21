@@ -52,8 +52,7 @@ public class MetricVersionDAO extends BaseDAO {
     /**
      * Timestamp when metric went online, UNIX timestamp in milliseconds.
      */
-    @TableField("begin_status_t")
-    private Long beginStatusTs;
+    private Long onlineTs;
     
     /**
      * Calculation logic.
@@ -63,21 +62,21 @@ public class MetricVersionDAO extends BaseDAO {
     /**
      * Whether this metric supports explainability: 0=no, 1=yes.
      */
-    private Integer isExplainable;
+//    private Integer isExplainable;
     
     /**
      * Explainability type: 0=formula, 1=rule, 2=feature_importance, 3=lineage.
      */
-    private Integer explainType;
+//    private Integer explainType;
     
     /**
      * Explainability configuration, JSON format.
      */
-    private String explainConfig;
+//    private String explainConfig;
     
     /**
      * Change log.
      */
-    private String changeLog;
+//    private String changeLog;
 }
 

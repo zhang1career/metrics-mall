@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
 import lab.zhang.data_science.metrics_mall.mapper.DimensionMapper
 import lab.zhang.data_science.metrics_mall.model.Dimension
 import lab.zhang.data_science.metrics_mall.pojo.dao.DimensionDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.DimensionDTO
 import lab.zhang.data_science.metrics_mall.struct_mapper.DimensionStructMapper
 import spock.lang.Specification
 
@@ -77,28 +78,28 @@ class DimensionServiceImplTest extends Specification {
 
     def "test insert success"() {
         given:
-        def model = Dimension.builder().code("city").build()
+        def dto = DimensionDTO.builder().code("city").build()
         def dao = DimensionDAO.builder().code("city").build()
 
         when:
-        def result = service.insert(model)
+        def result = service.insert(dto)
 
         then:
-        1 * dimensionStructMapper.modelToDao(model) >> dao
+        1 * dimensionStructMapper.dtoToDao(dto) >> dao
         1 * dimensionMapper.insert(_ as DimensionDAO) >> 1
         result
     }
 
     def "test update success"() {
         given:
-        def model = Dimension.builder().id(1L).code("city").build()
+        def dto = DimensionDTO.builder().id(1L).code("city").build()
         def dao = DimensionDAO.builder().id(1L).code("city").build()
 
         when:
-        def result = service.update(model)
+        def result = service.update(dto)
 
         then:
-        1 * dimensionStructMapper.modelToDao(model) >> dao
+        1 * dimensionStructMapper.dtoToDao(dto) >> dao
         1 * dimensionMapper.updateById(_ as DimensionDAO) >> 1
         result
     }

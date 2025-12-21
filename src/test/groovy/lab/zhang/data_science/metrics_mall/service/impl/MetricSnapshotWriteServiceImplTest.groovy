@@ -464,7 +464,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
         1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
         1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
         1 * metricService.checkHotBatch(METRIC_CODE_1, ["city"]) >> ["city": false]
-        0 * metricService.getMetricDaoByCode(_)
+        0 * metricService.getMetricMetaDaoByCode(_)
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("dimension is not hot")
     }

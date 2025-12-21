@@ -79,7 +79,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
         Map<String, MetricMetaDAO> metricDAOMap = dto.getMetricList().stream()
                 .filter(Objects::nonNull)
                 .map(metricDTO ->
-                        metricService.getMetricDaoByCode(metricDTO.getCode()))
+                        metricService.getMetricMetaDaoByCode(metricDTO.getCode()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(MetricMetaDAO::getCode, metricDAO -> metricDAO));
 

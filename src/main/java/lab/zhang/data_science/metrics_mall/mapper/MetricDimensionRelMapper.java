@@ -37,4 +37,13 @@ public interface MetricDimensionRelMapper extends BaseMapper<MetricDimensionRelD
             " </foreach>" +
             "</script>")
     List<MetricDimensionRelDTO> getIsHotBatch(@Param("metricCode") String metricCode, @Param("dimCodes") Collection<String> dimCodeColl);
+
+
+    /**
+     * Update metric dimension relation by primary key.
+     *
+     * @param rel metric dimension relation DAO
+     * @return number of rows affected
+     */
+    int updateByPrimaryKey(@Param("rel") MetricDimensionRelDAO rel);
 }

@@ -3,6 +3,7 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 import lab.zhang.data_science.metrics_mall.model.Entity;
 import lab.zhang.data_science.metrics_mall.model.EntityMeta;
 import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetaDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetaDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetaQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetaVO;
 import org.mapstruct.Mapper;
@@ -16,7 +17,18 @@ import java.util.List;
  * @author Rongjin Zhang
  */
 @Mapper(componentModel = "spring")
-public interface EntityMetaStructMapper {
+public interface EntityMetaStructMapper extends BaseStructMapper {
+
+    /**
+     * Convert EntityMetaQO to EntityMetaDTO.
+     *
+     * @param qo entity meta query object
+     * @return entity meta data transfer object
+     */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createTime", ignore = true)
+    @Mapping(target = "updateTime", ignore = true)
+    EntityMetaDTO qoToDto(EntityMetaQO qo);
 
     /**
      * Convert EntityMetaDAO to Entity.EntityMeta (for backward compatibility).
@@ -27,23 +39,13 @@ public interface EntityMetaStructMapper {
     Entity.EntityMeta daoToModel(EntityMetaDAO dao);
 
     /**
-     * Convert EntityMetaQO to EntityMetaModel.
-     *
-     * @param qo entity meta query object
-     * @return entity meta model
-     */
-    @Mapping(target = "createTime", ignore = true)
-    @Mapping(target = "updateTime", ignore = true)
-    EntityMeta qoToModel(EntityMetaQO qo);
-
-    /**
      * Convert EntityMetaDAO to EntityMetaModel.
      *
      * @param dao entity meta DAO
      * @return entity meta model
      */
-    @Mapping(target = "createTime", expression = "java(dao.getCt() != null ? new java.util.Date(dao.getCt()) : null)")
-    @Mapping(target = "updateTime", expression = "java(dao.getUt() != null ? new java.util.Date(dao.getUt()) : null)")
+    @Mapping(target = "createTime", expression = "java(mapTimestampToDate(dao.getCt()))")
+    @Mapping(target = "updateTime", expression = "java(mapTimestampToDate(dao.getUt()))")
     EntityMeta daoToModelNew(EntityMetaDAO dao);
 
     /**
@@ -55,14 +57,14 @@ public interface EntityMetaStructMapper {
     List<EntityMeta> daoToModelBatch(List<EntityMetaDAO> daoList);
 
     /**
-     * Convert EntityMetaModel to EntityMetaDAO.
+     * Convert EntityMetaDTO to EntityMetaDAO.
      *
-     * @param model entity meta model
+     * @param dto entity meta data transfer object
      * @return entity meta DAO
      */
-    @Mapping(target = "ct", expression = "java(model.getCreateTime() != null ? model.getCreateTime().getTime() : null)")
-    @Mapping(target = "ut", expression = "java(model.getUpdateTime() != null ? model.getUpdateTime().getTime() : null)")
-    EntityMetaDAO modelToDao(EntityMeta model);
+    @Mapping(target = "ct", expression = "java(mapDateToTimestamp(dto.getCreateTime()))")
+    @Mapping(target = "ut", expression = "java(mapDateToTimestamp(dto.getUpdateTime()))")
+    EntityMetaDAO dtoToDao(EntityMetaDTO dto);
 
     /**
      * Convert EntityMetaModel to EntityMetaVO.
@@ -70,8 +72,8 @@ public interface EntityMetaStructMapper {
      * @param model entity meta model
      * @return entity meta VO
      */
-    @Mapping(target = "ct", expression = "java(model.getCreateTimeInTimestamp())")
-    @Mapping(target = "ut", expression = "java(model.getUpdateTimeInTimestamp())")
+    @Mapping(target = "ct", expression = "java(mapDateToTimestamp(model.getCreateTime()))")
+    @Mapping(target = "ut", expression = "java(mapDateToTimestamp(model.getUpdateTime()))")
     EntityMetaVO modelToVo(EntityMeta model);
 
     /**

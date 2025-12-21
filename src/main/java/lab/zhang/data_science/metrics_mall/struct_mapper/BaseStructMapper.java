@@ -2,16 +2,65 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lab.zhang.data_science.metrics_mall.enums.*;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.*;
 
+import static cn.hutool.core.date.DatePattern.NORM_DATETIME_MS_FORMAT;
 import static lab.zhang.data_science.metrics_mall.constant.NumConst.ZERO_L;
 import static lab.zhang.data_science.metrics_mall.util.TimeUtil.parseSecondsFromExpression;
 
 public interface BaseStructMapper {
+
+    ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+
+    // string
+
+    default String mapMapToString(Map<?, ?> map) {
+        return map != null ? map.toString() : StrUtil.EMPTY;
+    }
+
+    default <K> Map<K, Object> getKTypedValueMap(String str) {
+        try {
+            Map<K, Object> result = OBJECT_MAPPER.readValue(str, Map.class);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse string to map: " + str, e);
+        }
+    }
+
+
+    // collections
+
+    /**
+     * Map List to Set.
+     *
+     * @param list input list
+     * @param <T>  element type
+     * @return set
+     */
+    default <T> Set<T> mapListToSet(List<T> list) {
+        return list != null ? new HashSet<>(list) : null;
+    }
+
+    /**
+     * Map Set to List.
+     *
+     * @param set input set
+     * @param <T> element type
+     * @return list
+     */
+    default <T> List<T> mapSetToList(Set<T> set) {
+        return set != null ? List.copyOf(set) : null;
+    }
+
+
     // time
 
     /**
@@ -35,6 +84,15 @@ public interface BaseStructMapper {
     }
 
     /**
+     * Map Date to String date representation.
+     * @param date Date object
+     * @return date string
+     */
+    default String mapDateToString(Date date) {
+        return date != null ? DateUtil.format(date, NORM_DATETIME_MS_FORMAT) : StrUtil.EMPTY;
+    }
+
+    /**
      * Map String date representation to LocalDateTime.
      *
      * @param dateStr date string
@@ -54,6 +112,7 @@ public interface BaseStructMapper {
     default Long mapExpressionToSeconds(String exp) {
         return parseSecondsFromExpression(exp);
     }
+
 
     // enums
 
@@ -136,6 +195,7 @@ public interface BaseStructMapper {
         return lifeStatus != null ? lifeStatus.getId() : null;
     }
 
+
     // TypedValue
 
     /**
@@ -144,8 +204,38 @@ public interface BaseStructMapper {
      * @param valueObj object value
      * @return TypedValue
      */
-    default TypedValue mapObjToTypedValue(Object valueObj) {
+    default TypedValue mapTypedValue(Object valueObj) {
         return TypedValue.of(valueObj);
     }
 
+    /**
+     * Map Map<K, Object> to Map<K, TypedValue>.
+     *
+     * @param valueObjMap map with Object values
+     * @param <K>         key type
+     * @return map with TypedValue values
+     */
+    default <K> Map<K, TypedValue> mapTypedValueMap(Map<K, Object> valueObjMap) {
+        if (valueObjMap == null) {
+            return null;
+        }
+        Map<K, TypedValue> typedValueMap = new HashMap<>();
+        for (Map.Entry<K, Object> entry : valueObjMap.entrySet()) {
+            typedValueMap.put(entry.getKey(), mapTypedValue(entry.getValue()));
+        }
+        return typedValueMap;
+    }
+
+    default <K> Map<K, TypedValue> mapStringToTypedValueMap(String str) {
+        if (StrUtil.isBlank(str)) {
+            return MapUtil.newHashMap();
+        }
+
+        Map<K, Object> valueObjMap = getKTypedValueMap(str);
+        return mapTypedValueMap(valueObjMap);
+    }
+
+    default TypedValue mapTypeToTypedValue(Object rawValue, Integer valueType) {
+        return ValueTypeEnum.typedValueOf(rawValue, valueType);
+    }
 }

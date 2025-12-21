@@ -13,7 +13,7 @@ public enum MetadataTableEnum {
     METRIC_VERSION(3, "metric_version"),
     METRIC_LINEAGE(4, "metric_lineage"),
     DIMENSION(5, "dim"),
-    ENTIRY_METRIC_RELATION(6, "x"),
+    ENTITY_METRIC_RELATION(6, "x"),
     METRIC_DIMENSION_RELATION(7, "y"),
     OP_LOG(8, "op_log"),
     OP_LOG_DETAIL(9, "op_log_detail"),

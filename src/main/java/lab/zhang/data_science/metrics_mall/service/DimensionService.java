@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.model.Dimension;
+import lab.zhang.data_science.metrics_mall.pojo.dto.DimensionDTO;
 
 import java.util.List;
 
@@ -44,18 +45,18 @@ public interface DimensionService {
     /**
      * Insert a new dimension.
      *
-     * @param dimension dimension model
+     * @param dto dimension data transfer object
      * @return true if success
      */
-    boolean insert(Dimension dimension);
+    boolean insert(DimensionDTO dto);
 
     /**
      * Update an existing dimension.
      *
-     * @param dimension dimension model
+     * @param dto dimension data transfer object
      * @return true if success
      */
-    boolean update(Dimension dimension);
+    boolean update(DimensionDTO dto);
 
     /**
      * Delete a dimension by id.

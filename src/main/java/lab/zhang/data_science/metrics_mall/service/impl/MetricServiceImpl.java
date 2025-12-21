@@ -4,7 +4,6 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricVersionMapper;
@@ -13,6 +12,7 @@ import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricMetaDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
 import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper;
@@ -53,19 +53,23 @@ public class MetricServiceImpl implements MetricService {
 
     @Override
     public PrimeMetric getPrimeMetricByCode(String code) {
+        MetricMetaDAO metricMetaDAO = getMetricMetaDaoByCode(code);
+        if (metricMetaDAO == null) {
+            return null;
+        }
+        // todo: should not convert only MetricMetaDAO to PrimeMetric
+        return metricStructMapper.daoToPrimeModel(metricMetaDAO);
+    }
+
+    @Override
+    public MetricMetaDAO getMetricMetaDaoByCode(String code) {
         if (StrUtil.isBlank(code)) {
             return null;
         }
 
         LambdaQueryWrapper<MetricMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MetricMetaDAO::getCode, code);
-        MetricMetaDAO metricDAO = metricMapper.selectOne(queryWrapper);
-
-        if (metricDAO == null) {
-            return null;
-        }
-        // todo: should not convert only MetricMetaDAO to PrimeMetric
-        return metricStructMapper.daoToPrimeModel(metricDAO);
+        return metricMapper.selectOne(queryWrapper);
     }
 
     @Override
@@ -85,17 +89,6 @@ public class MetricServiceImpl implements MetricService {
     }
 
     @Override
-    public MetricMetaDAO getMetricDaoByCode(String code) {
-        if (StrUtil.isBlank(code)) {
-            return null;
-        }
-
-        LambdaQueryWrapper<MetricMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MetricMetaDAO::getCode, code);
-        return metricMapper.selectOne(queryWrapper);
-    }
-
-    @Override
     public Pair<Boolean, String> validateCode(String code) {
         if (StrUtil.isBlank(code)) {
             return Pair.of(false, "[valid] metric code is blank");
@@ -103,7 +96,7 @@ public class MetricServiceImpl implements MetricService {
 
         LambdaQueryWrapper<MetricMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MetricMetaDAO::getCode, code);
-        MetricMetaDAO metricMetaDAO =  metricMapper.selectOne(queryWrapper);
+        MetricMetaDAO metricMetaDAO = metricMapper.selectOne(queryWrapper);
         if (metricMetaDAO == null) {
             return Pair.of(false, "metric not found: code=" + code);
         }
@@ -127,11 +120,6 @@ public class MetricServiceImpl implements MetricService {
         log.warn("queryAggregation is deprecated, use MetricAggregationService instead");
         // Return empty result to avoid null
         return new MetricAggregation(Collections.emptyMap(), Collections.emptyMap());
-    }
-
-    @Override
-    public Map<String, PrimeMetric> getMetricModelsByCodes(List<String> metricCodes) {
-        return getPrimeMetricByCodeBatch(metricCodes);
     }
 
     @Override
@@ -230,54 +218,65 @@ public class MetricServiceImpl implements MetricService {
     }
 
     @Override
-    public List<PrimeMetric> list(PrimeMetric queryModel) {
+    public List<PrimeMetric> list(MetricMetaDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("[metric_meta] create failed, dto is null");
+        }
+
+        MetricMetaDAO dao = metricStructMapper.dtoToDao(dto);
+
         LambdaQueryWrapper<MetricMetaDAO> queryWrapper = new LambdaQueryWrapper<>();
-        if (queryModel != null) {
-            if (queryModel.getCode() != null) {
-                queryWrapper.eq(MetricMetaDAO::getCode, queryModel.getCode());
-            }
-            if (queryModel.getName() != null) {
-                queryWrapper.like(MetricMetaDAO::getName, queryModel.getName());
-            }
-            if (queryModel.getMetricType() != null) {
-                queryWrapper.eq(MetricMetaDAO::getMetricType, queryModel.getMetricType().getId());
-            }
-            if (queryModel.getAggregationType() != null) {
-                queryWrapper.eq(MetricMetaDAO::getAggregationType, queryModel.getAggregationType().getId());
-            }
+        if (dao.getCode() != null) {
+            queryWrapper.eq(MetricMetaDAO::getCode, dao.getCode());
+        }
+        if (dao.getName() != null) {
+            queryWrapper.like(MetricMetaDAO::getName, dao.getName());
+        }
+        if (dao.getMetricType() != null) {
+            queryWrapper.eq(MetricMetaDAO::getMetricType, dao.getMetricType());
+        }
+        if (dao.getAggregationType() != null) {
+            queryWrapper.eq(MetricMetaDAO::getAggregationType, dao.getAggregationType());
         }
         List<MetricMetaDAO> daoList = metricMapper.selectList(queryWrapper);
         return metricStructMapper.daoToPrimeModelBatch(daoList);
     }
 
     @Override
-    public boolean insert(PrimeMetric model) {
-        if (model == null) {
-            return false;
+    public boolean insert(MetricMetaDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("[metric_meta] create failed, dto is null");
         }
-        MetricMetaDAO dao = metricStructMapper.primeModelToDao(model);
-        if (dao == null) {
-            return false;
+        MetricMetaDAO exitedDAO = getMetricMetaDaoByCode(dto.getCode());
+        if (exitedDAO != null) {
+            throw new IllegalArgumentException("[metric_meta] create failed, metric code already exists: " + dto.getCode());
         }
-        dao.setTimeOnCreate();
+
+        dto.setTimeOnCreate();
+        MetricMetaDAO dao = metricStructMapper.dtoToDao(dto);
+
         int rows = metricMapper.insert(dao);
         if (rows > 0) {
-            model.setId(dao.getId());
+            dto.setId(dao.getId());
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean update(PrimeMetric model) {
-        if (model == null || model.getId() == null) {
-            return false;
+    public boolean update(MetricMetaDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("[metric_meta] update failed, dto is null");
         }
-        MetricMetaDAO dao = metricStructMapper.primeModelToDao(model);
-        if (dao == null) {
-            return false;
+        MetricMetaDAO exitedDAO = getMetricMetaDaoByCode(dto.getCode());
+        if (exitedDAO == null) {
+            throw new IllegalArgumentException("[metric_meta] update failed, metric code not exists: " + dto.getCode());
         }
-        dao.setTimeOnUpdate();
+
+        dto.setId(exitedDAO.getId());
+        dto.setTimeOnUpdate();
+        MetricMetaDAO dao = metricStructMapper.dtoToDao(dto);
+
         return metricMapper.updateById(dao) > 0;
     }
 

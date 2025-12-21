@@ -1,10 +1,11 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.Dimension;
+import lab.zhang.data_science.metrics_mall.pojo.dto.DimensionDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.DimensionQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.DimensionVO;
 import lab.zhang.data_science.metrics_mall.service.DimensionService;
@@ -96,8 +97,8 @@ public class DimensionController extends BaseV1Controller {
     @PostMapping("/dims")
     public ApiResponse<Boolean> insert(@Valid @RequestBody DimensionQO qo) {
         log.info("[dim] insert, param: {}", qo);
-        Dimension model = dimensionStructMapper.qoToModel(qo);
-        return ApiResponse.success(dimensionService.insert(model));
+        DimensionDTO dto = dimensionStructMapper.qoToDto(qo);
+        return ApiResponse.success(dimensionService.insert(dto));
     }
 
     /**
@@ -110,11 +111,8 @@ public class DimensionController extends BaseV1Controller {
     @PutMapping("/dims")
     public ApiResponse<Boolean> update(@Valid @RequestBody DimensionQO qo) {
         log.info("[dim] update, param: {}", qo);
-        if (qo.getId() == null) {
-            return ApiResponse.error(400, "Dimension id is required for update");
-        }
-        Dimension model = dimensionStructMapper.qoToModel(qo);
-        return ApiResponse.success(dimensionService.update(model));
+        DimensionDTO dto = dimensionStructMapper.qoToDto(qo);
+        return ApiResponse.success(dimensionService.update(dto));
     }
 
     /**

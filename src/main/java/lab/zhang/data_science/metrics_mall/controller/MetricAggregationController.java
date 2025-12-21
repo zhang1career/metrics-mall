@@ -1,4 +1,4 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

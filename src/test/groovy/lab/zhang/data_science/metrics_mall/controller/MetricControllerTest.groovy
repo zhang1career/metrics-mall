@@ -1,12 +1,12 @@
 package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import lab.zhang.data_science.metrics_mall.controller.v1.MetricController
 import lab.zhang.data_science.metrics_mall.enums.AggregationTypeEnum
 import lab.zhang.data_science.metrics_mall.enums.MetricTypeEnum
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
-import lab.zhang.data_science.metrics_mall.pojo.qo.MetricQO
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricMetaDTO
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricMetaQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO
 import lab.zhang.data_science.metrics_mall.service.MetricService
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper
@@ -114,7 +114,7 @@ class MetricControllerTest extends Specification {
         def response = mockMvc.perform(get("/api/v1/metrics/list"))
 
         then:
-        1 * metricStructMapper.qoToPrimeModel(_ as MetricQO) >> PrimeMetric.builder().build()
+        1 * metricStructMapper.qoToDto(_ as MetricMetaQO) >> MetricMetaDTO.builder().build()
         1 * metricService.list(_ as PrimeMetric) >> modelList
         1 * metricStructMapper.modelToVo(_ as PrimeMetric) >> voList[0]
         response.andExpect(status().isOk())
@@ -124,18 +124,18 @@ class MetricControllerTest extends Specification {
 
     def "test insert success"() {
         given:
-        def qo = MetricQO.builder()
+        def qo = MetricMetaQO.builder()
                 .code("test_metric")
                 .name("Test Metric")
                 .metricType(0)
                 .valueType(1)
                 .aggregationType(0)
                 .build()
-        def model = PrimeMetric.builder()
+        def dto = MetricMetaDTO.builder()
                 .code("test_metric")
                 .name("Test Metric")
-                .metricType(MetricTypeEnum.ATOMIC)
-                .aggregationType(AggregationTypeEnum.SUM)
+                .metricType(MetricTypeEnum.ATOMIC.getId())
+                .aggregationType(AggregationTypeEnum.SUM.getId())
                 .build()
 
         when:
@@ -144,8 +144,8 @@ class MetricControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * metricStructMapper.qoToPrimeModel(_ as MetricQO) >> model
-        1 * metricService.insert(model) >> true
+        1 * metricStructMapper.qoToDto(_ as MetricMetaQO) >> dto
+        1 * metricService.insert(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
@@ -154,19 +154,19 @@ class MetricControllerTest extends Specification {
     def "test update success"() {
         given:
         def id = 1L
-        def qo = MetricQO.builder()
+        def qo = MetricMetaQO.builder()
                 .code("test_metric")
                 .name("Updated Metric")
                 .metricType(0)
                 .valueType(1)
                 .aggregationType(0)
                 .build()
-        def model = PrimeMetric.builder()
+        def dto = MetricMetaDTO.builder()
                 .id(id)
                 .code("test_metric")
                 .name("Updated Metric")
-                .metricType(MetricTypeEnum.ATOMIC)
-                .aggregationType(AggregationTypeEnum.SUM)
+                .metricType(MetricTypeEnum.ATOMIC.getId())
+                .aggregationType(AggregationTypeEnum.SUM.getId())
                 .build()
 
         when:
@@ -175,8 +175,8 @@ class MetricControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * metricStructMapper.qoToPrimeModel(_ as MetricQO) >> model
-        1 * metricService.update(model) >> true
+        1 * metricStructMapper.qoToDto(_ as MetricMetaQO) >> dto
+        1 * metricService.update(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
@@ -198,7 +198,7 @@ class MetricControllerTest extends Specification {
 
     def "test insert validation failure"() {
         given:
-        def qo = MetricQO.builder()
+        def qo = MetricMetaQO.builder()
                 .name("Test Metric")
                 .build()
 

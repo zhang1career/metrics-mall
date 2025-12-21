@@ -1,9 +1,9 @@
 package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import lab.zhang.data_science.metrics_mall.controller.v1.DimensionController
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.Dimension
+import lab.zhang.data_science.metrics_mall.pojo.dto.DimensionDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.DimensionQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.DimensionVO
 import lab.zhang.data_science.metrics_mall.service.DimensionService
@@ -103,7 +103,7 @@ class DimensionControllerTest extends Specification {
     def "test insert success"() {
         given:
         def qo = DimensionQO.builder().code("city").name("City").build()
-        def model = Dimension.builder().code("city").name("City").build()
+        def dto = DimensionDTO.builder().code("city").name("City").build()
 
         when:
         def response = mockMvc.perform(post("/api/v1/dims")
@@ -111,8 +111,8 @@ class DimensionControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * dimensionStructMapper.qoToModel(_ as DimensionQO) >> model
-        1 * dimensionService.insert(model) >> true
+        1 * dimensionStructMapper.qoToDto(_ as DimensionQO) >> dto
+        1 * dimensionService.insert(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
@@ -121,7 +121,7 @@ class DimensionControllerTest extends Specification {
     def "test update success"() {
         given:
         def qo = DimensionQO.builder().id(1L).code("city").name("City").build()
-        def model = Dimension.builder().id(1L).code("city").name("City").build()
+        def dto = DimensionDTO.builder().id(1L).code("city").name("City").build()
 
         when:
         def response = mockMvc.perform(put("/api/v1/dims")
@@ -129,8 +129,8 @@ class DimensionControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * dimensionStructMapper.qoToModel(_ as DimensionQO) >> model
-        1 * dimensionService.update(model) >> true
+        1 * dimensionStructMapper.qoToDto(_ as DimensionQO) >> dto
+        1 * dimensionService.update(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))

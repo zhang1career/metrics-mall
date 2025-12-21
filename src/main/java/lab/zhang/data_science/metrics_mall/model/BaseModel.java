@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.model;
 
+import lab.zhang.data_science.metrics_mall.util.TimeUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -16,25 +17,16 @@ abstract public class BaseModel {
     Date updateTime;
 
 
-    public void setCreateTimeByTimestamp(long timestamp) {
-        this.createTime = new Date(timestamp);
+    public void setTimeOnCreate() {
+        // Set time fields (UNIX timestamp in seconds)
+        long currentTime = TimeUtil.getCurrentTime();
+        this.createTime = new Date(currentTime);
+        this.updateTime = new Date(currentTime);
     }
 
-    public long getCreateTimeInTimestamp() {
-        if (this.createTime == null) {
-            return 0;
-        }
-        return this.createTime.getTime();
-    }
-
-    public void setUpdateTimeByTimestamp(long timestamp) {
-        this.updateTime = new Date(timestamp);
-    }
-
-    public long getUpdateTimeInTimestamp() {
-        if (this.createTime == null) {
-            return 0;
-        }
-        return this.updateTime.getTime();
+    public void setTimeOnUpdate() {
+        // Set update time (UNIX timestamp in seconds)
+        long currentTime = TimeUtil.getCurrentTime();
+        this.updateTime = new Date(currentTime);
     }
 }

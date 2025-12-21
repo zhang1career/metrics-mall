@@ -1,6 +1,8 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO;
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricDimensionRelQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricDimensionRelVO;
 import org.mapstruct.Mapper;
 
@@ -13,6 +15,9 @@ import java.util.List;
  */
 @Mapper(componentModel = "spring")
 public interface MetricDimensionRelStructMapper {
+
+
+    MetricDimensionRelDTO qoToDto(MetricDimensionRelQO qo);
 
     /**
      * Convert MetricDimensionRelDAO to MetricDimensionRelVO.

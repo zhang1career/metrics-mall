@@ -25,11 +25,14 @@ public interface MetricVersionStructMapper extends BaseStructMapper {
      * @param qo metric version query object
      * @return metric version data transfer object
      */
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "metricId", source = "metricId")
     @Mapping(target = "version", source = "qo.version")
     @Mapping(target = "isMain", source = "qo.isMain")
     @Mapping(target = "lifeStatus", expression = "java(mapLifeStatus(qo.getLifeStatus()))")
     @Mapping(target = "calcLogic", source = "qo.calcLogic")
+    @Mapping(target = "createTime", ignore = true)
+    @Mapping(target = "updateTime", ignore = true)
     MetricVersionDTO qoToDto(MetricVersionQO qo, Long metricId);
 
     /**
@@ -39,8 +42,9 @@ public interface MetricVersionStructMapper extends BaseStructMapper {
      * @return metric version entity
      */
     @Mapping(target = "lifeStatus", expression = "java(mapLifeStatusToInt(dto.getLifeStatus()))")
-    @Mapping(target = "ct", ignore = true)
-    @Mapping(target = "ut", ignore = true)
+    @Mapping(target = "onlineTs", ignore = true)
+    @Mapping(target = "ct", expression = "java(mapDateToTimestamp(dto.getCreateTime()))")
+    @Mapping(target = "ut", expression = "java(mapDateToTimestamp(dto.getUpdateTime()))")
     MetricVersionDAO dtoToDao(MetricVersionDTO dto);
 
     /**
@@ -49,8 +53,9 @@ public interface MetricVersionStructMapper extends BaseStructMapper {
      * @param dao metric version entity
      * @return metric version model
      */
-    @Mapping(target = "createTime", expression = "java(dao.getCt() != null ? new java.util.Date(dao.getCt()) : null)")
-    @Mapping(target = "updateTime", expression = "java(dao.getUt() != null ? new java.util.Date(dao.getUt()) : null)")
+    @Mapping(target = "description", ignore = true)
+    @Mapping(target = "createTime", expression = "java(mapTimestampToDate(dao.getCt()))")
+    @Mapping(target = "updateTime", expression = "java(mapTimestampToDate(dao.getUt()))")
     MetricVersion daoToModel(MetricVersionDAO dao);
 
     /**

@@ -29,7 +29,7 @@
 ### 2.1 EntityMeta 数据准备
 
 #### 2.1.1 测试用例：新增 EntityMeta - 成功
-- **接口**: `POST /api/v1/entities` (假设存在，如不存在需创建)
+- **接口**: `POST /api/v1/entity_metas` (假设存在，如不存在需创建)
 - **请求数据**:
   ```json
   {
@@ -44,7 +44,7 @@
   - 数据库中存在该记录
 
 #### 2.1.2 测试用例：新增 EntityMeta - 失败（code重复）
-- **接口**: `POST /api/v1/entities`
+- **接口**: `POST /api/v1/entity_metas`
 - **请求数据**:
   ```json
   {
@@ -370,103 +370,117 @@
 ### 2.7 MetricVersion 状态更新
 
 #### 2.7.1 测试用例：更新 version_1 的 life_status 为 TEST
-- **接口**: `PUT /api/v1/metric_versions/{id}`
+- **接口**: `PUT /api/v1/metric_versions`
 - **路径参数**: `id` = version_1 的 ID
 - **请求数据**:
   ```json
   {
-    "lifeStatus": 143
+    "metricCode": "consume_amount",
+    "version": 1,
+    "lifeStatus": 2
   }
   ```
 - **预期结果**: 
   - HTTP 200
   - `code = 0`
   - `data = true`
-  - 数据库中 life_status = 143 (TEST)
+  - 数据库中 life_status = 2 (TEST)
 
-**注意**: 需要确认 life_status 的枚举值，TEST 可能对应 143（根据 OpEventEnum）。
+**注意**: 需要确认 life_status 的枚举值，TEST 可能对应 2（根据 OpEventEnum）。
 
 #### 2.7.2 测试用例：更新 version_1 的 life_status 为 GRAY
-- **接口**: `PUT /api/v1/metric_versions/{id}`
+- **接口**: `PUT /api/v1/metric_versions`
 - **路径参数**: `id` = version_1 的 ID
 - **请求数据**:
   ```json
   {
-    "lifeStatus": 144
+    "metricCode": "consume_amount",
+    "version": 1,
+    "lifeStatus": 3
   }
   ```
 - **预期结果**: 
   - HTTP 200
   - `code = 0`
   - `data = true`
-  - 数据库中 life_status = 144 (GRAY)
+  - 数据库中 life_status = 3 (GRAY)
 
 #### 2.7.3 测试用例：更新 version_1 的 life_status 为 ONLINE
-- **接口**: `PUT /api/v1/metric_versions/{id}`
+- **接口**: `PUT /api/v1/metric_versions`
 - **路径参数**: `id` = version_1 的 ID
 - **请求数据**:
   ```json
   {
-    "lifeStatus": 145
+    "metricCode": "consume_amount",
+    "version": 1,
+    "lifeStatus": 4
   }
   ```
 - **预期结果**: 
   - HTTP 200
   - `code = 0`
   - `data = true`
-  - 数据库中 life_status = 145 (ONLINE)
+  - 数据库中 life_status = 4 (ONLINE)
 
 #### 2.7.4 测试用例：更新 version_2 的 life_status 为 TEST
-- **接口**: `PUT /api/v1/metric_versions/{id}`
+- **接口**: `PUT /api/v1/metric_versions`
 - **路径参数**: `id` = version_2 的 ID
 - **请求数据**:
   ```json
   {
-    "lifeStatus": 143
+    "metricCode": "consume_amount",
+    "version": 2,
+    "lifeStatus": 2
   }
   ```
 - **预期结果**: 
   - HTTP 200
   - `code = 0`
   - `data = true`
-  - 数据库中 life_status = 143 (TEST)
+  - 数据库中 life_status = 2 (TEST)
 
 #### 2.7.5 测试用例：更新 version_2 的 life_status 为 GRAY
-- **接口**: `PUT /api/v1/metric_versions/{id}`
+- **接口**: `PUT /api/v1/metric_versions`
 - **路径参数**: `id` = version_2 的 ID
 - **请求数据**:
   ```json
   {
-    "lifeStatus": 144
+    "metricCode": "consume_amount",
+    "version": 2,
+    "lifeStatus": 3
   }
   ```
 - **预期结果**: 
   - HTTP 200
   - `code = 0`
   - `data = true`
-  - 数据库中 life_status = 144 (GRAY)
+  - 数据库中 life_status = 3 (GRAY)
 
 #### 2.7.6 测试用例：更新 version_2 的 life_status 为 ONLINE
-- **接口**: `PUT /api/v1/metric_versions/{id}`
+- **接口**: `PUT /api/v1/metric_versions`
 - **路径参数**: `id` = version_2 的 ID
 - **请求数据**:
   ```json
   {
-    "lifeStatus": 145
+    "metricCode": "consume_amount",
+    "version": 2,
+    "lifeStatus": 4
   }
   ```
 - **预期结果**: 
   - HTTP 200
   - `code = 0`
   - `data = true`
-  - 数据库中 life_status = 145 (ONLINE)
+  - 数据库中 life_status = 4 (ONLINE)
 
 #### 2.7.7 测试用例：更新 version_2 的 is_main 为 1
-- **接口**: `PUT /api/v1/metric_versions/{id}`
+- **接口**: `PUT /api/v1/metric_versions`
 - **路径参数**: `id` = version_2 的 ID
 - **请求数据**:
   ```json
   {
+    "metricCode": "consume_amount",
+    "version": 2,
     "isMain": 1
   }
   ```
@@ -849,20 +863,12 @@
 2. **EntityMetricRelController**: 用于 EntityMetricRel 的创建操作
 3. **MetricDimensionRelController**: 用于 MetricDimensionRel 的创建操作
 
-### 6.2 缺失的字段
-1. **MetricVersionQO.calcLogic**: 需要添加该字段以支持 calc_logic 的传递
-
-### 6.3 枚举值确认
-需要确认以下枚举值：
-- `life_status` 的枚举值：TEST, GRAY, ONLINE 对应的数值
-- 根据 `OpEventEnum`，TEST=143, GRAY=144, ONLINE=145
-
-### 6.4 数据清理
+### 6.2 数据清理
 每个测试用例执行前需要：
 - 清理相关测试数据
 - 或使用 `@Transactional` 和 `@Rollback` 自动回滚
 
-### 6.5 API Key
+### 6.3 API Key
 需要准备测试用的 API Key，并在所有需要认证的请求中使用。
 
 ---

@@ -1,4 +1,4 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -7,6 +7,7 @@ import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.Entity.EntityMeta;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetricRelQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetricRelVO;
 import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService;
@@ -38,11 +39,6 @@ public class EntityMetricRelController extends BaseV1Controller {
     @Autowired
     private EntityMetricRelStructMapper entityMetricRelStructMapper;
 
-    @Autowired
-    private EntityService entityService;
-
-    @Autowired
-    private MetricService metricService;
 
     /**
      * Create entity metric relation.
@@ -57,26 +53,11 @@ public class EntityMetricRelController extends BaseV1Controller {
         log.info("[entity_metric_rel] create, param: entityCode={}, metricCode={}, alias={}",
                 qo.getEntityCode(), qo.getMetricCode(), qo.getAlias());
 
-        // Resolve entity meta id
-        EntityMeta entityMeta = entityService.getEntityMetaByCode(qo.getEntityCode());
-        if (entityMeta == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] Entity meta not found: entityCode=" + qo.getEntityCode());
-        }
-        Long entityMetaId = Long.valueOf(entityMeta.getId());
-
-        // Resolve metric meta id
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
-        if (primeMetric == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] Metric meta not found: metricCode=" + qo.getMetricCode());
-        }
-        Long metricMetaId = primeMetric.getId();
+        EntityMetricRelDTO dto = entityMetricRelStructMapper.qoToDto(qo);
 
         // query
-        boolean result = entityMetricRelService.create(
-                entityMetaId,
-                metricMetaId,
-                qo.getAlias(),
-                qo.getDataUri());
+        boolean result = entityMetricRelService.create(dto);
+
         return ApiResponse.success(result);
     }
 
@@ -167,25 +148,11 @@ public class EntityMetricRelController extends BaseV1Controller {
         log.info("[entity_metric_rel] update, param: entityCode={}, metricCode={}, alias={}",
                 qo.getEntityCode(), qo.getMetricCode(), qo.getAlias());
 
-        // Resolve entity meta id
-        EntityMeta entityMeta = entityService.getEntityMetaByCode(qo.getEntityCode());
-        if (entityMeta == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] Entity meta not found: entityCode=" + qo.getEntityCode());
-        }
-        Long entityMetaId = Long.valueOf(entityMeta.getId());
+        EntityMetricRelDTO dto = entityMetricRelStructMapper.qoToDto(qo);
 
-        // Resolve metric meta id
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
-        if (primeMetric == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] Metric meta not found: metricCode=" + qo.getMetricCode());
-        }
-        Long metricMetaId = primeMetric.getId();
+        // query
+        boolean result = entityMetricRelService.update(dto);
 
-        boolean result = entityMetricRelService.update(
-                entityMetaId,
-                metricMetaId,
-                qo.getAlias(),
-                qo.getDataUri());
         return ApiResponse.success(result);
     }
 

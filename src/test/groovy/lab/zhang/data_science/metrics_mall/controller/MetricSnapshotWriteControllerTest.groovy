@@ -2,7 +2,6 @@ package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.components.RequestContext
-import lab.zhang.data_science.metrics_mall.controller.v1.MetricSnapshotController
 import lab.zhang.data_science.metrics_mall.enums.OpEventEnum
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO

@@ -1,10 +1,11 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.EntityMeta;
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetaDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetaQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetaVO;
 import lab.zhang.data_science.metrics_mall.service.EntityMetaService;
@@ -40,7 +41,7 @@ public class EntityMetaController extends BaseV1Controller {
      * @return entity meta response
      */
     @Operation(summary = "Get entity meta", description = "Get entity meta by id")
-    @GetMapping("/entity-metas/{id}")
+    @GetMapping("/entity_metas/{id}")
     public ApiResponse<EntityMetaVO> get(@PathVariable Integer id) {
         log.info("[entity_meta] get, id: {}", id);
         EntityMeta model = entityMetaService.get(id);
@@ -54,7 +55,7 @@ public class EntityMetaController extends BaseV1Controller {
      * @return entity meta response
      */
     @Operation(summary = "Get entity meta by code", description = "Get entity meta by code")
-    @GetMapping("/entity-metas/code/{code}")
+    @GetMapping("/entity_metas/code/{code}")
     public ApiResponse<EntityMetaVO> getByCode(@PathVariable String code) {
         log.info("[entity_meta] getByCode, code: {}", code);
         EntityMeta model = entityMetaService.getByCode(code);
@@ -67,7 +68,7 @@ public class EntityMetaController extends BaseV1Controller {
      * @return entity meta list response
      */
     @Operation(summary = "List entity metas", description = "List all entity metas")
-    @GetMapping("/entity-metas")
+    @GetMapping("/entity_metas")
     public ApiResponse<List<EntityMetaVO>> list() {
         log.info("[entity_meta] list");
         List<EntityMeta> modelList = entityMetaService.list();
@@ -80,7 +81,7 @@ public class EntityMetaController extends BaseV1Controller {
      * @return entity meta count response
      */
     @Operation(summary = "Count entity metas", description = "Count all entity metas")
-    @GetMapping("/entity-metas/count")
+    @GetMapping("/entity_metas/count")
     public ApiResponse<Long> count() {
         log.info("[entity_meta] count");
         return ApiResponse.success(entityMetaService.count());
@@ -93,11 +94,11 @@ public class EntityMetaController extends BaseV1Controller {
      * @return success response
      */
     @Operation(summary = "Insert entity meta", description = "Insert a new entity meta")
-    @PostMapping("/entity-metas")
+    @PostMapping("/entity_metas")
     public ApiResponse<Boolean> insert(@Valid @RequestBody EntityMetaQO qo) {
         log.info("[entity_meta] insert, param: {}", qo);
-        EntityMeta model = entityMetaStructMapper.qoToModel(qo);
-        return ApiResponse.success(entityMetaService.insert(model));
+        EntityMetaDTO dto = entityMetaStructMapper.qoToDto(qo);
+        return ApiResponse.success(entityMetaService.insert(dto));
     }
 
     /**
@@ -107,14 +108,11 @@ public class EntityMetaController extends BaseV1Controller {
      * @return success response
      */
     @Operation(summary = "Update entity meta", description = "Update an existing entity meta")
-    @PutMapping("/entity-metas")
+    @PutMapping("/entity_metas")
     public ApiResponse<Boolean> update(@Valid @RequestBody EntityMetaQO qo) {
         log.info("[entity_meta] update, param: {}", qo);
-        if (qo.getId() == null) {
-            return ApiResponse.error(400, "Entity meta id is required for update");
-        }
-        EntityMeta model = entityMetaStructMapper.qoToModel(qo);
-        return ApiResponse.success(entityMetaService.update(model));
+        EntityMetaDTO dto = entityMetaStructMapper.qoToDto(qo);
+        return ApiResponse.success(entityMetaService.update(dto));
     }
 
     /**
@@ -124,7 +122,7 @@ public class EntityMetaController extends BaseV1Controller {
      * @return success response
      */
     @Operation(summary = "Delete entity meta", description = "Delete an entity meta by id")
-    @DeleteMapping("/entity-metas/{id}")
+    @DeleteMapping("/entity_metas/{id}")
     public ApiResponse<Boolean> delete(@PathVariable Integer id) {
         log.info("[entity_meta] delete, id: {}", id);
         return ApiResponse.success(entityMetaService.delete(id));

@@ -3,16 +3,16 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.map.MapUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lab.zhang.data_science.metrics_mall.enums.ValueTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.metric.AlphaMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.AlphaMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricMetaDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO;
-import lab.zhang.data_science.metrics_mall.pojo.qo.MetricQO;
+import lab.zhang.data_science.metrics_mall.pojo.qo.MetricMetaQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.BriefMetricVO.PrettyBriefMetricVO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVO;
 import org.mapstruct.Mapper;
@@ -31,21 +31,30 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface MetricStructMapper extends BaseStructMapper {
 
-    //==================== PrimeMetric Model ====================
-
     /**
-     * Convert MetricQO to PrimeMetric.
+     * Convert MetricMetaQO to MetricMetaDTO.
      *
-     * @param qo metric query object
-     * @return PrimeMetric model
+     * @param qo metric meta query object
+     * @return MetricMetaDTO
      */
-    @Mapping(target = "metricType", expression = "java(mapMetricType(qo.getMetricType()))")
-    @Mapping(target = "aggregationType", expression = "java(mapAggregationType(qo.getAggregationType()))")
-    @Mapping(target = "value", ignore = true)
-    @Mapping(target = "snapshotTs", ignore = true)
+    @Mapping(target = "validation", expression = "java(mapTypedValueMap(qo.getValidation()))")
     @Mapping(target = "createTime", ignore = true)
     @Mapping(target = "updateTime", ignore = true)
-    PrimeMetric qoToPrimeModel(MetricQO qo);
+    MetricMetaDTO qoToDto(MetricMetaQO qo);
+
+    /**
+     * Convert MetricMetaDTO to MetricMetaDAO.
+     *
+     * @param dto metric meta DTO
+     * @return MetricMetaDAO
+     */
+    @Mapping(target = "validation", expression = "java(mapMapToString(dto.getValidation()))")
+    @Mapping(target = "ct", expression = "java(mapDateToTimestamp(dto.getCreateTime()))")
+    @Mapping(target = "ut", expression = "java(mapDateToTimestamp(dto.getUpdateTime()))")
+    MetricMetaDAO dtoToDao(MetricMetaDTO dto);
+
+
+    //==================== PrimeMetric Model ====================
 
     /**
      * Convert MetricMetaDAO to MetricModel.
@@ -57,6 +66,7 @@ public interface MetricStructMapper extends BaseStructMapper {
     @Mapping(target = "aggregationType", expression = "java(mapAggregationType(dao.getAggregationType()))")
     @Mapping(target = "value", ignore = true)
     @Mapping(target = "snapshotTs", ignore = true)
+    @Mapping(target = "sourceType", ignore = true)
     @Mapping(target = "createTime", expression = "java(dao.getCt() != null ? new java.util.Date(dao.getCt()) : null)")
     @Mapping(target = "updateTime", expression = "java(dao.getUt() != null ? new java.util.Date(dao.getUt()) : null)")
     PrimeMetric daoToPrimeModel(MetricMetaDAO dao);
@@ -68,19 +78,6 @@ public interface MetricStructMapper extends BaseStructMapper {
      * @return MetricModel list
      */
     List<PrimeMetric> daoToPrimeModelBatch(List<MetricMetaDAO> daoList);
-
-    /**
-     * Convert PrimeMetric to MetricMetaDAO.
-     *
-     * @param model PrimeMetric model
-     * @return MetricMetaDAO entity
-     */
-    @Mapping(target = "metricType", expression = "java(model.getMetricType() != null ? model.getMetricType().getId() : null)")
-    @Mapping(target = "aggregationType", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getId() : null)")
-    @Mapping(target = "validation", ignore = true)
-    @Mapping(target = "ct", expression = "java(model.getCreateTime() != null ? model.getCreateTime().getTime() : null)")
-    @Mapping(target = "ut", expression = "java(model.getUpdateTime() != null ? model.getUpdateTime().getTime() : null)")
-    MetricMetaDAO primeModelToDao(PrimeMetric model);
 
 
     //==================== Dimension ====================
@@ -111,8 +108,8 @@ public interface MetricStructMapper extends BaseStructMapper {
      * @param dao alpha metric DAO
      * @return alpha metric model
      */
-    @Mapping(target = "value", expression = "java(mapObjToTypedValue(dao.getA()))")
-    @Mapping(target = "code",  ignore = true)
+    @Mapping(target = "value", expression = "java(mapTypedValue(dao.getA()))")
+    @Mapping(target = "code", ignore = true)
     @Mapping(target = "snapshotTs", source = "ts")
     @Mapping(target = "sourceType", expression = "java(mapSourceType(dao.getS()))")
     AlphaMetric alphaMetricDaoToModel(AlphaMetricDAO dao);
@@ -150,6 +147,7 @@ public interface MetricStructMapper extends BaseStructMapper {
 
     /**
      * Map Object to String.
+     *
      * @param value object value
      * @return string value
      */
@@ -160,7 +158,7 @@ public interface MetricStructMapper extends BaseStructMapper {
     /**
      * Convert EchoMetricQO to EchoMetricDTO.
      *
-     * @param qo                echo metric query object
+     * @param qo         echo metric query object
      * @param snapshotTs snapshot timestamp
      * @return echo metric DTO
      */
@@ -174,7 +172,7 @@ public interface MetricStructMapper extends BaseStructMapper {
     /**
      * Convert list of EchoMetricQO to list of EchoMetricDTO.
      *
-     * @param qoList            list of echo metric query objects
+     * @param qoList     list of echo metric query objects
      * @param snapshotTs snapshot timestamp
      * @return list of echo metric DTOs
      */
@@ -191,7 +189,7 @@ public interface MetricStructMapper extends BaseStructMapper {
     /**
      * Convert list of MetricModel to metric value indexed by metric code.
      *
-     * @param modelList         metric model list
+     * @param modelList  metric model list
      * @param snapshotTs the snapshot time
      * @return map of metric code to metric value
      */
@@ -208,7 +206,7 @@ public interface MetricStructMapper extends BaseStructMapper {
     /**
      * Convert list of MetricModel to metric sample time indexed by metric code.
      *
-     * @param modelList         metric model list
+     * @param modelList  metric model list
      * @param snapshotTs the snapshot time
      * @return map of metric code to sample time in milliseconds
      */
@@ -225,10 +223,6 @@ public interface MetricStructMapper extends BaseStructMapper {
 
     //==================== EchoMetric Model ====================
 
-    default TypedValue typedValueOf(Object rawValue, Integer valueType) {
-        return ValueTypeEnum.typedValueOf(rawValue, valueType);
-    }
-
     /**
      * Convert EchoMetricDAO to EchoMetric.
      *
@@ -236,13 +230,14 @@ public interface MetricStructMapper extends BaseStructMapper {
      * @param meta metric meta DAO
      * @return echo metric model
      */
-    @Mapping(target = "value", expression = "java(typedValueOf(echo.getA(), meta.getValueType()))")
+    @Mapping(target = "value", expression = "java(mapTypeToTypedValue(echo.getA(), meta.getValueType()))")
     @Mapping(target = "snapshotTs", source = "echo.ts")
     @Mapping(target = "historyList", source = "echo.h")
     @Mapping(target = "code", source = "meta.code")
     @Mapping(target = "precision", source = "meta.precision")
     @Mapping(target = "unit", source = "meta.unit")
     @Mapping(target = "validationMap", source = "meta.validation")
+    @Mapping(target = "sourceType", expression = "java(mapSourceType(echo.getS()))")
     EchoMetric echoMetricDaoToModel(EchoMetricDAO echo, MetricMetaDAO meta);
 
 
@@ -282,6 +277,7 @@ public interface MetricStructMapper extends BaseStructMapper {
 
     /**
      * Convert map of Metric model to map of MetricPrettyBriefVO.
+     *
      * @param modelMap metric model map
      * @return map of MetricPrettyBriefVO
      */
@@ -300,7 +296,7 @@ public interface MetricStructMapper extends BaseStructMapper {
     //==================== Metric VO ====================
 
     /**
-     * Convert MetricModel to MetricAggregationResponseDTO.MetricMetaDTO.
+     * Convert MetricModel to Metric VO.
      *
      * @param model metric model
      * @return MetricAggregationResponseDTO.MetricMetaDTO
@@ -309,8 +305,8 @@ public interface MetricStructMapper extends BaseStructMapper {
     @Mapping(target = "valueType", expression = "java(model.getValue() != null && model.getValue().getType() != null ? model.getValue().getType().getId() : null)")
     @Mapping(target = "aggregationType", expression = "java(model.getAggregationType() != null ? model.getAggregationType().getId() : null)")
     @Mapping(target = "validation", ignore = true)
-    @Mapping(target = "create_ts", expression = "java(model.getCreateTime() != null ? String.valueOf(model.getCreateTimeInTimestamp()) : null)")
-    @Mapping(target = "update_ts", expression = "java(model.getUpdateTime() != null ? String.valueOf(model.getUpdateTimeInTimestamp()) : null)")
+    @Mapping(target = "createTime", expression = "java(mapDateToString(model.getCreateTime()))")
+    @Mapping(target = "updateTime", expression = "java(mapDateToString(model.getUpdateTime()))")
     MetricVO modelToVo(PrimeMetric model);
 }
 

@@ -2,6 +2,7 @@ package lab.zhang.data_science.metrics_mall.struct_mapper
 
 import lab.zhang.data_science.metrics_mall.model.Dimension
 import lab.zhang.data_science.metrics_mall.pojo.dao.DimensionDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.DimensionDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.DimensionQO
 import spock.lang.Specification
 
@@ -25,13 +26,13 @@ class DimensionStructMapperTest extends Specification {
                 .build()
 
         when:
-        def model = structMapper.qoToModel(qo)
+        def dto = structMapper.qoToDto(qo)
 
         then:
-        model.id == 1L
-        model.code == "city"
-        model.name == "City"
-        model.validation == "[\"Beijing\", \"Shanghai\"]"
+        dto.id == 1L
+        dto.code == "city"
+        dto.name == "City"
+        dto.validation == "[\"Beijing\", \"Shanghai\"]"
     }
 
     def "test daoToModel"() {
@@ -61,17 +62,17 @@ class DimensionStructMapperTest extends Specification {
     def "test modelToDao"() {
         given:
         def now = new Date()
-        def model = Dimension.builder()
+        def dto = DimensionDTO.builder()
                 .id(1L)
                 .code("city")
                 .name("City")
                 .validation("[\"Beijing\", \"Shanghai\"]")
                 .build()
-        model.createTime = now
-        model.updateTime = now
+        dto.createTime = now
+        dto.updateTime = now
 
         when:
-        def dao = structMapper.modelToDao(model)
+        def dao = structMapper.dtoToDao(dto)
 
         then:
         dao.id == 1L

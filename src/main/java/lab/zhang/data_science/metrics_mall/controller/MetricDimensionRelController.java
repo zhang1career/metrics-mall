@@ -1,17 +1,14 @@
-package lab.zhang.data_science.metrics_mall.controller.v1;
+package lab.zhang.data_science.metrics_mall.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
-import lab.zhang.data_science.metrics_mall.model.Dimension;
-import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricDimensionRelQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricDimensionRelVO;
-import lab.zhang.data_science.metrics_mall.service.DimensionService;
 import lab.zhang.data_science.metrics_mall.service.MetricDimensionRelService;
-import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricDimensionRelStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,48 +35,6 @@ public class MetricDimensionRelController extends BaseV1Controller {
     @Autowired
     private MetricDimensionRelStructMapper metricDimensionRelStructMapper;
 
-    @Autowired
-    private MetricService metricService;
-
-    @Autowired
-    private DimensionService dimensionService;
-
-    /**
-     * Create metric dimension relation.
-     *
-     * @param qo metric dimension relation query object
-     * @return success response
-     */
-    @Operation(summary = "Create metric dimension relation",
-            description = "Associate a dimension with a metric. One metric_meta and one dimension can only have one relation. " +
-                    "Either metricMetaId/dimensionId or metricCode/dimensionCode can be provided.")
-    @PostMapping("/metric_dimension_rels")
-    public ApiResponse<Boolean> create(@Valid @RequestBody MetricDimensionRelQO qo) {
-        log.info("[metric_dimension_rel] create, param: metricCode={}, dimensionCode={}, isHot={}",
-                qo.getMetricCode(), qo.getDimensionCode(), qo.getIsHot());
-
-        // Resolve metric meta id
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
-        if (primeMetric == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] Metric meta not found: metricCode=" + qo.getMetricCode());
-        }
-        Long metricMetaId = primeMetric.getId();
-
-        // Resolve dimension id
-        Dimension dimension = dimensionService.getByCode(qo.getDimensionCode());
-        if (dimension == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] Dimension not found: dimensionCode=" + qo.getDimensionCode());
-        }
-        Long dimensionId = dimension.getId();
-
-        // query
-        boolean result = metricDimensionRelService.create(
-                metricMetaId,
-                dimensionId,
-                qo.getIsHot(),
-                qo.getValidation());
-        return ApiResponse.success(result);
-    }
 
     /**
      * Get metric dimension relation by metric meta id and dimension id.
@@ -156,6 +111,28 @@ public class MetricDimensionRelController extends BaseV1Controller {
     }
 
     /**
+     * Create metric dimension relation.
+     *
+     * @param qo metric dimension relation query object
+     * @return success response
+     */
+    @Operation(summary = "Create metric dimension relation",
+            description = "Associate a dimension with a metric. One metric_meta and one dimension can only have one relation. " +
+                    "Either metricMetaId/dimensionId or metricCode/dimensionCode can be provided.")
+    @PostMapping("/metric_dimension_rels")
+    public ApiResponse<Boolean> create(@Valid @RequestBody MetricDimensionRelQO qo) {
+        log.info("[metric_dimension_rel] create, param: metricCode={}, dimensionCode={}, isHot={}",
+                qo.getMetricCode(), qo.getDimensionCode(), qo.getIsHot());
+
+        MetricDimensionRelDTO dto = metricDimensionRelStructMapper.qoToDto(qo);
+
+        // query
+        boolean result = metricDimensionRelService.create(dto);
+
+        return ApiResponse.success(result);
+    }
+
+    /**
      * Update metric dimension relation.
      *
      * @param qo metric dimension relation query object
@@ -169,26 +146,11 @@ public class MetricDimensionRelController extends BaseV1Controller {
         log.info("[metric_dimension_rel] update, param: metricCode={}, dimensionCode={}, isHot={}",
                 qo.getMetricCode(), qo.getDimensionCode(), qo.getIsHot());
 
-        // Resolve metric meta id
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
-        if (primeMetric == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] Metric meta not found: metricCode=" + qo.getMetricCode());
-        }
-        Long metricMetaId = primeMetric.getId();
-
-        // Resolve dimension id
-        Dimension dimension = dimensionService.getByCode(qo.getDimensionCode());
-        if (dimension == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] Dimension not found: dimensionCode=" + qo.getDimensionCode());
-        }
-        Long dimensionId = dimension.getId();
+        MetricDimensionRelDTO dto = metricDimensionRelStructMapper.qoToDto(qo);
 
         // query
-        boolean result = metricDimensionRelService.update(
-                metricMetaId,
-                dimensionId,
-                qo.getIsHot(),
-                qo.getValidation());
+        boolean result = metricDimensionRelService.update(dto);
+
         return ApiResponse.success(result);
     }
 
