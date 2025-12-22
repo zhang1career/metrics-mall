@@ -2,6 +2,17 @@
 metrics_mall:
   environment: TEST
 
+  cache:
+    key:
+      prefix: mx
+
+  snap:
+    cache:
+      value:
+        history:
+          depth: 7
+
+
 spring:
   # Database connection pool configuration (HikariCP)
   datasource:
@@ -9,6 +20,7 @@ spring:
     username: ${MYSQL_USER:zhang}
     password: ${MYSQL_PASS:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
 
   # Redis configuration for test environment
   data:

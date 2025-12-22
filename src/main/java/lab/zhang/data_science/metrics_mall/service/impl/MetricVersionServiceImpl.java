@@ -5,8 +5,11 @@ import lab.zhang.data_science.metrics_mall.config.MetricVersionLifeStatusConfig;
 import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
 import lab.zhang.data_science.metrics_mall.mapper.MetricVersionMapper;
 import lab.zhang.data_science.metrics_mall.model.MetricVersion;
+import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
+import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricVersionDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
+import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lab.zhang.data_science.metrics_mall.service.MetricVersionService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricVersionStructMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -30,6 +34,9 @@ public class MetricVersionServiceImpl implements MetricVersionService {
 
     @Autowired
     private MetricVersionLifeStatusConfig lifeStatusConfig;
+
+    @Autowired
+    private MetricService metricService;
 
     @Autowired
     private MetricVersionMapper metricVersionMapper;
@@ -63,6 +70,16 @@ public class MetricVersionServiceImpl implements MetricVersionService {
 
     @Override
     public List<MetricVersion> list(MetricVersionDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("[metric_version] list failed, dto is null");
+        }
+        // validate metric meta existence
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
+        if (metricMetaDAO == null) {
+            throw new IllegalArgumentException("[metric_version] list failed, metric meta not found: metricCode=" + dto.getMetricCode());
+        }
+
+        // query
         LambdaQueryWrapper<MetricVersionDAO> queryWrapper = new LambdaQueryWrapper<>();
         if (dto.getMetricId() != null) {
             queryWrapper.eq(MetricVersionDAO::getMetricId, dto.getMetricId());
@@ -77,6 +94,7 @@ public class MetricVersionServiceImpl implements MetricVersionService {
             queryWrapper.eq(MetricVersionDAO::getLifeStatus, dto.getLifeStatus());
         }
         List<MetricVersionDAO> daoList = metricVersionMapper.selectList(queryWrapper);
+
         return metricVersionStructMapper.daoToModelBatch(daoList);
     }
 
@@ -85,36 +103,43 @@ public class MetricVersionServiceImpl implements MetricVersionService {
     public boolean insert(MetricVersionDTO dto) {
         // validate input
         if (dto == null) {
-            log.warn("[metric_version] create failed, dto to insert is null");
-            return false;
+            throw new IllegalArgumentException("[metric_version] creating failed, dto to insert is null");
         }
-        // validate required fields
-        if (dto.getMetricId() == null || dto.getVersion() == null) {
-            log.warn("[metric_version] create failed, required fields are missing, dto: {}", dto);
-            return false;
+        // validate metric meta existence
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
+        if (metricMetaDAO == null) {
+            throw new IllegalArgumentException("[metric_version] creating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
-        // validate existence
-        MetricVersion existingModel = getByMetricIdAndVersion(dto.getMetricId(), dto.getVersion());
+        Long metricMetaId = metricMetaDAO.getId();
+        if (metricMetaId == null) {
+            throw new IllegalStateException("[metric_version] creating failed, metric meta id is null");
+        }
+
+        // validate version existence
+        MetricVersion existingModel = getByMetricIdAndVersion(metricMetaId, dto.getVersion());
         if (existingModel != null) {
-            throw new IllegalStateException("metric version existed, version: " + existingModel.getVersion());
+            throw new IllegalStateException("[metric_version] creating failed, metric version existing, version=" + existingModel.getVersion());
         }
         // validate isMain
         if (dto.getIsMain() != null) {
             if (dto.getIsMain() != 0) {
-                throw new IllegalStateException("inserting version cannot be main, version: " + dto.getVersion());
+                throw new IllegalStateException("[metric_version] creating failed, creating version cannot be main, version=" + dto.getVersion());
             }
         } else {
             dto.setIsMain(0);
         }
         // validate life status
         if (dto.getLifeStatus() != null) {
-            if (dto.getLifeStatus() != LifeStatusEnum.OFFLINE) {
-                throw new IllegalStateException("inserting version life status invalid, version: " + dto.getVersion());
+            if (dto.getLifeStatus() != LifeStatusEnum.DEV) {
+                throw new IllegalStateException(String.format("[metric_version] creating failed, invalid version life status. Acceptable status=%s(%d), but you give=%s(%d)",
+                        LifeStatusEnum.DEV, LifeStatusEnum.DEV.getId(), dto.getLifeStatus(), dto.getLifeStatus().getId()));
             }
         } else {
-            dto.setLifeStatus(LifeStatusEnum.OFFLINE);
+            dto.setLifeStatus(LifeStatusEnum.DEV);
         }
 
+        // set metric id
+        dto.setMetricId(metricMetaId);
         dto.setTimeOnCreate();
         MetricVersionDAO dao = metricVersionStructMapper.dtoToDao(dto);
         int rows = metricVersionMapper.insert(dao);
@@ -130,36 +155,45 @@ public class MetricVersionServiceImpl implements MetricVersionService {
     public boolean update(MetricVersionDTO dto) {
         // validate input
         if (dto == null) {
-            log.warn("[metric_version] update failed, dto to insert is null");
-            return false;
+            throw new IllegalArgumentException("[metric_version] updating failed, dto to update is null");
         }
-        // validate required fields
-        if (dto.getMetricId() == null || dto.getVersion() == null) {
-            log.warn("[metric_version] update failed, required fields are missing, dto: {}", dto);
-            return false;
+        // validate metric meta existence
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
+        if (metricMetaDAO == null) {
+            throw new IllegalArgumentException("[metric_version] updating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
-        // validate existence
-        MetricVersion existingModel = getByMetricIdAndVersion(dto.getMetricId(), dto.getVersion());
+        Long metricMetaId = metricMetaDAO.getId();
+        if (metricMetaId == null) {
+            throw new IllegalStateException("[metric_version] updating failed, metric meta id is null");
+        }
+        // validate version existence
+        MetricVersion existingModel = getByMetricIdAndVersion(metricMetaId, dto.getVersion());
         if (existingModel == null) {
-            throw new IllegalStateException("metric version not existed, version: " + dto.getVersion());
+            throw new IllegalStateException("[metric_version] updating failed, metric version not found, version: " + dto.getVersion());
         }
-        // set id
-        dto.setId(existingModel.getId());
         // validate isMain
         if (dto.getIsMain() != null) {
-            if (existingModel.getIsMain() != 0 && dto.getIsMain() != 0) {
-                throw new IllegalStateException("updating version cannot be main, version: " + dto.getVersion());
+            // change to main version
+            if (dto.getIsMain() != 0 && !Objects.equals(existingModel.getIsMain(), dto.getIsMain())) {
+                // only ONLINE version can be set to main
+                if (existingModel.getLifeStatus() != LifeStatusEnum.ONLINE) {
+                    throw new IllegalStateException(String.format("[metric_version] updating failed, only ONLINE version can be set to main, current status=%s(%d)",
+                            existingModel.getLifeStatus(), existingModel.getLifeStatus().getId()));
+                }
+            } else if (dto.getIsMain() == 0 && existingModel.getIsMain() != 0) {
+                // todo: at least one main version should exist
             }
         }
         // validate life status
         Set<LifeStatusEnum> availableLifeStatusSet = lifeStatusConfig.getAvailableLifeStatusTransitions(existingModel.getLifeStatus());
-        if (dto.getLifeStatus() != null) {
+        if (dto.getLifeStatus() != null && existingModel.getLifeStatus() != dto.getLifeStatus()) {
             if (!availableLifeStatusSet.contains(dto.getLifeStatus())) {
-                throw new IllegalStateException("updating version life status invalid, version: " + dto.getVersion()
-                        + ", available statuses: " + availableLifeStatusSet);
+                throw new IllegalStateException(String.format("updating version life status invalid, current status=%s(%d), available statuses=%s, but you give=%s(%d)",
+                        existingModel.getLifeStatus(), existingModel.getLifeStatus().getId(), availableLifeStatusSet, dto.getLifeStatus(), dto.getLifeStatus().getId()));
             }
         }
 
+        dto.setId(existingModel.getId());
         dto.setTimeOnUpdate();
         MetricVersionDAO dao = metricVersionStructMapper.dtoToDao(dto);
         return metricVersionMapper.updateById(dao) > 0;

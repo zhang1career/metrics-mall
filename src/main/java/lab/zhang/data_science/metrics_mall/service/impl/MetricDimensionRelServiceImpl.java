@@ -85,20 +85,20 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
     @Override
     public boolean create(MetricDimensionRelDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] create failed, dto cannot be null");
+            throw new IllegalArgumentException("[metric_dimension_rel] creating failed, dto cannot be null");
         }
 
         // validate the metric existence
         MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
         if (metricMetaDAO == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] create failed, metric meta not found: metricCode=" + dto.getMetricCode());
+            throw new IllegalArgumentException("[metric_dimension_rel] creating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
         Long metricMetaId = metricMetaDAO.getId();
 
         // validate the dimension existence
         Dimension dimension = dimensionService.getByCode(dto.getDimensionCode());
         if (dimension == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] create failed, dimension not found: dimensionCode=" + dto.getDimensionCode());
+            throw new IllegalArgumentException("[metric_dimension_rel] creating failed, dimension not found: dimensionCode=" + dto.getDimensionCode());
         }
         Long dimensionId = dimension.getId();
 
@@ -108,7 +108,7 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
                 .eq("did", dimensionId);
         MetricDimensionRelDAO existingRel = metricDimensionRelMapper.selectOne(queryWrapper);
         if (existingRel != null) {
-            throw new IllegalArgumentException(String.format("[metric_dimension_rel] create failed, relation already exists: metricMetaId=%d, dimensionId=%d",
+            throw new IllegalArgumentException(String.format("[metric_dimension_rel] creating failed, relation already exists: metricMetaId=%d, dimensionId=%d",
                     metricMetaId, dimensionId));
         }
 
@@ -136,20 +136,20 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
     @Override
     public boolean update(MetricDimensionRelDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] update failed, dto cannot be null");
+            throw new IllegalArgumentException("[metric_dimension_rel] updating failed, dto cannot be null");
         }
 
         // validate the metric existence
         MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
         if (metricMetaDAO == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] update failed, metric meta not found: metricCode=" + dto.getMetricCode());
+            throw new IllegalArgumentException("[metric_dimension_rel] updating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
         Long metricMetaId = metricMetaDAO.getId();
 
         // validate the dimension existence
         Dimension dimension = dimensionService.getByCode(dto.getDimensionCode());
         if (dimension == null) {
-            throw new IllegalArgumentException("[metric_dimension_rel] update failed, dimension not found: dimensionCode=" + dto.getDimensionCode());
+            throw new IllegalArgumentException("[metric_dimension_rel] updating failed, dimension not found: dimensionCode=" + dto.getDimensionCode());
         }
         Long dimensionId = dimension.getId();
 
@@ -159,7 +159,7 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
                 .eq("did", dimensionId);
         MetricDimensionRelDAO existingRel = metricDimensionRelMapper.selectOne(queryWrapper);
         if (existingRel == null) {
-            throw new IllegalArgumentException(String.format("[metric_dimension_rel] update failed, relation not exists: metricMetaId=%d, dimensionId=%d",
+            throw new IllegalArgumentException(String.format("[metric_dimension_rel] updating failed, relation not exists: metricMetaId=%d, dimensionId=%d",
                     metricMetaId, dimensionId));
         }
 

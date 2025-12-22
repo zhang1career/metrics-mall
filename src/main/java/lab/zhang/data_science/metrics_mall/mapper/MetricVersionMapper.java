@@ -25,7 +25,7 @@ public interface MetricVersionMapper extends BaseMapper<MetricVersionDAO> {
      * @return list of maps containing code, version, is_main
      */
     @Select("<script>" +
-            "SELECT m.code AS metricCode, v.version, v.is_main AS isMain" +
+            "SELECT m.code AS metricCode, v.version, v.is_main AS isMain " +
             "FROM metric_meta m " +
             "JOIN metric_version v ON m.id = v.mid " +
             "WHERE m.code IN " +

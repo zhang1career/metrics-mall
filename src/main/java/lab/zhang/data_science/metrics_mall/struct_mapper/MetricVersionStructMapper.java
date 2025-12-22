@@ -26,14 +26,11 @@ public interface MetricVersionStructMapper extends BaseStructMapper {
      * @return metric version data transfer object
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "metricId", source = "metricId")
-    @Mapping(target = "version", source = "qo.version")
-    @Mapping(target = "isMain", source = "qo.isMain")
+    @Mapping(target = "metricId", ignore = true)
     @Mapping(target = "lifeStatus", expression = "java(mapLifeStatus(qo.getLifeStatus()))")
-    @Mapping(target = "calcLogic", source = "qo.calcLogic")
     @Mapping(target = "createTime", ignore = true)
     @Mapping(target = "updateTime", ignore = true)
-    MetricVersionDTO qoToDto(MetricVersionQO qo, Long metricId);
+    MetricVersionDTO qoToDto(MetricVersionQO qo);
 
     /**
      * Convert DTO to DAO.

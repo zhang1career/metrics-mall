@@ -14,6 +14,7 @@ import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelsDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.OpLogDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 import lab.zhang.data_science.metrics_mall.service.EntityService;
 import lab.zhang.data_science.metrics_mall.service.MetricService;
@@ -241,13 +242,13 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
         BigInteger traceId = requestContext.getTraceId();
 
         // op_log inserted
-        OpLog oplog = OpLog.builder()
+        OpLogDTO oplogDTO = OpLogDTO.builder()
                 .id(traceId)
                 .event(requestContext.getEvent())
                 .operatorId(requestContext.getUserId())
                 .operateTime(new Date(requestContext.getStartTs()))
                 .build();
-        OpLog insertedOpLog = opLogService.insert(oplog);
+        OpLog insertedOpLog = opLogService.insert(oplogDTO);
 
         // use current timestamp if not provided
         Long snapshotTs = dto.getSnapshotTs();

@@ -23,9 +23,9 @@ public class MetricVersionLifeStatusConfig {
     private EnvUtil envUtil;
 
     /**
-     * Mapping from environment enum to allowed life statuses
+     * mapping from environment enum to readable life statuses
      */
-    private static final Map<EnvEnum, Set<LifeStatusEnum>> METRIC_VERSION_LIFE_STATUS_MAP =
+    private static final Map<EnvEnum, Set<LifeStatusEnum>> READABLE_METRIC_VERSION_LIFE_STATUS_MAP =
             new HashMap<>() {{
                 put(EnvEnum.DEV, new HashSet<>(Arrays.asList(LifeStatusEnum.DEV)));
                 put(EnvEnum.TEST, new HashSet<>(Arrays.asList(LifeStatusEnum.TEST)));
@@ -34,13 +34,38 @@ public class MetricVersionLifeStatusConfig {
             }};
 
     /**
-     * Get allowed metric versions' life statuses based on current environment
-     *
-     * @return set of allowed life statuses for current environment
+     * mapping from environment enum to writeable life statuses
      */
-    public Set<LifeStatusEnum> getAvailableLifeStatuses() {
+    private static final Map<EnvEnum, Set<LifeStatusEnum>> WRITEABLE_METRIC_VERSION_LIFE_STATUS_MAP =
+            new HashMap<>() {{
+                put(EnvEnum.DEV, new HashSet<>(Arrays.asList(LifeStatusEnum.DEV)));
+                put(EnvEnum.TEST, new HashSet<>(Arrays.asList(LifeStatusEnum.TEST)));
+                put(EnvEnum.GRAY, new HashSet<>(Arrays.asList(LifeStatusEnum.GRAY)));
+                put(EnvEnum.PROD, new HashSet<>(Arrays.asList(LifeStatusEnum.ONLINE)));
+            }};
+
+    /**
+     * get readable metric versions' life statuses based on current environment
+     *
+     * @return set of readable life statuses for current environment
+     */
+    public Set<LifeStatusEnum> getReadableMetricVersionLifeStatuses() {
         EnvEnum env = envUtil.getEnvEnum();
-        Set<LifeStatusEnum> allowedStatuses = METRIC_VERSION_LIFE_STATUS_MAP.get(env);
+        Set<LifeStatusEnum> allowedStatuses = READABLE_METRIC_VERSION_LIFE_STATUS_MAP.get(env);
+        if (allowedStatuses == null) {
+            throw new IllegalStateException("No life statuses configured for environment: " + env);
+        }
+        return allowedStatuses;
+    }
+
+    /**
+     * get writeable metric versions' life statuses based on current environment
+     *
+     * @return set of writeable life statuses for current environment
+     */
+    public Set<LifeStatusEnum> getWritableMetricVersionLifeStatuses() {
+        EnvEnum env = envUtil.getEnvEnum();
+        Set<LifeStatusEnum> allowedStatuses = WRITEABLE_METRIC_VERSION_LIFE_STATUS_MAP.get(env);
         if (allowedStatuses == null) {
             throw new IllegalStateException("No life statuses configured for environment: " + env);
         }
@@ -54,11 +79,12 @@ public class MetricVersionLifeStatusConfig {
      */
     private static final Map<LifeStatusEnum, Set<LifeStatusEnum>> METRIC_VERSION_LIFE_STATUS_CHANGE_MAP =
             new HashMap<>() {{
-                put(LifeStatusEnum.OFFLINE, new HashSet<>(Arrays.asList(LifeStatusEnum.DEV, LifeStatusEnum.TEST)));
-                put(LifeStatusEnum.DEV, new HashSet<>(Arrays.asList(LifeStatusEnum.OFFLINE, LifeStatusEnum.TEST)));
-                put(LifeStatusEnum.TEST, new HashSet<>(Arrays.asList(LifeStatusEnum.OFFLINE, LifeStatusEnum.GRAY)));
-                put(LifeStatusEnum.GRAY, new HashSet<>(Arrays.asList(LifeStatusEnum.OFFLINE, LifeStatusEnum.ONLINE)));
-                put(LifeStatusEnum.ONLINE, new HashSet<>(Arrays.asList(LifeStatusEnum.OFFLINE)));
+                put(LifeStatusEnum.OFFLINE, new HashSet<>());
+                put(LifeStatusEnum.DEV, new HashSet<>(Arrays.asList(LifeStatusEnum.TEST, LifeStatusEnum.OFFLINE)));
+                put(LifeStatusEnum.TEST, new HashSet<>(Arrays.asList(LifeStatusEnum.DEV, LifeStatusEnum.GRAY, LifeStatusEnum.OFFLINE)));
+                put(LifeStatusEnum.GRAY, new HashSet<>(Arrays.asList(LifeStatusEnum.TEST, LifeStatusEnum.ONLINE, LifeStatusEnum.OFFLINE)));
+                put(LifeStatusEnum.ONLINE, new HashSet<>(Arrays.asList(LifeStatusEnum.GRAY, LifeStatusEnum.DEPRECATED, LifeStatusEnum.OFFLINE)));
+                put(LifeStatusEnum.DEPRECATED, new HashSet<>(Arrays.asList(LifeStatusEnum.OFFLINE)));
             }};
 
     /**

@@ -6,10 +6,10 @@ import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.MetricVersion;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
+import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricVersionQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVersionVO;
-import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lab.zhang.data_science.metrics_mall.service.MetricVersionService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricVersionStructMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +30,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class MetricVersionController extends BaseV1Controller {
-
-    @Autowired
-    private MetricService metricService;
 
     @Autowired
     private MetricVersionService metricVersionService;
@@ -65,17 +62,7 @@ public class MetricVersionController extends BaseV1Controller {
     public ApiResponse<List<MetricVersionVO>> list(MetricVersionQO qo) {
         log.info("[metric_version] list, param: {}", qo);
 
-        // Resolve metric meta id
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
-        if (primeMetric == null) {
-            throw new IllegalArgumentException("[metric_version] list, metric meta not found: metricCode=" + qo.getMetricCode());
-        }
-        Long metricMetaId = primeMetric.getId();
-        if (metricMetaId == null) {
-            throw new IllegalStateException("[metric_version] list, metric meta id is null: metricCode=" + qo.getMetricCode());
-        }
-
-        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo, metricMetaId);
+        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo);
         List<MetricVersion> modelList = metricVersionService.list(dto);
         List<MetricVersionVO> resultList = metricVersionStructMapper.modelToVoBatch(modelList);
 
@@ -91,19 +78,9 @@ public class MetricVersionController extends BaseV1Controller {
     @Operation(summary = "Insert metric version", description = "Insert a new metric version")
     @PostMapping("/metric_versions")
     public ApiResponse<Boolean> insert(@Valid @RequestBody MetricVersionQO qo) {
-        log.info("[metric_version] insert, param: {}", qo);
+        log.info("[metric_version] create, param: {}", qo);
 
-        // Resolve metric meta id
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
-        if (primeMetric == null) {
-            throw new IllegalArgumentException("[metric_version] list, metric meta not found: metricCode=" + qo.getMetricCode());
-        }
-        Long metricMetaId = primeMetric.getId();
-        if (metricMetaId == null) {
-            throw new IllegalStateException("[metric_version] list, metric meta id is null: metricCode=" + qo.getMetricCode());
-        }
-
-        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo, metricMetaId);
+        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo);
         boolean result = metricVersionService.insert(dto);
 
         return ApiResponse.success(result);
@@ -120,17 +97,7 @@ public class MetricVersionController extends BaseV1Controller {
     public ApiResponse<Boolean> update(@Valid @RequestBody MetricVersionQO qo) {
         log.info("[metric_version] update, param: {}", qo);
 
-        // Resolve metric meta id
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(qo.getMetricCode());
-        if (primeMetric == null) {
-            throw new IllegalArgumentException("[metric_version] list, metric meta not found: metricCode=" + qo.getMetricCode());
-        }
-        Long metricMetaId = primeMetric.getId();
-        if (metricMetaId == null) {
-            throw new IllegalStateException("[metric_version] list, metric meta id is null: metricCode=" + qo.getMetricCode());
-        }
-
-        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo, metricMetaId);
+        MetricVersionDTO dto = metricVersionStructMapper.qoToDto(qo);
         boolean result = metricVersionService.update(dto);
 
         return ApiResponse.success(result);

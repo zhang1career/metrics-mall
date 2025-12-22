@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheService {
 
     @Value("${metrics_mall.cache.key.prefix:mx}")
-    private static String KEY_PREFIX;
+    private String keyPrefix;
 
     private static final String KEY_SEPARATOR = ":";
 
@@ -38,8 +38,8 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
 
     private static final String DIMENSION_KEY_VALUE_SEPARATOR = "_";
 
-    @Value("${metrics_mall.snap.cache.value.history.depth:10}")
-    private static int MAX_HISTORY_DEPTH;
+    @Value("${metrics_mall.snap.cache.value.history.depth:7}")
+    private int maxHistoryDepth;
 
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -141,7 +141,7 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
                             String metricCode,
                             Integer version,
                             Map<String, TypedValue> dimensionMap) {
-        StringBuilder keyBuilder = new StringBuilder(KEY_PREFIX).append(KEY_SEPARATOR);
+        StringBuilder keyBuilder = new StringBuilder(keyPrefix).append(KEY_SEPARATOR);
         keyBuilder.append(entityCode).append(KEY_SEPARATOR);
         keyBuilder.append(entityId).append(KEY_SEPARATOR);
         keyBuilder.append(metricCode).append(KEY_SEPARATOR);
@@ -207,7 +207,7 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
             history.addAll(existing.getH());
         }
 
-        while (history.size() > MAX_HISTORY_DEPTH) {
+        while (history.size() > maxHistoryDepth) {
             history.remove(0);
         }
 

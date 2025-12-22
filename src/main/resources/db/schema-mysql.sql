@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `metric_lineage` (
     `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `src_id`      BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'source metric id, refer to metric_meta.id',
     `dest_id`     BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'destination metric id, refer to metric_meta.id',
-    `depend_type` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'aggregation type, 0=derived, 1=aggregated, 2=joined',
+    `depend_type` INT    UNSIGNED NOT NULL DEFAULT '0' COMMENT 'aggregation type, 0=derived, 1=aggregated, 2=joined',
     `trans_logic` TEXT COMMENT 'SQL or Flink code to derive target metric from source metric(s)',
     `ct`          BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'create time, UNIX timestamp in milliseconds',
     `ut`          BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'update time, UNIX timestamp in milliseconds',
@@ -89,7 +89,7 @@ CREATE TABLE `y` (
 
 CREATE TABLE `op_log` (
     `id`          BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'trace id',
-    `event`       TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'event type',
+    `event`       INT    UNSIGNED NOT NULL DEFAULT 0 COMMENT 'event type',
     `uid`         BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'operator id',
     `ot`          BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'operating time, unix timestamp in milliseconds',
     `ct`          BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'create time, unix timestamp in milliseconds',

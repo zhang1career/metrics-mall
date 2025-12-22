@@ -60,12 +60,12 @@ public class EntityMetaServiceImpl implements EntityMetaService {
     @Override
     public boolean insert(EntityMetaDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[entity_meta] create failed, dto is null");
+            throw new IllegalArgumentException("[entity_meta] creating failed, dto is null");
         }
 
         EntityMeta existingModel = getByCode(dto.getCode());
         if (existingModel != null) {
-            throw new IllegalStateException("[entity_meta] create failed, existed model is existed");
+            throw new IllegalStateException("[entity_meta] creating failed, existed model is existed");
         }
 
         dto.setTimeOnCreate();
@@ -82,12 +82,12 @@ public class EntityMetaServiceImpl implements EntityMetaService {
     @Override
     public boolean update(EntityMetaDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[entity_meta] update failed, dto is null");
+            throw new IllegalArgumentException("[entity_meta] updating failed, dto is null");
         }
 
         EntityMeta existingModel = getByCode(dto.getCode());
         if (existingModel == null) {
-            throw new IllegalStateException("[entity_meta] update failed, existed model is not existed");
+            throw new IllegalStateException("[entity_meta] updating failed, existed model is not existed");
         }
 
         dto.setId(existingModel.getId());

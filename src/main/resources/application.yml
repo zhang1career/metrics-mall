@@ -3,10 +3,22 @@ server:
   servlet:
     context-path: /
 
+
 # Metrics-mall configuration
 metrics_mall:
   # Environment type: TEST, GRAY or PROD
   environment: GRAY
+
+  cache:
+    key:
+      prefix: mx
+
+  snap:
+    cache:
+      value:
+        history:
+          depth: 7
+
 
 spring:
   application:
@@ -69,6 +81,7 @@ springdoc:
     try-it-out-enabled: true
   # 需要扫描的包路径（可选，如果不设置则扫描所有包）
   packages-to-scan: lab.zhang.data_science.metrics_mall
+
 
 # MyBatis Plus configuration
 mybatis-plus:

@@ -220,7 +220,7 @@ public class MetricServiceImpl implements MetricService {
     @Override
     public List<PrimeMetric> list(MetricMetaDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[metric_meta] create failed, dto is null");
+            throw new IllegalArgumentException("[metric_meta] creating failed, dto is null");
         }
 
         MetricMetaDAO dao = metricStructMapper.dtoToDao(dto);
@@ -245,11 +245,11 @@ public class MetricServiceImpl implements MetricService {
     @Override
     public boolean insert(MetricMetaDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[metric_meta] create failed, dto is null");
+            throw new IllegalArgumentException("[metric_meta] creating failed, dto is null");
         }
         MetricMetaDAO exitedDAO = getMetricMetaDaoByCode(dto.getCode());
         if (exitedDAO != null) {
-            throw new IllegalArgumentException("[metric_meta] create failed, metric code already exists: " + dto.getCode());
+            throw new IllegalArgumentException("[metric_meta] creating failed, metric code already exists: " + dto.getCode());
         }
 
         dto.setTimeOnCreate();
@@ -266,11 +266,11 @@ public class MetricServiceImpl implements MetricService {
     @Override
     public boolean update(MetricMetaDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[metric_meta] update failed, dto is null");
+            throw new IllegalArgumentException("[metric_meta] updating failed, dto is null");
         }
         MetricMetaDAO exitedDAO = getMetricMetaDaoByCode(dto.getCode());
         if (exitedDAO == null) {
-            throw new IllegalArgumentException("[metric_meta] update failed, metric code not exists: " + dto.getCode());
+            throw new IllegalArgumentException("[metric_meta] updating failed, metric code not exists: " + dto.getCode());
         }
 
         dto.setId(exitedDAO.getId());

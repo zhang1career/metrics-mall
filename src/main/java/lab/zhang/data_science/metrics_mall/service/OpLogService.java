@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.model.OpLog;
+import lab.zhang.data_science.metrics_mall.pojo.dto.OpLogDTO;
 
 import java.util.List;
 
@@ -36,18 +37,18 @@ public interface OpLogService {
     /**
      * Insert a new operation log.
      *
-     * @param model operation log model
+     * @param dto operation log data transfer object
      * @return inserted operation log model with id and create time
      */
-    OpLog insert(OpLog model);
+    OpLog insert(OpLogDTO dto);
 
     /**
      * Update an existing operation log.
      *
-     * @param model operation log model
+     * @param dto operation log data transfer object
      * @return true if update success
      */
-    boolean update(OpLog model);
+    boolean update(OpLogDTO dto);
 
     /**
      * Delete an operation log by id.

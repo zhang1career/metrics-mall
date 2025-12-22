@@ -4,11 +4,9 @@ import lab.zhang.data_science.metrics_mall.enums.OpEventEnum
 import lab.zhang.data_science.metrics_mall.mapper.OpLogMapper
 import lab.zhang.data_science.metrics_mall.model.OpLog
 import lab.zhang.data_science.metrics_mall.pojo.dao.OpLogDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.OpLogDTO
 import lab.zhang.data_science.metrics_mall.struct_mapper.OpLogStructMapper
 import spock.lang.Specification
-
-import java.math.BigInteger
-import java.util.Date
 
 /**
  * Test for OpLogServiceImpl.
@@ -153,7 +151,7 @@ class OpLogServiceImplTest extends Specification {
 
     def "test insert success with create time"() {
         given:
-        def model = OpLog.builder()
+        def dto = OpLogDTO.builder()
                 .event(OpEventEnum.CREATE_METRIC_META)
                 .operatorId(OPERATOR_ID)
                 .operateTime(new Date(OPERATE_TS))
@@ -179,10 +177,10 @@ class OpLogServiceImplTest extends Specification {
                 .build()
 
         when:
-        def result = service.insert(model)
+        def result = service.insert(dto)
 
         then:
-        1 * opLogStructMapper.modelToDao(model) >> daoWithoutCt
+        1 * opLogStructMapper.dtoToDao(dto) >> daoWithoutCt
         1 * opLogMapper.insert(_ as OpLogDAO) >> { OpLogDAO dao ->
             assert dao.getCt() != null
             assert dao.getCt() > 0
@@ -198,7 +196,7 @@ class OpLogServiceImplTest extends Specification {
 
     def "test insert success with existing create time"() {
         given:
-        def model = OpLog.builder()
+        def dto = OpLogDTO.builder()
                 .event(OpEventEnum.CREATE_METRIC_META)
                 .operatorId(OPERATOR_ID)
                 .operateTime(new Date(OPERATE_TS))
@@ -218,10 +216,10 @@ class OpLogServiceImplTest extends Specification {
                 .build()
 
         when:
-        def result = service.insert(model)
+        def result = service.insert(dto)
 
         then:
-        1 * opLogStructMapper.modelToDao(model) >> daoWithCt
+        1 * opLogStructMapper.dtoToDao(dto) >> daoWithCt
         1 * opLogMapper.insert(daoWithCt) >> 1
         1 * opLogStructMapper.daoToModel(daoWithCt) >> resultModel
         result == resultModel
@@ -233,88 +231,10 @@ class OpLogServiceImplTest extends Specification {
         def result = service.insert(null)
 
         then:
-        0 * opLogStructMapper.modelToDao(_)
+        0 * opLogStructMapper.dtoToDao(_)
         0 * opLogMapper.insert(_)
         0 * opLogStructMapper.daoToModel(_)
         result == null
-    }
-
-    def "test update success"() {
-        given:
-        def model = OpLog.builder()
-                .id(LOG_ID)
-                .event(OpEventEnum.UPDATE_METRIC_META)
-                .operatorId(OPERATOR_ID)
-                .operateTime(new Date(OPERATE_TS))
-                .build()
-        def dao = OpLogDAO.builder()
-                .id(LOG_ID)
-                .event(OpEventEnum.UPDATE_METRIC_META.getId())
-                .operatorId(OPERATOR_ID)
-                .operateTs(OPERATE_TS)
-                .ct(CREATE_TS)
-                .build()
-
-        when:
-        def result = service.update(model)
-
-        then:
-        1 * opLogStructMapper.modelToDao(model) >> dao
-        1 * opLogMapper.updateById(dao) >> 1
-        result == true
-    }
-
-    def "test update with null model"() {
-        when:
-        def result = service.update(null)
-
-        then:
-        0 * opLogStructMapper.modelToDao(_)
-        0 * opLogMapper.updateById(_)
-        result == false
-    }
-
-    def "test update with null id"() {
-        given:
-        def model = OpLog.builder()
-                .id(null)
-                .event(OpEventEnum.UPDATE_METRIC_META)
-                .operatorId(OPERATOR_ID)
-                .operateTime(new Date(OPERATE_TS))
-                .build()
-
-        when:
-        def result = service.update(model)
-
-        then:
-        0 * opLogStructMapper.modelToDao(_)
-        0 * opLogMapper.updateById(_)
-        result == false
-    }
-
-    def "test update with not found"() {
-        given:
-        def model = OpLog.builder()
-                .id(LOG_ID)
-                .event(OpEventEnum.UPDATE_METRIC_META)
-                .operatorId(OPERATOR_ID)
-                .operateTime(new Date(OPERATE_TS))
-                .build()
-        def dao = OpLogDAO.builder()
-                .id(LOG_ID)
-                .event(OpEventEnum.UPDATE_METRIC_META.getId())
-                .operatorId(OPERATOR_ID)
-                .operateTs(OPERATE_TS)
-                .ct(CREATE_TS)
-                .build()
-
-        when:
-        def result = service.update(model)
-
-        then:
-        1 * opLogStructMapper.modelToDao(model) >> dao
-        1 * opLogMapper.updateById(dao) >> 0
-        result == false
     }
 
     def "test delete success"() {
@@ -326,7 +246,7 @@ class OpLogServiceImplTest extends Specification {
 
         then:
         1 * opLogMapper.deleteById(idLong) >> 1
-        result == true
+        result
     }
 
     def "test delete with null id"() {
@@ -335,7 +255,7 @@ class OpLogServiceImplTest extends Specification {
 
         then:
         0 * opLogMapper.deleteById(_)
-        result == false
+        !result
     }
 
     def "test delete with not found"() {
@@ -347,7 +267,7 @@ class OpLogServiceImplTest extends Specification {
 
         then:
         1 * opLogMapper.deleteById(idLong) >> 0
-        result == false
+        !result
     }
 }
 

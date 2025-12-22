@@ -122,7 +122,7 @@ public interface BaseStructMapper {
      * @param value event value
      * @return OpEventEnum
      */
-    default OpEventEnum mapEvent(Integer value) {
+    default OpEventEnum mapOpEvent(Integer value) {
         return OpEventEnum.fromId(value);
     }
 
@@ -132,7 +132,7 @@ public interface BaseStructMapper {
      * @param event event enum
      * @return event value
      */
-    default Integer mapEventToInt(OpEventEnum event) {
+    default Integer mapOpEventToInt(OpEventEnum event) {
         return event != null ? event.getId() : null;
     }
 

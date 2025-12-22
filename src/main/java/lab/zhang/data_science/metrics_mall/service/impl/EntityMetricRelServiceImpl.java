@@ -86,20 +86,20 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
     @Override
     public boolean create(EntityMetricRelDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] create failed, dto cannot be null");
+            throw new IllegalArgumentException("[entity_metric_rel] creating failed, dto cannot be null");
         }
 
         // validate the entity existence
         EntityMeta entityMeta = entityService.getEntityMetaByCode(dto.getEntityCode());
         if (entityMeta == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] create failed, entity meta not found: entityCode=" + dto.getEntityCode());
+            throw new IllegalArgumentException("[entity_metric_rel] creating failed, entity meta not found: entityCode=" + dto.getEntityCode());
         }
         Long entityMetaId = Long.valueOf(entityMeta.getId());
 
         // validate the metric existence
         PrimeMetric primeMetric = metricService.getPrimeMetricByCode(dto.getMetricCode());
         if (primeMetric == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] create failed, metric meta not found: metricCode=" + dto.getMetricCode());
+            throw new IllegalArgumentException("[entity_metric_rel] creating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
         Long metricMetaId = primeMetric.getId();
 
@@ -109,7 +109,7 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
                 .eq("mid", metricMetaId);
         EntityMetricRelDAO existingRel = entityMetricRelMapper.selectOne(queryWrapper);
         if (existingRel != null) {
-            throw new IllegalStateException(String.format("[entity_metric_rel] create failed, relation already exists: entityMetaId=%d, metricMetaId=%d",
+            throw new IllegalStateException(String.format("[entity_metric_rel] creating failed, relation already exists: entityMetaId=%d, metricMetaId=%d",
                     entityMetaId, metricMetaId));
         }
 
@@ -137,20 +137,20 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
     @Override
     public boolean update(EntityMetricRelDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] update failed, dto cannot be null");
+            throw new IllegalArgumentException("[entity_metric_rel] updating failed, dto cannot be null");
         }
 
         // validate the entities existence
         EntityMeta entityMeta = entityService.getEntityMetaByCode(dto.getEntityCode());
         if (entityMeta == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] update failed, entity meta not found: entityCode=" + dto.getEntityCode());
+            throw new IllegalArgumentException("[entity_metric_rel] updating failed, entity meta not found: entityCode=" + dto.getEntityCode());
         }
         Long entityMetaId = Long.valueOf(entityMeta.getId());
 
         // validate the metrics existence
         PrimeMetric primeMetric = metricService.getPrimeMetricByCode(dto.getMetricCode());
         if (primeMetric == null) {
-            throw new IllegalArgumentException("[entity_metric_rel] update failed, metric meta not found: metricCode=" + dto.getMetricCode());
+            throw new IllegalArgumentException("[entity_metric_rel] updating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
         Long metricMetaId = primeMetric.getId();
 
@@ -160,7 +160,7 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
                 .eq("mid", metricMetaId);
         EntityMetricRelDAO existingRel = entityMetricRelMapper.selectOne(queryWrapper);
         if (existingRel == null) {
-            throw new IllegalStateException(String.format("[entity_metric_rel] update failed, relation not exists: entityMetaId=%d, metricMetaId=%d",
+            throw new IllegalStateException(String.format("[entity_metric_rel] updating failed, relation not exists: entityMetaId=%d, metricMetaId=%d",
                     entityMetaId, metricMetaId));
         }
 

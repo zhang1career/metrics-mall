@@ -69,16 +69,16 @@ public class DimensionServiceImpl implements DimensionService {
     public boolean insert(DimensionDTO dto) {
         // validate input
         if (dto == null) {
-            throw new IllegalArgumentException("[dimension] create failed, dto cannot be null");
+            throw new IllegalArgumentException("[dimension] creating failed, dto cannot be null");
         }
         if (StrUtil.isBlank(dto.getCode())) {
-            throw new IllegalArgumentException("[dimension] create failed, code cannot be blank");
+            throw new IllegalArgumentException("[dimension] creating failed, code cannot be blank");
         }
 
         // validate dimension existence
         DimensionDAO existingDAO = getDimensionDaoByCode(dto.getCode());
         if (existingDAO != null) {
-            throw new IllegalArgumentException("[dimension] create failed, code already exists");
+            throw new IllegalArgumentException("[dimension] creating failed, code already exists");
         }
 
         dto.setTimeOnCreate();
@@ -99,16 +99,16 @@ public class DimensionServiceImpl implements DimensionService {
     public boolean update(DimensionDTO dto) {
         // validate input
         if (dto == null) {
-            throw new IllegalArgumentException("[dimension] update failed, dto cannot be null");
+            throw new IllegalArgumentException("[dimension] updating failed, dto cannot be null");
         }
         if (StrUtil.isBlank(dto.getCode())) {
-            throw new IllegalArgumentException("[dimension] update failed, code cannot be blank");
+            throw new IllegalArgumentException("[dimension] updating failed, code cannot be blank");
         }
 
         // validate dimension existence
         DimensionDAO existingDAO = getDimensionDaoByCode(dto.getCode());
         if (existingDAO == null) {
-            throw new IllegalArgumentException("[dimension] update failed, dimension does not exist");
+            throw new IllegalArgumentException("[dimension] updating failed, dimension does not exist");
         }
 
         dto.setId(existingDAO.getId());
