@@ -1,8 +1,8 @@
 package lab.zhang.data_science.metrics_mall.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import lab.zhang.data_science.metrics_mall.pojo.dao.MetricVersionDAO;
-import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.metric_version.ExistenceMetricVersionDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.metric_version.MetricVersionDAO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -32,7 +32,12 @@ public interface MetricVersionMapper extends BaseMapper<MetricVersionDAO> {
             " <foreach item='item' collection='metricCodes' open='(' separator=',' close=')'>" +
             "  #{item}" +
             " </foreach>" +
+            "AND v.life_status IN " +
+            " <foreach item='item' collection='lifeStatuses' open='(' separator=',' close=')'>" +
+            "  #{item}" +
+            " </foreach>" +
             "</script>")
-    List<MetricVersionDTO> getMetricVersionBatch(@Param("metricCodes") Collection<String> metricCodeColl);
+    List<ExistenceMetricVersionDAO> getExistenceMetricVersionBatch(@Param("metricCodes") Collection<String> metricCodeColl,
+                                                                   @Param("lifeStatuses") Collection<Integer> lifeStatusColl);
 }
 

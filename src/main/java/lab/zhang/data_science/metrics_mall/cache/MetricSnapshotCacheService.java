@@ -2,7 +2,9 @@ package lab.zhang.data_science.metrics_mall.cache;
 
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,26 +40,18 @@ public interface MetricSnapshotCacheService {
                       Map<String, TypedValue> dimensionMap);
 
     /**
-     * Put metric value into cache
+     * Batch put metric values into cache
      * The write process will overwrite the fields of "a" and "ts", and append the previous value into history list "h".
      * The history list "h" will keep at most 10 items, the oldest items will be removed when exceeding the limit.
+     * All parameters in EchoMetricDTO should be validated before calling this method.
      *
-     * @param entityCode   entity meta code
-     * @param entityId     entity id
-     * @param metricCode   metric code
-     * @param version      metric version
-     * @param dimensionMap dimension map, key is dimension code, value is dimension value
-     * @param snapshotTs   metric snapshot timestamp
-     * @param sourceType   source type of metric value
-     * @param value        metric value to put into cache
+     * @param entityCode entity meta code
+     * @param entityId   entity id
+     * @param metricList list of echo metric DTOs, each DTO should have valid code, version, dimensionMap, snapshotTs, sourceType, and value
+     * @throws IllegalArgumentException if any validation fails
      */
-    void put(String entityCode,
-             Long entityId,
-             String metricCode,
-             Integer version,
-             Map<String, TypedValue> dimensionMap,
-             Long snapshotTs,
-             Integer sourceType,
-             String value);
+    void putBatch(String entityCode,
+                  Long entityId,
+                  List<EchoMetricDTO> metricList);
 }
 

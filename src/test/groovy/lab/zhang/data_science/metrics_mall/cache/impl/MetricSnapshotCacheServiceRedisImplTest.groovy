@@ -3,10 +3,13 @@ package lab.zhang.data_science.metrics_mall.cache.impl
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.common.TypedValue
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.AlphaMetricDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.ValueOperations
+import org.springframework.data.redis.core.script.DefaultRedisScript
 import org.springframework.test.util.ReflectionTestUtils
 import spock.lang.Specification
 
@@ -36,9 +39,15 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
 
     def setup() {
         cacheService = new MetricSnapshotCacheServiceRedisImpl(stringRedisTemplate, objectMapper)
-        ReflectionTestUtils.setField(MetricSnapshotCacheServiceRedisImpl.class, "KEY_PREFIX", "mx")
-        ReflectionTestUtils.setField(MetricSnapshotCacheServiceRedisImpl.class, "MAX_HISTORY_DEPTH", 10)
+        ReflectionTestUtils.setField(cacheService, "keyPrefix", "mx")
+        ReflectionTestUtils.setField(cacheService, "timeoutInSeconds", 86400L)
+        ReflectionTestUtils.setField(cacheService, "maxHistoryDepth", 7)
         stringRedisTemplate.opsForValue() >> valueOperations
+        
+        // Initialize scripts
+        def updateMetricSnapshotBatchScript = new DefaultRedisScript<List>()
+        updateMetricSnapshotBatchScript.setResultType(List.class)
+        ReflectionTestUtils.setField(cacheService, "updateMetricSnapshotBatchScript", updateMetricSnapshotBatchScript)
     }
 
     def "test get success"() {
@@ -204,213 +213,381 @@ class MetricSnapshotCacheServiceRedisImplTest extends Specification {
         result.a == METRIC_VALUE
     }
 
-    def "test put success new metric"() {
+    def "test putBatch success new metric"() {
         given:
         def dimensionMap = createDimensionMap("city", "Beijing")
         def key = buildExpectedKey(dimensionMap)
-
-        when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
-
-        then:
-        1 * valueOperations.get(key) >> null
-        1 * objectMapper.writeValueAsString(_ as EchoMetricDAO) >> { EchoMetricDAO metric ->
-            return '{"a":"' + metric.a + '","ts":' + metric.ts + '}'
-        }
-        1 * valueOperations.set(key, _)
-    }
-
-    def "test put success update existing metric"() {
-        given:
-        def dimensionMap = createDimensionMap("city", "Beijing")
-        def key = buildExpectedKey(dimensionMap)
-        def existingJson = '{"a":"1000.0","ts":1715000000000}'
-        def existingMetric = EchoMetricDAO.builder()
-                .a("1000.0")
-                .ts(1715000000000L)
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(dimensionMap)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
                 .build()
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
 
         then:
-        1 * valueOperations.get(key) >> existingJson
-        1 * objectMapper.readValue(existingJson, EchoMetricDAO.class) >> existingMetric
-        1 * objectMapper.writeValueAsString(_ as EchoMetricDAO) >> { EchoMetricDAO metric ->
-            return '{"a":"' + metric.a + '","ts":' + metric.ts + '}'
-        }
-        1 * valueOperations.set(key, _)
+        1 * stringRedisTemplate.execute(_ as DefaultRedisScript, [key], _) >> ['{"a":"' + METRIC_VALUE + '","ts":' + SNAPSHOT_TS + ',"s":0,"h":[]}']
     }
 
-    def "test put history management"() {
+    def "test putBatch success update existing metric"() {
         given:
         def dimensionMap = createDimensionMap("city", "Beijing")
         def key = buildExpectedKey(dimensionMap)
-        def existingMetric = EchoMetricDAO.builder()
-                .a("1000.0")
-                .ts(1715000000000L)
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(dimensionMap)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
                 .build()
-        def existingJson = '{"a":"1000.0","ts":1715000000000}'
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
 
         then:
-        1 * valueOperations.get(key) >> existingJson
-        1 * objectMapper.readValue(existingJson, EchoMetricDAO.class) >> existingMetric
-        1 * objectMapper.writeValueAsString(_ as EchoMetricDAO) >> { EchoMetricDAO metric ->
-            return '{"a":"' + metric.a + '","ts":' + metric.ts + '}'
-        }
-        1 * valueOperations.set(key, _)
+        1 * stringRedisTemplate.execute(_ as DefaultRedisScript, [key], _) >> ['{"a":"' + METRIC_VALUE + '","ts":' + SNAPSHOT_TS + ',"s":0,"h":[{"a":"1000.0","ts":1715000000000,"s":0}]}']
     }
 
-    def "test put history exceeds max depth"() {
+    def "test putBatch history management"() {
         given:
         def dimensionMap = createDimensionMap("city", "Beijing")
         def key = buildExpectedKey(dimensionMap)
-        def history = []
-        for (int i = 0; i < 15; i++) {
-            history.add(AlphaMetricDAO.builder()
-                    .a("value" + i)
-                    .ts(1715000000000L + i)
-                    .build())
-        }
-        def existingMetric = EchoMetricDAO.builder()
-                .a("1000.0")
-                .ts(1715000000000L)
-                .h(history)
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(dimensionMap)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
                 .build()
-        def existingJson = '{"a":"1000.0","ts":1715000000000}'
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
 
         then:
-        1 * valueOperations.get(key) >> existingJson
-        1 * objectMapper.readValue(existingJson, EchoMetricDAO.class) >> existingMetric
-        1 * objectMapper.writeValueAsString(_ as EchoMetricDAO) >> { EchoMetricDAO metric ->
-            return '{"a":"' + metric.a + '","ts":' + metric.ts + '}'
-        }
-        1 * valueOperations.set(key, _)
+        1 * stringRedisTemplate.execute(_ as DefaultRedisScript, [key], _) >> ['{"a":"' + METRIC_VALUE + '","ts":' + SNAPSHOT_TS + ',"s":0,"h":[{"a":"1000.0","ts":1715000000000,"s":0}]}']
     }
 
-    def "test put null entity code"() {
-        when:
-        cacheService.put(null, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put empty entity code"() {
-        when:
-        cacheService.put("", ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put null metric code"() {
-        when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, null, VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put empty metric code"() {
-        when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, "", VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE)
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put null version"() {
-        when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, null, null, SNAPSHOT_TS, 0, METRIC_VALUE)
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put null snapshot ts"() {
-        when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, null, 0, METRIC_VALUE)
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put null value"() {
-        when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, null)
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put empty value"() {
-        when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, null, SNAPSHOT_TS, 0, "")
-
-        then:
-        0 * valueOperations.get(_)
-        0 * valueOperations.set(_, _)
-    }
-
-    def "test put json write exception"() {
+    def "test putBatch history exceeds max depth"() {
         given:
         def dimensionMap = createDimensionMap("city", "Beijing")
         def key = buildExpectedKey(dimensionMap)
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(dimensionMap)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap, SNAPSHOT_TS, 0, METRIC_VALUE)
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
 
         then:
-        1 * valueOperations.get(key) >> null
-        1 * objectMapper.writeValueAsString(_ as EchoMetricDAO) >> {
-            throw new JsonProcessingException("Write error") {}
-        }
-        0 * valueOperations.set(_, _)
+        1 * stringRedisTemplate.execute(_ as DefaultRedisScript, [key], _) >> ['{"a":"' + METRIC_VALUE + '","ts":' + SNAPSHOT_TS + ',"s":0,"h":[]}']
     }
 
-    def "test put dimension with null value"() {
+    def "test putBatch null entity code"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(null, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("invalid entity for put operation")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch empty entity code"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch("", ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("invalid entity for put operation")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null metric code"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(null)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("metricCode is empty")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch empty metric code"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code("")
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("metricCode is empty")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null version"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(null)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("version is null")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null snapshot ts"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(null)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("snapshotTs is null")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null value"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(null)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("value is empty")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch empty value"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value("")
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("value is empty")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null entityId"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, null, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("entityId is null")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch empty metric list"() {
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("metricList is empty")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null metric list"() {
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, null)
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("metricList is empty")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null metricDTO in list"() {
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [null])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("metricDTO is null")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch null sourceType"() {
+        given:
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(null)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(null)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("sourceType is null")
+        0 * stringRedisTemplate.execute(_, _, _)
+    }
+
+    def "test putBatch redis exception"() {
+        given:
+        def dimensionMap = createDimensionMap("city", "Beijing")
+        def key = buildExpectedKey(dimensionMap)
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(dimensionMap)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
+
+        when:
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
+
+        then:
+        1 * stringRedisTemplate.execute(_ as DefaultRedisScript, [key], _) >> {
+            throw new RuntimeException("Redis error")
+        }
+        def exception = thrown(RuntimeException)
+        exception.message.contains("putBatch echoMetric failed")
+    }
+
+    def "test putBatch dimension with null value"() {
         given:
         def dimensionMap = [:]
         dimensionMap.put("city", TypedValue.nullValue())
         def key = buildExpectedKey(dimensionMap as Map<String, TypedValue>)
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(dimensionMap as Map<String, TypedValue>)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap as Map<String, TypedValue>, SNAPSHOT_TS, 0, METRIC_VALUE)
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
 
         then:
-        1 * valueOperations.get(key) >> null
-        1 * objectMapper.writeValueAsString(_ as EchoMetricDAO) >> "{}"
-        1 * valueOperations.set(key, _)
+        1 * stringRedisTemplate.execute(_ as DefaultRedisScript, [key], _) >> ['{"a":"' + METRIC_VALUE + '","ts":' + SNAPSHOT_TS + ',"s":0,"h":[]}']
     }
 
-    def "test put dimension sorted order"() {
+    def "test putBatch dimension sorted order"() {
         given:
         def dimensionMap = [:]
         dimensionMap.put("zebra", TypedValue.of("z"))
         dimensionMap.put("apple", TypedValue.of("a"))
         def key = buildExpectedKey(dimensionMap as Map<String, TypedValue>)
+        def metricDTO = EchoMetricDTO.builder()
+                .code(METRIC_CODE)
+                .version(VERSION)
+                .dimensionMap(dimensionMap as Map<String, TypedValue>)
+                .snapshotTs(SNAPSHOT_TS)
+                .sourceType(SnapshotSourceTypeEnum.EXTERNAL)
+                .value(METRIC_VALUE)
+                .build()
 
         when:
-        cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE, VERSION, dimensionMap as Map<String, TypedValue>, SNAPSHOT_TS, 0, METRIC_VALUE)
+        cacheService.putBatch(ENTITY_CODE, ENTITY_ID, [metricDTO])
 
         then:
-        1 * valueOperations.get(key) >> null
-        1 * objectMapper.writeValueAsString(_ as EchoMetricDAO) >> "{}"
-        1 * valueOperations.set(key, _)
+        1 * stringRedisTemplate.execute(_ as DefaultRedisScript, [key], _) >> ['{"a":"' + METRIC_VALUE + '","ts":' + SNAPSHOT_TS + ',"s":0,"h":[]}']
     }
 
     /**

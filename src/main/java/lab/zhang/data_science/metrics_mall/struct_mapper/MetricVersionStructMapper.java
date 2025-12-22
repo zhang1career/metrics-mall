@@ -1,7 +1,7 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import lab.zhang.data_science.metrics_mall.model.MetricVersion;
-import lab.zhang.data_science.metrics_mall.pojo.dao.MetricVersionDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.metric_version.MetricVersionDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricVersionQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVersionVO;

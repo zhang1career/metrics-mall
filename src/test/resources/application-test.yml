@@ -1,6 +1,6 @@
 # Metrics-mall configuration
 metrics_mall:
-  environment: TEST
+  environment: PROD
 
 
 spring:

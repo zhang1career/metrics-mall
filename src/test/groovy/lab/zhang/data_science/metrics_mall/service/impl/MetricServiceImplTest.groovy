@@ -89,7 +89,7 @@ class MetricServiceImplTest extends Specification {
         def result = service.chooseVersionBatch(codes, required)
 
         then:
-        1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> available
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> available
         result.size() == 1
         result.get(METRIC_CODE) == 2
     }
@@ -107,7 +107,7 @@ class MetricServiceImplTest extends Specification {
         def result = service.chooseVersionBatch(codes, required)
 
         then:
-        1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> available
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> available
         result.isEmpty()
     }
 
@@ -124,7 +124,7 @@ class MetricServiceImplTest extends Specification {
         def result = service.chooseVersionBatch(codes, required)
 
         then:
-        1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> available
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> available
         result.size() == 1
         result.get(METRIC_CODE) == 2
     }
@@ -138,7 +138,7 @@ class MetricServiceImplTest extends Specification {
         def result = service.chooseVersionBatch(codes, required)
 
         then:
-        1 * metricVersionMapper.getMetricVersionBatch(_ as Set) >> []
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> []
         result.isEmpty()
     }
 }

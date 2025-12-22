@@ -1,9 +1,10 @@
-package lab.zhang.data_science.metrics_mall.pojo.dao;
+package lab.zhang.data_science.metrics_mall.pojo.dao.metric_version;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lab.zhang.data_science.metrics_mall.pojo.dao.BaseDAO;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

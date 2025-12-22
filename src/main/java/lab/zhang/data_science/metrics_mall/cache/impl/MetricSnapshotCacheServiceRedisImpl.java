@@ -2,9 +2,11 @@ package lab.zhang.data_science.metrics_mall.cache.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,11 +15,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import jakarta.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,12 +53,19 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
 
     private DefaultRedisScript<String> updateMetricSnapshotScript;
 
+    private DefaultRedisScript<List> updateMetricSnapshotBatchScript;
+
     @PostConstruct
     public void init() {
         DefaultRedisScript<String> script = new DefaultRedisScript<>();
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/update_metric_snapshot.lua")));
         script.setResultType(String.class);
         updateMetricSnapshotScript = script;
+
+        DefaultRedisScript<List> batchScript = new DefaultRedisScript<>();
+        batchScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/update_metric_snapshot_batch.lua")));
+        batchScript.setResultType(List.class);
+        updateMetricSnapshotBatchScript = batchScript;
     }
 
 
@@ -100,57 +107,90 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
     }
 
     @Override
-    public void put(String entityCode,
-                    Long entityId,
-                    String metricCode,
-                    Integer version,
-                    Map<String, TypedValue> dimensionMap,
-                    Long snapshotTs,
-                    Integer sourceType,
-                    String value) {
+    public void putBatch(String entityCode, Long entityId, List<EchoMetricDTO> metricList) {
+        // batch validation
         if (StrUtil.isBlank(entityCode)) {
-            log.warn("[cache] put echoMetric, invalid entity for put operation");
-            return;
+            throw new IllegalArgumentException("[cache] putBatch failed, invalid entity for put operation");
         }
-        if (StrUtil.isBlank(metricCode)) {
-            log.warn("[cache] put echoMetric, metricCode is empty");
-            return;
+        if (entityId == null) {
+            throw new IllegalArgumentException("[cache] putBatch failed, entityId is null");
         }
-        if (version == null) {
-            log.warn("[cache] put echoMetric, version is null");
-            return;
+        if (CollectionUtils.isEmpty(metricList)) {
+            throw new IllegalArgumentException("[cache] putBatch failed, metricList is empty");
         }
-        if (snapshotTs == null) {
-            log.warn("[cache] put echoMetric, snapshotTs is null");
-            return;
+
+        List<String> validationErrors = new ArrayList<>();
+        Map<String, List<String>> keyArgsMap = new LinkedHashMap<>();
+
+        for (int i = 0; i < metricList.size(); i++) {
+            EchoMetricDTO metricDTO = metricList.get(i);
+            if (metricDTO == null) {
+                validationErrors.add(String.format("metricList[%d]: metricDTO is null", i));
+                continue;
+            }
+            String metricCode = metricDTO.getCode();
+            if (StrUtil.isBlank(metricCode)) {
+                validationErrors.add(String.format("metricList[%d]: metricCode is empty", i));
+                continue;
+            }
+            Integer version = metricDTO.getVersion();
+            if (version == null) {
+                validationErrors.add(String.format("metricList[%d]: version is null", i));
+                continue;
+            }
+            Long snapshotTs = metricDTO.getSnapshotTs();
+            if (snapshotTs == null) {
+                validationErrors.add(String.format("metricList[%d]: snapshotTs is null", i));
+                continue;
+            }
+            if (metricDTO.getSourceType() == null || metricDTO.getSourceType().getId() == null) {
+                validationErrors.add(String.format("metricList[%d]: sourceType is null", i));
+                continue;
+            }
+            String value = metricDTO.getValue();
+            if (StrUtil.isBlank(value)) {
+                validationErrors.add(String.format("metricList[%d]: value is empty", i));
+                continue;
+            }
+
+            String key = buildKey(entityCode, entityId, metricCode, version, metricDTO.getDimensionMap());
+            List<String> args = new ArrayList<>();
+            args.add(value);
+            args.add(String.valueOf(snapshotTs));
+            args.add(String.valueOf(metricDTO.getSourceType().getId()));
+            args.add(String.valueOf(maxHistoryDepth));
+            args.add(String.valueOf(timeoutInSeconds));
+            keyArgsMap.put(key, args);
         }
-        if (sourceType == null) {
-            log.warn("[cache] put echoMetric, sourceType is null");
-            return;
+
+        if (!validationErrors.isEmpty()) {
+            throw new IllegalArgumentException("[cache] putBatch echoMetric, validation failed: " + String.join(", ", validationErrors));
         }
-        if (StrUtil.isBlank(value)) {
-            log.warn("[cache] put echoMetric, value is empty");
+
+        if (keyArgsMap.isEmpty()) {
+            log.warn("[cache] putBatch echoMetric, no valid metrics to write");
             return;
         }
 
-        String key = buildKey(entityCode, entityId, metricCode, version, dimensionMap);
+        // convert Map to List for execute method
+        List<String> keys = new ArrayList<>(keyArgsMap.keySet());
+        List<String> args = new ArrayList<>();
+        for (List<String> argList : keyArgsMap.values()) {
+            args.addAll(argList);
+        }
 
         try {
-            List<String> keys = Collections.singletonList(key);
-            String result = stringRedisTemplate.execute(
-                    updateMetricSnapshotScript,
+            List<String> results = stringRedisTemplate.execute(
+                    updateMetricSnapshotBatchScript,
                     keys,
-                    value,
-                    String.valueOf(snapshotTs),
-                    String.valueOf(sourceType),
-                    String.valueOf(maxHistoryDepth),
-                    String.valueOf(timeoutInSeconds)
+                    args.toArray(new String[0])
             );
             if (log.isDebugEnabled()) {
-                log.debug("[cache] cache updated atomically: key={}, result={}", key, result);
+                log.debug("[cache] cache updated atomically in batch: keyCount={}, results={}", keys.size(), results);
             }
         } catch (Exception e) {
-            log.error("[cache] failed to put cache atomically: key={}", key, e);
+            log.error("[cache] failed to put cache atomically in batch: keyCount={}", keys.size(), e);
+            throw new RuntimeException("[cache] putBatch echoMetric failed", e);
         }
     }
 

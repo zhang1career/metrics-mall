@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.service;
 
+import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
 import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Metric service interface.
@@ -78,9 +80,12 @@ public interface MetricService {
      *
      * @param metricCodeList metric codes list
      * @param requiredVersionMap required version map, key is metric code, value is required version
-     * @return metric version map, key is metric code, value is chosen version (exact match or main version if default)
+     * @param availableLifeStatusSet available life status set
+     * @return metric version map, key is metric code, value is chosen version (exact match or main version by default)
      */
-    Map<String, Integer> chooseVersionBatch(List<String> metricCodeList, Map<String, Integer> requiredVersionMap);
+    Map<String, Integer> chooseVersionBatch(List<String> metricCodeList,
+                                            Map<String, Integer> requiredVersionMap,
+                                            Set<LifeStatusEnum> availableLifeStatusSet);
 
     /**
      * Get metric by id.

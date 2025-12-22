@@ -15,8 +15,8 @@ import java.util.*;
  *
  * @author Rongjin Zhang
  */
-@Slf4j
 @Component
+@Slf4j
 public class MetricVersionLifeStatusConfig {
 
     @Autowired

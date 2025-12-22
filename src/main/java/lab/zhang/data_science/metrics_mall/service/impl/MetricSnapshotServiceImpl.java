@@ -3,13 +3,15 @@ package lab.zhang.data_science.metrics_mall.service.impl;
 import cn.hutool.core.util.StrUtil;
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService;
 import lab.zhang.data_science.metrics_mall.components.RequestContext;
-import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
+import lab.zhang.data_science.metrics_mall.config.MetricVersionLifeStatusConfig;
+import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
 import lab.zhang.data_science.metrics_mall.model.Entity;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.model.OpLog;
 import lab.zhang.data_science.metrics_mall.model.metric.AlphaMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.BetaMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
+import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelsDTO;
@@ -23,10 +25,9 @@ import lab.zhang.data_science.metrics_mall.service.OpLogService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigInteger;
@@ -47,6 +48,9 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
     private RequestContext requestContext;
 
     @Autowired
+    private MetricVersionLifeStatusConfig lifeStatusConfig;
+
+    @Autowired
     private EntityService entityService;
 
     @Autowired
@@ -60,6 +64,9 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
 
     @Autowired
     private MetricStructMapper metricStructMapper;
+
+    @Value("${metrics_mall.snap.publish.delay:60}")
+    private Long snapshotPublishDelay;
 
     @Override
     public MetricSnapshot querySnapshot(MetricSnapshotDTO dto) {
@@ -164,19 +171,17 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
             throw new IllegalArgumentException("[snap] writing failed, metric snapshot write dto is null");
         }
 
-
-        // validate metric list
-        List<EchoMetricDTO> metricList = dto.getMetricList();
-        if (CollectionUtils.isEmpty(metricList)) {
-            throw new IllegalArgumentException("[snap] writing failed, metric list is empty");
-        }
-
         // validate entity meta
         Entity entity = entityService.getEntityByCode(dto.getEntityCode(), dto.getEntityId());
         if (entity == null) {
             throw new IllegalArgumentException("[snap] writing failed, entity not found, entityCode=" + dto.getEntityCode());
         }
 
+        // validate metric list
+        List<EchoMetricDTO> metricList = dto.getMetricList();
+        if (CollectionUtils.isEmpty(metricList)) {
+            throw new IllegalArgumentException("[snap] writing failed, metric list is empty");
+        }
         for (EchoMetricDTO echoMetricDTO : metricList) {
             if (echoMetricDTO == null) {
                 throw new IllegalArgumentException("[snap] writing failed, metric write dto is null");
@@ -188,24 +193,31 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
                 throw new IllegalArgumentException("[snap] writing failed, metric value is empty: metricCode=" + echoMetricDTO.getCode());
             }
         }
+
+        // metric code list
         List<String> metricCodeList = metricList.stream()
                 .filter(Objects::nonNull)
                 .map(EchoMetricDTO::getCode)
                 .filter(Objects::nonNull)
                 .toList();
+        // required version map
         Map<String, Integer> requiredVersionMap = new HashMap<>();
         for (EchoMetricDTO echoMetricDTO : metricList) {
             if (echoMetricDTO != null) {
                 requiredVersionMap.put(echoMetricDTO.getCode(), echoMetricDTO.getVersion());
             }
         }
-        Map<String, Integer> nearestVersionMap = metricService.chooseVersionBatch(metricCodeList, requiredVersionMap);
+        // life status set
+        Set<LifeStatusEnum> availableLifeStatusSet = lifeStatusConfig.getWritableMetricVersionLifeStatuses();
+
+        Map<String, Integer> chosenVersionMap = metricService.chooseVersionBatch(metricCodeList, requiredVersionMap, availableLifeStatusSet);
         Map<String, Integer> acutalVersionMap = new HashMap<>();
         for (String code : metricCodeList) {
-            if (!nearestVersionMap.containsKey(code) || nearestVersionMap.get(code) == null) {
-                throw new IllegalArgumentException("[snap] writing failed, no exact version found for required one");
+            if (!chosenVersionMap.containsKey(code) || chosenVersionMap.get(code) == null) {
+                throw new IllegalArgumentException(String.format("[snap] writing failed, no version found, code=%s, versionMap=%s",
+                        code, chosenVersionMap));
             }
-            Integer nearestVersion = nearestVersionMap.get(code);
+            Integer nearestVersion = chosenVersionMap.get(code);
             // choose main version by default
             if (requiredVersionMap.get(code) == null) {
                 acutalVersionMap.put(code, nearestVersion);
@@ -256,45 +268,64 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
                 .build();
         OpLog insertedOpLog = opLogService.insert(oplogDTO);
 
-        // use current timestamp if not provided
-        Long snapshotTs = dto.getSnapshotTs();
-        if (snapshotTs == null || snapshotTs <= 0) {
-            snapshotTs = System.currentTimeMillis();
+        // ignore dto snapshotTs, to protect history data from tampered
+        Long snapshotTs = System.currentTimeMillis() + (snapshotPublishDelay * 1000);
+
+        // batch validate metric codes exist
+        List<String> metricCodeListForValidation = metricList.stream()
+                .filter(Objects::nonNull)
+                .map(EchoMetricDTO::getCode)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        if (!CollectionUtils.isEmpty(metricCodeListForValidation)) {
+            Map<String, PrimeMetric> metricMap = metricService.getPrimeMetricByCodeBatch(metricCodeListForValidation);
+            List<String> missingCodes = metricCodeListForValidation.stream()
+                    .filter(code -> !metricMap.containsKey(code))
+                    .toList();
+            if (!missingCodes.isEmpty()) {
+                throw new IllegalArgumentException("[snap] writing failed, metric codes not found: " + String.join(", ", missingCodes));
+            }
         }
 
-        // write each metric
+        // prepare metric list for batch write
+        List<EchoMetricDTO> preparedMetricList = new ArrayList<>();
         for (EchoMetricDTO echoMetricDTO : metricList) {
+            if (echoMetricDTO == null) {
+                continue;
+            }
             String metricCode = echoMetricDTO.getCode();
             Integer actualVersion = acutalVersionMap.get(metricCode);
 
-            try {
-                // validate metric exists
-                Pair<Boolean, String> validResult = metricService.validateCode(metricCode);
-                if (!validResult.getLeft()) {
-                    log.warn("[snap] writing skipped, invalid metric code, " + validResult.getRight());
-                    continue;
-                }
+            // clone EchoMetricDTO and update version and snapshotTs
+            EchoMetricDTO clonedMetric = EchoMetricDTO.builder()
+                    .code(echoMetricDTO.getCode())
+                    .version(actualVersion)
+                    .dimensionMap(echoMetricDTO.getDimensionMap())
+                    .value(echoMetricDTO.getValue())
+                    .snapshotTs(snapshotTs)
+                    .sourceType(echoMetricDTO.getSourceType())
+                    .build();
+            preparedMetricList.add(clonedMetric);
+        }
 
-                // write to cache
-                cacheService.put(
+        // batch write to cache
+        if (!CollectionUtils.isEmpty(preparedMetricList)) {
+            try {
+                cacheService.putBatch(
                         dto.getEntityCode(),
                         dto.getEntityId(),
-                        echoMetricDTO.getCode(),
-                        actualVersion,
-                        echoMetricDTO.getDimensionMap(),
-                        snapshotTs,
-                        echoMetricDTO.getSourceType().getId(),
-                        echoMetricDTO.getValue()
+                        preparedMetricList
                 );
 
                 if (log.isDebugEnabled()) {
-                    log.debug("[snap] writing done, metric written: entityCode={}, entityId={}, metricCode={}, version={}, value={}, snapshotTs={}",
-                            dto.getEntityCode(), dto.getEntityId(), metricCode,
-                            actualVersion, echoMetricDTO.getValue(), snapshotTs);
+                    log.debug("[snap] writing done, metrics written in batch: entityCode={}, entityId={}, metricCount={}, snapshotTs={}",
+                            dto.getEntityCode(), dto.getEntityId(), preparedMetricList.size(), snapshotTs);
                 }
             } catch (Exception e) {
-                log.error("[snap] writing failed, entityCode={}, entityId={}, metricCode={}",
-                        dto.getEntityCode(), dto.getEntityId(), metricCode, e);
+                log.error("[snap] writing failed in batch, entityCode={}, entityId={}",
+                        dto.getEntityCode(), dto.getEntityId(), e);
+                throw e;
             }
         }
 

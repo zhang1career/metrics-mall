@@ -20,6 +20,9 @@ metrics_mall:
           depth: 7
       timeout: 172800
 
+    publish:
+      delay:  60
+
 
 spring:
   application:

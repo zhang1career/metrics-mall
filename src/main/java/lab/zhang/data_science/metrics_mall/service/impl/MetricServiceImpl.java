@@ -4,12 +4,15 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import lab.zhang.data_science.metrics_mall.config.MetricVersionLifeStatusConfig;
+import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricVersionMapper;
 import lab.zhang.data_science.metrics_mall.model.MetricAggregation;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.metric_version.ExistenceMetricVersionDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricAggregationDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricMetaDTO;
@@ -145,12 +148,15 @@ public class MetricServiceImpl implements MetricService {
     }
 
     @Override
-    public Map<String, Integer> chooseVersionBatch(List<String> metricCodeList, Map<String, Integer> requiredVersionMap) {
+    public Map<String, Integer> chooseVersionBatch(List<String> metricCodeList,
+                                                   Map<String, Integer> requiredVersionMap,
+                                                   Set<LifeStatusEnum> availableLifeStatusSet) {
         if (log.isDebugEnabled()) {
-            log.debug("[metric] choose version, param: metricCodes={}, requiredVersions={}", metricCodeList, requiredVersionMap);
+            log.debug("[metric] choosing version, param: metricCodes={}, requiredVersions={}, availableLifeStatuses={}",
+                    metricCodeList, requiredVersionMap, availableLifeStatusSet);
         }
         if (CollectionUtils.isEmpty(metricCodeList)) {
-            throw new IllegalArgumentException("[metric] choose version, metricCodeList cannot be empty");
+            throw new IllegalArgumentException("[metric] choosing version failed, metricCodeList cannot be empty");
         }
 
         // unique metric codes
@@ -169,16 +175,22 @@ public class MetricServiceImpl implements MetricService {
             tempVersionMap.put(_metricCode, ZERO);
         }
 
+        Set<Integer> availableLifeStatusIdSet = availableLifeStatusSet.stream()
+                .map(LifeStatusEnum::getId)
+                .collect(Collectors.toSet());
+
         // query available versions
-        List<MetricVersionDTO> availableList = metricVersionMapper.getMetricVersionBatch(metricCodeSet);
+        List<ExistenceMetricVersionDAO> availableList = metricVersionMapper.getExistenceMetricVersionBatch(metricCodeSet, availableLifeStatusIdSet);
         if (CollectionUtils.isEmpty(availableList)) {
-            log.warn("[metric] choose version, no data found: metricCodes={}", metricCodeList);
+            log.warn("[metric] choosing version skipped, no data found: metricCodes={}", metricCodeList);
             return MapUtil.empty();
         }
+        log.info("[metric] choosing version query, param: code={}, lifeStatus={}, result={}",
+                metricCodeSet, availableLifeStatusIdSet, availableList);
 
         Map<String, Integer> retMap = new HashMap<>();
         // filter availableList by tempVersionMap
-        for (MetricVersionDTO available : availableList) {
+        for (ExistenceMetricVersionDAO available : availableList) {
             String code = available.getMetricCode();
             // already found
             if (retMap.containsKey(code)) {
@@ -186,7 +198,7 @@ public class MetricServiceImpl implements MetricService {
             }
             Integer requiredVersion = tempVersionMap.get(code);
             if (requiredVersion == null) {
-                throw new IllegalStateException("[metric] choose version, required version never should be null, metricCode=" + code);
+                throw new IllegalStateException("[metric] choosing version, required version never should be null, metricCode=" + code);
             }
             // default version
             if (requiredVersion.equals(ZERO)) {
