@@ -4,15 +4,18 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lab.zhang.data_science.metrics_mall.pojo.dao.metric.AlphaMetricDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import jakarta.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,12 +41,25 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
 
     private static final String DIMENSION_KEY_VALUE_SEPARATOR = "_";
 
+    @Value("${metrics_mall.snap.cache.timeout:86400}")
+    private Long timeoutInSeconds;
+
     @Value("${metrics_mall.snap.cache.value.history.depth:7}")
     private int maxHistoryDepth;
 
     private final StringRedisTemplate stringRedisTemplate;
 
     private final ObjectMapper objectMapper;
+
+    private DefaultRedisScript<String> updateMetricSnapshotScript;
+
+    @PostConstruct
+    public void init() {
+        DefaultRedisScript<String> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/update_metric_snapshot.lua")));
+        script.setResultType(String.class);
+        updateMetricSnapshotScript = script;
+    }
 
 
     @Override
@@ -120,15 +136,21 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
         String key = buildKey(entityCode, entityId, metricCode, version, dimensionMap);
 
         try {
-            EchoMetricDAO existing = get(entityCode, entityId, metricCode, version, dimensionMap);
-            EchoMetricDAO updated = buildUpdatedMetric(existing, value, snapshotTs, sourceType);
-            String jsonValue = objectMapper.writeValueAsString(updated);
-            stringRedisTemplate.opsForValue().set(key, jsonValue);
+            List<String> keys = Collections.singletonList(key);
+            String result = stringRedisTemplate.execute(
+                    updateMetricSnapshotScript,
+                    keys,
+                    value,
+                    String.valueOf(snapshotTs),
+                    String.valueOf(sourceType),
+                    String.valueOf(maxHistoryDepth),
+                    String.valueOf(timeoutInSeconds)
+            );
             if (log.isDebugEnabled()) {
-                log.debug("[cache] cache updated: key={}", key);
+                log.debug("[cache] cache updated atomically: key={}, result={}", key, result);
             }
         } catch (Exception e) {
-            log.error("[cache] failed to put cache: key={}", key, e);
+            log.error("[cache] failed to put cache atomically: key={}", key, e);
         }
     }
 
@@ -178,41 +200,6 @@ public class MetricSnapshotCacheServiceRedisImpl implements MetricSnapshotCacheS
                     return dimCode + DIMENSION_KEY_VALUE_SEPARATOR + valueStr;
                 })
                 .collect(Collectors.joining(DIMENSION_SEPARATOR));
-    }
-
-
-    /**
-     * Build updated EchoMetricDAO by overwriting "a" and "ts", and appending previous value to history.
-     * History list keeps at most MAX_HISTORY_SIZE items.
-     */
-    private EchoMetricDAO buildUpdatedMetric(EchoMetricDAO existing,
-                                             String newValue,
-                                             Long newSnapshotTs,
-                                             Integer sourceType) {
-        EchoMetricDAO updated = new EchoMetricDAO();
-        updated.setA(newValue);
-        updated.setTs(newSnapshotTs);
-        updated.setS(sourceType);
-
-        List<AlphaMetricDAO> history = new ArrayList<>();
-        if (existing != null && existing.getA() != null && existing.getTs() != null) {
-            AlphaMetricDAO previousValue = AlphaMetricDAO.builder()
-                    .a(existing.getA())
-                    .ts(existing.getTs())
-                    .build();
-            history.add(previousValue);
-        }
-
-        if (existing != null && existing.getH() != null) {
-            history.addAll(existing.getH());
-        }
-
-        while (history.size() > maxHistoryDepth) {
-            history.remove(0);
-        }
-
-        updated.setH(history);
-        return updated;
     }
 }
 

@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigInteger;
@@ -159,27 +160,32 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
 
     @Override
     public BigInteger writeSnapshot(MetricSnapshotDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("[snap] writing failed, metric snapshot write dto is null");
+        }
+
+
         // validate metric list
         List<EchoMetricDTO> metricList = dto.getMetricList();
         if (CollectionUtils.isEmpty(metricList)) {
-            throw new IllegalArgumentException("metric list is empty");
+            throw new IllegalArgumentException("[snap] writing failed, metric list is empty");
         }
 
         // validate entity meta
         Entity entity = entityService.getEntityByCode(dto.getEntityCode(), dto.getEntityId());
         if (entity == null) {
-            throw new IllegalArgumentException("entity not found, entityCode=" + dto.getEntityCode());
+            throw new IllegalArgumentException("[snap] writing failed, entity not found, entityCode=" + dto.getEntityCode());
         }
 
         for (EchoMetricDTO echoMetricDTO : metricList) {
             if (echoMetricDTO == null) {
-                throw new IllegalArgumentException("metric write dto is null");
+                throw new IllegalArgumentException("[snap] writing failed, metric write dto is null");
             }
             if (StrUtil.isBlank(echoMetricDTO.getCode())) {
-                throw new IllegalArgumentException("metric code is empty");
+                throw new IllegalArgumentException("[snap] writing failed, metric code is empty");
             }
             if (StrUtil.isBlank(echoMetricDTO.getValue())) {
-                throw new IllegalArgumentException("metric value is empty: metricCode=" + echoMetricDTO.getCode());
+                throw new IllegalArgumentException("[snap] writing failed, metric value is empty: metricCode=" + echoMetricDTO.getCode());
             }
         }
         List<String> metricCodeList = metricList.stream()
@@ -197,7 +203,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
         Map<String, Integer> acutalVersionMap = new HashMap<>();
         for (String code : metricCodeList) {
             if (!nearestVersionMap.containsKey(code) || nearestVersionMap.get(code) == null) {
-                throw new IllegalArgumentException("[snap] write, no exact version found for required one");
+                throw new IllegalArgumentException("[snap] writing failed, no exact version found for required one");
             }
             Integer nearestVersion = nearestVersionMap.get(code);
             // choose main version by default
@@ -208,7 +214,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
             // nearest version must match required one strictly
             Integer requiredVersion = requiredVersionMap.get(code);
             if (!nearestVersion.equals(requiredVersion)) {
-                throw new IllegalArgumentException("[snap] write, version not match required one strictly, would you want to try version=" + nearestVersion);
+                throw new IllegalArgumentException("[snap] writing failed, version not match required one strictly, would you want to try version=" + nearestVersion);
             }
             acutalVersionMap.put(code, nearestVersion);
         }
@@ -221,7 +227,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
                         _dto.getDimensionCodeList()))
                 .toList();
         if (CollectionUtils.isEmpty(relsDTOList)) {
-            throw new IllegalArgumentException("[snap] write, metric dimension relations are empty");
+            throw new IllegalArgumentException("[snap] writing failed, metric dimension relations are empty");
         }
         for (MetricDimensionRelsDTO relsDTO : relsDTOList) {
             List<String> dimensionCodeList = relsDTO.getDimensionCodeList();
@@ -233,7 +239,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
             for (String dimensionCode : dimensionCodeList) {
                 if (!dimensionHotMap.containsKey(dimensionCode) || !dimensionHotMap.get(dimensionCode)) {
                     throw new IllegalArgumentException(String.format(
-                            "[snap] write, dimension is not hot, cannot write: metricCode=%s, dimensionCode=%s",
+                            "[snap] writing failed, dimension is not hot, cannot write: metricCode=%s, dimensionCode=%s",
                             relsDTO.getMetricCode(), dimensionCode));
                 }
             }
@@ -265,7 +271,7 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
                 // validate metric exists
                 Pair<Boolean, String> validResult = metricService.validateCode(metricCode);
                 if (!validResult.getLeft()) {
-                    log.warn("[snap] invalid metric code, " + validResult.getRight());
+                    log.warn("[snap] writing skipped, invalid metric code, " + validResult.getRight());
                     continue;
                 }
 
@@ -282,12 +288,12 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
                 );
 
                 if (log.isDebugEnabled()) {
-                    log.debug("[snap] metric written: entityCode={}, entityId={}, metricCode={}, version={}, value={}, snapshotTs={}",
+                    log.debug("[snap] writing done, metric written: entityCode={}, entityId={}, metricCode={}, version={}, value={}, snapshotTs={}",
                             dto.getEntityCode(), dto.getEntityId(), metricCode,
                             actualVersion, echoMetricDTO.getValue(), snapshotTs);
                 }
             } catch (Exception e) {
-                log.error("[snap] failed to write metric: entityCode={}, entityId={}, metricCode={}",
+                log.error("[snap] writing failed, entityCode={}, entityId={}, metricCode={}",
                         dto.getEntityCode(), dto.getEntityId(), metricCode, e);
             }
         }

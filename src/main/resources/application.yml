@@ -18,6 +18,7 @@ metrics_mall:
       value:
         history:
           depth: 7
+      timeout: 172800
 
 
 spring:
@@ -87,3 +88,25 @@ springdoc:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
+
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    lab.zhang.data_science: INFO
+    # Database operation logs
+    com.baomidou.mybatisplus: INFO
+    org.springframework.jdbc: INFO
+    # Redis operation logs
+    org.springframework.data.redis: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{0} - %msg%n"
+  # File output configuration
+#  file:
+#    name: /var/log/metrics_mall/app.log
+  # Logback configuration (if using logback-spring.xml, this will be overridden)
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7

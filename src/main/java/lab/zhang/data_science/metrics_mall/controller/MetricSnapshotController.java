@@ -93,16 +93,12 @@ public class MetricSnapshotController extends BaseV1Controller {
                 qo.getEc(), qo.getEid(), qo.getMetrics(), qo.getSnapshotTs());
 
         MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo, metricStructMapper);
-        if (dto == null) {
-            throw new IllegalArgumentException("[snap] invalid parameter");
-        }
-
         // prepare request context after validation passes
         requestContext.setEvent(OpEventEnum.CREATE_METRIC_SNAPSHOT);
 
         BigInteger receiptId = metricSnapshotService.writeSnapshot(dto);
         if (receiptId == null) {
-            throw new IllegalArgumentException("[snap] write, entity meta validation failed");
+            throw new IllegalArgumentException("[snap] writing failed, no receipt generated");
         }
 
         return ApiResponse.success(receiptId);

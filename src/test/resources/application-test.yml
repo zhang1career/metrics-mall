@@ -2,16 +2,6 @@
 metrics_mall:
   environment: TEST
 
-  cache:
-    key:
-      prefix: mx
-
-  snap:
-    cache:
-      value:
-        history:
-          depth: 7
-
 
 spring:
   # Database connection pool configuration (HikariCP)
