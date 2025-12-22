@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.model.metric.BetaMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
@@ -28,16 +29,19 @@ public interface MetricSnapshotStructMapper {
      *
      * @param qo                 metric snapshot query object
      * @param metricStructMapper metric struct mapper
+     * @param sourceType         snapshot source type
      * @return metric snapshot data transfer object
      */
-    default MetricSnapshotDTO qoToDto(MetricSnapshotQO qo, MetricStructMapper metricStructMapper) {
+    default MetricSnapshotDTO qoToDto(MetricSnapshotQO qo,
+                                      MetricStructMapper metricStructMapper,
+                                      SnapshotSourceTypeEnum sourceType) {
         if (qo == null) {
             return null;
         }
         return MetricSnapshotDTO.builder()
                 .entityCode(qo.getEc())
                 .entityId(qo.getEid())
-                .metricList(metricStructMapper.echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs()))
+                .metricList(metricStructMapper.echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs(), sourceType))
                 .snapshotTs(qo.getSnapshotTs())
                 .isAtomic(qo.getIsAtomic() != null && qo.getIsAtomic().equals(1))
                 .build();

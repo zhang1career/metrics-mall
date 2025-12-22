@@ -36,12 +36,6 @@ public class EchoMetricDTO extends BetaMetricDTO {
      */
     private Map<String, TypedValue> dimensionMap;
 
-    /**
-     * Snapshot timestamp in milliseconds.
-     * 0 means return latest snapshot time, null means not return timestamp.
-     */
-    private Long snapshotTs;
-
 
     /**
      * Get dimension code list.

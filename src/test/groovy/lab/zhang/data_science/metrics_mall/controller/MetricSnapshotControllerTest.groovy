@@ -3,6 +3,7 @@ package lab.zhang.data_science.metrics_mall.controller
 import cn.hutool.core.date.DateUtil
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.common.TypedValue
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.Entity
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot
@@ -92,7 +93,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
         metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
 
@@ -168,7 +169,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
         metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
 
@@ -219,7 +220,7 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(null)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
         metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
 

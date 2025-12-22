@@ -3,6 +3,7 @@ package lab.zhang.data_science.metrics_mall.struct_mapper;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.map.MapUtil;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.metric.AlphaMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
@@ -160,6 +161,7 @@ public interface MetricStructMapper extends BaseStructMapper {
      *
      * @param qo         echo metric query object
      * @param snapshotTs snapshot timestamp
+     * @param sourceType source type
      * @return echo metric DTO
      */
     @Mapping(target = "code", source = "qo.code")
@@ -167,21 +169,26 @@ public interface MetricStructMapper extends BaseStructMapper {
     @Mapping(target = "value", source = "qo.value")
     @Mapping(target = "dimensionMap", expression = "java(dimensionQoToDto(qo.getDims()))")
     @Mapping(target = "snapshotTs", source = "snapshotTs")
-    EchoMetricDTO echoQoToDto(EchoMetricQO qo, Long snapshotTs);
+    EchoMetricDTO echoQoToDto(EchoMetricQO qo,
+                              Long snapshotTs,
+                              SnapshotSourceTypeEnum sourceType);
 
     /**
      * Convert list of EchoMetricQO to list of EchoMetricDTO.
      *
      * @param qoList     list of echo metric query objects
      * @param snapshotTs snapshot timestamp
+     * @param sourceType source type
      * @return list of echo metric DTOs
      */
-    default List<EchoMetricDTO> echoQoToDtoBatch(List<EchoMetricQO> qoList, Long snapshotTs) {
+    default List<EchoMetricDTO> echoQoToDtoBatch(List<EchoMetricQO> qoList,
+                                                 Long snapshotTs,
+                                                 SnapshotSourceTypeEnum sourceType) {
         if (qoList == null) {
             return ListUtil.empty();
         }
         return qoList.stream()
-                .map(qo -> echoQoToDto(qo, snapshotTs))
+                .map(qo -> echoQoToDto(qo, snapshotTs, sourceType))
                 .collect(Collectors.toList());
     }
 

@@ -279,11 +279,11 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
                 cacheService.put(
                         dto.getEntityCode(),
                         dto.getEntityId(),
-                        metricCode,
+                        echoMetricDTO.getCode(),
                         actualVersion,
                         echoMetricDTO.getDimensionMap(),
                         snapshotTs,
-                        SnapshotSourceTypeEnum.EXTERNAL.getId(),
+                        echoMetricDTO.getSourceType().getId(),
                         echoMetricDTO.getValue()
                 );
 

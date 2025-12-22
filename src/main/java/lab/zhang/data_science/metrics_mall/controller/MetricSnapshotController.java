@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.components.RequestContext;
 import lab.zhang.data_science.metrics_mall.enums.OpEventEnum;
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO;
@@ -60,7 +61,7 @@ public class MetricSnapshotController extends BaseV1Controller {
         log.info("[snap] query, param: entityCode={}, entityId={}, metrics={}, snapshot={}, atomic={}",
                 qo.getEc(), qo.getEid(), qo.getMetrics(), qo.getSnapshotTs(), qo.getIsAtomic());
 
-        MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo, metricStructMapper);
+        MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo, metricStructMapper, SnapshotSourceTypeEnum.EXTERNAL);
         if (dto == null) {
             throw new IllegalArgumentException("[snap] invalid parameter");
         }
@@ -92,7 +93,7 @@ public class MetricSnapshotController extends BaseV1Controller {
         log.info("[snap] write, param: entityCode={}, entityId={}, metrics={}, snapshotTs={}",
                 qo.getEc(), qo.getEid(), qo.getMetrics(), qo.getSnapshotTs());
 
-        MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo, metricStructMapper);
+        MetricSnapshotDTO dto = metricSnapshotStructMapper.qoToDto(qo, metricStructMapper, SnapshotSourceTypeEnum.EXTERNAL);
         // prepare request context after validation passes
         requestContext.setEvent(OpEventEnum.CREATE_METRIC_SNAPSHOT);
 

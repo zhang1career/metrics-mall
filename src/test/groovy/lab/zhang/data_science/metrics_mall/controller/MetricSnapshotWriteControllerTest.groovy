@@ -3,6 +3,7 @@ package lab.zhang.data_science.metrics_mall.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.components.RequestContext
 import lab.zhang.data_science.metrics_mall.enums.OpEventEnum
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO
@@ -70,7 +71,7 @@ class MetricSnapshotWriteControllerTest extends Specification {
 
         def writeResult = BigInteger.valueOf(10000001L)
 
-        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> {
             def dto = new MetricSnapshotDTO()
             dto.setEntityCode("user")
             dto.setEntityId(12345678L)
@@ -104,7 +105,7 @@ class MetricSnapshotWriteControllerTest extends Specification {
                                   .build()])
                 .build()
 
-        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> {
             def dto = new MetricSnapshotDTO()
             dto.setEntityCode("user")
             dto.setEntityId(12345678L)
@@ -147,7 +148,7 @@ class MetricSnapshotWriteControllerTest extends Specification {
 
         def writeResult = BigInteger.valueOf(10000002L)
 
-        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> {
             def dto = new MetricSnapshotDTO()
             dto.setEntityCode("user")
             dto.setEntityId(12345678L)
@@ -191,7 +192,7 @@ class MetricSnapshotWriteControllerTest extends Specification {
 
         def writeResult = BigInteger.valueOf(10000003L)
 
-        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper) >> {
+        metricSnapshotStructMapper.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> {
             def dto = new MetricSnapshotDTO()
             dto.setEntityCode("user")
             dto.setEntityId(12345678L)

@@ -1,6 +1,7 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper
 
 import lab.zhang.data_science.metrics_mall.common.TypedValue
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum
 import lab.zhang.data_science.metrics_mall.model.Entity
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot
 import lab.zhang.data_science.metrics_mall.model.metric.BetaMetric
@@ -30,10 +31,10 @@ class MetricSnapshotStructMapperTest extends Specification {
                 .build()
 
         when:
-        def dto = mapper.qoToDto(qo, metricStructMapper)
+        def dto = mapper.qoToDto(qo, metricStructMapper, SnapshotSourceTypeEnum.EXTERNAL)
 
         then:
-        1 * metricStructMapper.echoQoToDtoBatch(qo.metrics, qo.snapshotTs) >> []
+        1 * metricStructMapper.echoQoToDtoBatch(qo.metrics, qo.snapshotTs, SnapshotSourceTypeEnum.EXTERNAL) >> []
         dto != null
         dto.entityCode == "user"
         dto.entityId == 12345678L
@@ -43,7 +44,7 @@ class MetricSnapshotStructMapperTest extends Specification {
 
     def "test qoToDto with null"() {
         expect:
-        mapper.qoToDto(null, metricStructMapper) == null
+        mapper.qoToDto(null, metricStructMapper, SnapshotSourceTypeEnum.EXTERNAL) == null
     }
 
     def "test modelToVo success"() {
@@ -101,10 +102,10 @@ class MetricSnapshotStructMapperTest extends Specification {
                 .build()
 
         when:
-        def dto = mapper.qoToDto(qo, metricStructMapper)
+        def dto = mapper.qoToDto(qo, metricStructMapper, SnapshotSourceTypeEnum.EXTERNAL)
 
         then:
-        1 * metricStructMapper.echoQoToDtoBatch(qo.metrics, qo.snapshotTs) >> [expectedMetricDto]
+        1 * metricStructMapper.echoQoToDtoBatch(qo.metrics, qo.snapshotTs, SnapshotSourceTypeEnum.EXTERNAL) >> [expectedMetricDto]
         dto != null
         dto.entityCode == "user"
         dto.entityId == 12345678L
