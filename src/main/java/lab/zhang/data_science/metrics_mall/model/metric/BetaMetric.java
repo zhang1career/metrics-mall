@@ -15,6 +15,11 @@ import lombok.experimental.SuperBuilder;
 public class BetaMetric extends AlphaMetric {
 
     /**
+     * Metric code.
+     */
+    private String code;
+
+    /**
      * Precision for decimal value.
      */
     private Integer precision;

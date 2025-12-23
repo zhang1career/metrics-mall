@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * YGroup service implementation.
@@ -62,8 +61,9 @@ public class MetricDimensionGroupRelRelServiceImpl implements MetricDimensionGro
         return metricDimensionGroupRelStructMapper.daoToModelBatch(daoList);
     }
 
-    public List<MetricDimensionGroupRelResultDAO> listYGroupByMetricCodeBatch(Collection<String> metricCodeColl) {
-        return metricDimensionGroupRelMapper.selectYGroupByMetricCodes(metricCodeColl);
+    @Override
+    public List<MetricDimensionGroupRelResultDAO> listGroupByMetricCodeBatch(Collection<String> metricCodeColl) {
+        return metricDimensionGroupRelMapper.selectGroupByMetricCodes(metricCodeColl);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class MetricDimensionGroupRelRelServiceImpl implements MetricDimensionGro
             return MapUtil.empty();
         }
 
-        List<MetricDimensionGroupRelResultDAO> resultList = listYGroupByMetricCodeBatch(metricCodeColl);
+        List<MetricDimensionGroupRelResultDAO> resultList = listGroupByMetricCodeBatch(metricCodeColl);
         if (resultList == null) {
             return MapUtil.empty();
         }

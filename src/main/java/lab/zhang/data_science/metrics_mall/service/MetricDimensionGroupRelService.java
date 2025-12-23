@@ -2,6 +2,7 @@ package lab.zhang.data_science.metrics_mall.service;
 
 import lab.zhang.data_science.metrics_mall.common.OrderedList;
 import lab.zhang.data_science.metrics_mall.model.MetricDimensionGroupRel;
+import lab.zhang.data_science.metrics_mall.pojo.dao.y_group.MetricDimensionGroupRelResultDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionGroupRelDTO;
 
 import java.util.Collection;
@@ -38,6 +39,14 @@ public interface MetricDimensionGroupRelService {
      * @return yGroup model list
      */
     List<MetricDimensionGroupRel> listByMetricId(Long metricId);
+
+    /**
+     * List grouped dimension ids by metric code batch.
+     *
+     * @param metricCodeColl metric code collection
+     * @return list of MetricDimensionGroupRelResultDAO
+     */
+    List<MetricDimensionGroupRelResultDAO> listGroupByMetricCodeBatch(Collection<String> metricCodeColl);
 
     /**
      * Map dimension ids by metric code batch.

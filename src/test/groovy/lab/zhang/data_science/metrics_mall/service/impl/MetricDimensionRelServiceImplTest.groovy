@@ -2,7 +2,6 @@ package lab.zhang.data_science.metrics_mall.service.impl
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
-import lab.zhang.data_science.metrics_mall.mapper.DimensionMapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper
 import lab.zhang.data_science.metrics_mall.pojo.dao.DimensionDAO
@@ -19,7 +18,6 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
     MetricDimensionRelMapper metricDimensionRelMapper = Mock()
     MetricMetaMapper metricMetaMapper = Mock()
-    DimensionMapper dimensionMapper = Mock()
 
     MetricDimensionRelServiceImpl service
 
@@ -32,7 +30,6 @@ class MetricDimensionRelServiceImplTest extends Specification {
         service = new MetricDimensionRelServiceImpl()
         service.metricDimensionRelMapper = metricDimensionRelMapper
         service.metricMetaMapper = metricMetaMapper
-        service.dimensionMapper = dimensionMapper
     }
 
     def "test create success"() {
@@ -45,7 +42,6 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
         then:
         1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
-        1 * dimensionMapper.selectById(DIMENSION_ID) >> dimensionDAO
         1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> null
         1 * metricDimensionRelMapper.insert(_ as MetricDimensionRelDAO) >> 1
         result
@@ -90,7 +86,6 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
         then:
         1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
-        1 * dimensionMapper.selectById(DIMENSION_ID) >> null
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("dimension not found")
     }
@@ -108,7 +103,6 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
         then:
         1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
-        1 * dimensionMapper.selectById(DIMENSION_ID) >> dimensionDAO
         1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> existingRel
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("relation already exists")

@@ -110,7 +110,6 @@ public interface MetricStructMapper extends BaseStructMapper {
      * @return alpha metric model
      */
     @Mapping(target = "value", expression = "java(mapTypedValue(dao.getA()))")
-    @Mapping(target = "code", ignore = true)
     @Mapping(target = "snapshotTs", source = "ts")
     @Mapping(target = "sourceType", expression = "java(mapSourceType(dao.getS()))")
     AlphaMetric alphaMetricDaoToModel(AlphaMetricDAO dao);
@@ -167,41 +166,6 @@ public interface MetricStructMapper extends BaseStructMapper {
         return qoList.stream()
                 .map(qo -> echoQoToDto(qo, snapshotTs))
                 .collect(Collectors.toList());
-    }
-
-
-    /**
-     * Convert list of MetricModel to metric value indexed by metric code.
-     *
-     * @param modelList  metric model list
-     * @param snapshotTs the snapshot time
-     * @return map of metric code to metric value
-     */
-    default Map<String, TypedValue> echoModelToSnapshotValue(List<EchoMetric> modelList, Long snapshotTs) {
-        if (modelList == null) {
-            return MapUtil.empty();
-        }
-        return modelList.stream()
-                .map(mode -> mode.getBackNearest(snapshotTs))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(AlphaMetric::getCode, AlphaMetric::getValue));
-    }
-
-    /**
-     * Convert list of MetricModel to metric sample time indexed by metric code.
-     *
-     * @param modelList  metric model list
-     * @param snapshotTs the snapshot time
-     * @return map of metric code to sample time in milliseconds
-     */
-    default Map<String, Long> echoModelToSnapshotTime(List<EchoMetric> modelList, Long snapshotTs) {
-        if (modelList == null) {
-            return MapUtil.empty();
-        }
-        return modelList.stream()
-                .map(mode -> mode.getBackNearest(snapshotTs))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(AlphaMetric::getCode, AlphaMetric::getSnapshotTs));
     }
 
 

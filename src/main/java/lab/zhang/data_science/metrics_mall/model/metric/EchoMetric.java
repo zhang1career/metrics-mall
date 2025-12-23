@@ -20,6 +20,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EchoMetric extends BetaMetric {
+
     /**
      * History metric values list
      */
@@ -39,7 +40,7 @@ public class EchoMetric extends BetaMetric {
      */
     public AlphaMetric getBackNearest(Long snapshotTs) {
         List<AlphaMetric> tempList = new ArrayList<>(List.of(new AlphaMetric(
-                this.getCode(), this.getValue(), this.getSnapshotTs(), this.getSourceType())));
+                this.getValue(), this.getSnapshotTs(), this.getSourceType())));
         if (this.historyList != null) {
             tempList.addAll(this.historyList);
         }

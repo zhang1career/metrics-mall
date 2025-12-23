@@ -12,7 +12,9 @@ import lab.zhang.data_science.metrics_mall.service.DimensionService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.DimensionStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -28,8 +30,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DimensionServiceImpl implements DimensionService {
 
-    private final DimensionMapper dimensionMapper;
-    private final DimensionStructMapper dimensionStructMapper;
+    @Autowired
+    private DimensionMapper dimensionMapper;
+
+    @Autowired
+    private DimensionStructMapper dimensionStructMapper;
+
 
     @Override
     public Dimension get(Long id) {
@@ -60,6 +66,9 @@ public class DimensionServiceImpl implements DimensionService {
 
     @Override
     public List<Dimension> listByCodeBatch(List<String> codeList) {
+        if (CollectionUtils.isEmpty(codeList)) {
+            return ListUtil.empty();
+        }
         List<DimensionDAO> daoList = getDimensionDaoByCodeBatch(codeList);
         if (daoList == null) {
             return ListUtil.empty();
@@ -69,7 +78,7 @@ public class DimensionServiceImpl implements DimensionService {
 
     @Override
     public Map<String, Dimension> mapByCodeBatch(List<String> codeList) {
-        if (codeList == null) {
+        if (CollectionUtils.isEmpty(codeList)) {
             return MapUtil.empty();
         }
 
@@ -83,9 +92,6 @@ public class DimensionServiceImpl implements DimensionService {
     }
 
     private List<DimensionDAO> getDimensionDaoByCodeBatch(List<String> codeList) {
-        if (codeList == null) {
-            return null;
-        }
         LambdaQueryWrapper<DimensionDAO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(DimensionDAO::getCode, codeList);
         return dimensionMapper.selectList(queryWrapper);

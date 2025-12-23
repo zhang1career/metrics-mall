@@ -1,7 +1,6 @@
 package lab.zhang.data_science.metrics_mall.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.db.sql.Order;
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService;
 import lab.zhang.data_science.metrics_mall.common.OrderedList;
 import lab.zhang.data_science.metrics_mall.components.RequestContext;
@@ -54,7 +53,6 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
     @Autowired
     private MetricSnapshotCacheService cacheService;
 
-
     @Autowired
     private EntityService entityService;
 
@@ -76,24 +74,35 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
     @Value("${metrics_mall.snap.publish.delay:60}")
     private Long snapshotPublishDelay;
 
+
     @Override
     public MetricSnapshot querySnapshot(MetricSnapshotDTO dto) {
-        // validate metric list
-        List<EchoMetricDTO> metricList = dto.getMetricList();
-        if (CollectionUtils.isEmpty(metricList)) {
-            throw new IllegalArgumentException("[snap] metric list is empty");
+        if (dto == null) {
+            throw new IllegalArgumentException("[snap] querying failed, metric snapshot query dto is null");
         }
 
         // validate entity meta
         Entity entity = entityService.getEntityByCode(dto.getEntityCode(), dto.getEntityId());
         if (entity == null) {
-            log.warn("[snap] entity not found: entityCode={}, entityId={}",
-                    dto.getEntityCode(), dto.getEntityId());
-            return null;
+            throw new IllegalArgumentException("[snap] querying failed, entity not found, entityCode=" + dto.getEntityCode());
+        }
+
+        // validate metric list
+        List<EchoMetricDTO> metricList = dto.getMetricList();
+        if (CollectionUtils.isEmpty(metricList)) {
+            throw new IllegalArgumentException("[snap] querying failed, metric list is empty");
+        }
+        for (EchoMetricDTO echoMetricDTO : metricList) {
+            if (echoMetricDTO == null) {
+                throw new IllegalArgumentException("[snap] querying failed, metric write dto is null");
+            }
+            if (StrUtil.isBlank(echoMetricDTO.getCode())) {
+                throw new IllegalArgumentException("[snap] querying failed, metric code is empty");
+            }
         }
 
         // query metrics' information
-        Map<String, MetricMetaDAO> metricDAOMap = dto.getMetricList().stream()
+        Map<String, MetricMetaDAO> metricDAOMap = metricList.stream()
                 .filter(Objects::nonNull)
                 .map(metricDTO ->
                         metricService.getMetricMetaDaoByCode(metricDTO.getCode()))
@@ -101,7 +110,7 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
                 .collect(Collectors.toMap(MetricMetaDAO::getCode, metricDAO -> metricDAO));
 
         // query metrics' value from cache
-        List<EchoMetric> echoMetricList = dto.getMetricList().stream()
+        List<EchoMetric> echoMetricList = metricList.stream()
                 .filter(Objects::nonNull)
                 .filter(echoMetricDTO -> metricDAOMap.containsKey(echoMetricDTO.getCode()))
                 .map(echoMetricDTO -> {
@@ -162,7 +171,7 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
                         return null;
                     }
                     return BetaMetric.builder()
-                            .code(alphaMetric.getCode())
+                            .code(echoMetric.getCode())
                             .value(alphaMetric.getValue())
                             .snapshotTs(alphaMetric.getSnapshotTs())
                             .precision(echoMetric.getPrecision())
@@ -223,6 +232,7 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
                 .map(EchoMetricDTO::getCode)
                 .filter(Objects::nonNull)
                 .toList();
+
         // required version map
         Map<String, Integer> requiredVersionMap = new HashMap<>();
         for (EchoMetricDTO echoMetricDTO : metricList) {
@@ -232,7 +242,7 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
         }
         // life status set
         Set<LifeStatusEnum> availableLifeStatusSet = lifeStatusConfig.getWritableMetricVersionLifeStatuses();
-
+        // actual version map
         Map<String, Integer> chosenVersionMap = metricService.chooseVersionBatch(metricCodeList, requiredVersionMap, availableLifeStatusSet);
         Map<String, Integer> acutalVersionMap = new HashMap<>();
         for (String code : metricCodeList) {
@@ -326,18 +336,6 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
             }
         }
 
-
-        BigInteger traceId = requestContext.getTraceId();
-
-        // op_log inserted
-        OpLogDTO oplogDTO = OpLogDTO.builder()
-                .id(traceId)
-                .event(requestContext.getEvent())
-                .operatorId(requestContext.getUserId())
-                .operateTime(new Date(requestContext.getStartTs()))
-                .build();
-        OpLog insertedOpLog = opLogService.insert(oplogDTO);
-
         // ignore dto snapshotTs, to protect history data from tampered
         Long snapshotTs = System.currentTimeMillis() + (snapshotPublishDelay * 1000);
 
@@ -378,6 +376,16 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
                     .build();
             preparedMetricList.add(clonedMetric);
         }
+
+        // op_log inserted
+        BigInteger traceId = requestContext.getTraceId();
+        OpLogDTO oplogDTO = OpLogDTO.builder()
+                .id(traceId)
+                .event(requestContext.getEvent())
+                .operatorId(requestContext.getUserId())
+                .operateTime(new Date(requestContext.getStartTs()))
+                .build();
+        OpLog insertedOpLog = opLogService.insert(oplogDTO);
 
         // batch write to cache
         if (!CollectionUtils.isEmpty(preparedMetricList)) {

@@ -2,10 +2,7 @@ package lab.zhang.data_science.metrics_mall.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import lab.zhang.data_science.metrics_mall.mapper.DimensionMapper;
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper;
-import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper;
 import lab.zhang.data_science.metrics_mall.model.Dimension;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
@@ -38,12 +35,6 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
 
     @Autowired
     private MetricDimensionRelMapper metricDimensionRelMapper;
-
-    @Autowired
-    private MetricMetaMapper metricMetaMapper;
-
-    @Autowired
-    private DimensionMapper dimensionMapper;
 
 
     @Override

@@ -3,6 +3,8 @@ package lab.zhang.data_science.metrics_mall.enums;
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 /**
  * Value type enumeration.
  *
@@ -61,9 +63,9 @@ public enum ValueTypeEnum {
             case INTEGER:
                 return new TypedValue(Integer.valueOf(String.valueOf(valueObj)), ValueTypeEnum.INTEGER);
             case LONG:
-                return new TypedValue(Long.valueOf(String.valueOf(valueObj)), ValueTypeEnum.LONG);
+                return new TypedValue(new BigDecimal(String.valueOf(valueObj)).longValue(), ValueTypeEnum.LONG);
             case DECIMAL:
-                return new TypedValue(new java.math.BigDecimal(String.valueOf(valueObj)), ValueTypeEnum.DECIMAL);
+                return new TypedValue(new BigDecimal(String.valueOf(valueObj)), ValueTypeEnum.DECIMAL);
             case BOOLEAN:
                 return new TypedValue(Boolean.valueOf(String.valueOf(valueObj)), ValueTypeEnum.BOOLEAN);
             case DATE:

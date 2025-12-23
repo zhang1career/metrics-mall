@@ -19,11 +19,6 @@ import lombok.experimental.SuperBuilder;
 public class AlphaMetric {
 
     /**
-     * Metric code.
-     */
-    private String code;
-
-    /**
      * Metric value.
      */
     private TypedValue value;

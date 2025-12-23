@@ -27,6 +27,6 @@ public interface MetricDimensionGroupRelMapper extends BaseMapper<MetricDimensio
             "  #{item}" +
             " </foreach>" +
             "</script>")
-    List<MetricDimensionGroupRelResultDAO> selectYGroupByMetricCodes(@Param("codes") Collection<String> metricCodeColl);
+    List<MetricDimensionGroupRelResultDAO> selectGroupByMetricCodes(@Param("codes") Collection<String> metricCodeColl);
 }
 
