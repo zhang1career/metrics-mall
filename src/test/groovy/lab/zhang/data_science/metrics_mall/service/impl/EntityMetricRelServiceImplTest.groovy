@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import lab.zhang.data_science.metrics_mall.mapper.EntityMetricRelMapper
 import lab.zhang.data_science.metrics_mall.mapper.EntityMetaMapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper
-import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import spock.lang.Specification

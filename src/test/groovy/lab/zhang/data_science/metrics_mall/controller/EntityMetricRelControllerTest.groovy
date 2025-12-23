@@ -2,13 +2,13 @@ package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
-import lab.zhang.data_science.metrics_mall.model.Entity.EntityMeta
+import lab.zhang.data_science.metrics_mall.model.EntityMeta
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
-import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetricRelQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetricRelVO
-import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService
 import lab.zhang.data_science.metrics_mall.service.EntityService
+import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService
 import lab.zhang.data_science.metrics_mall.service.MetricService
 import lab.zhang.data_science.metrics_mall.struct_mapper.EntityMetricRelStructMapper
 import org.springframework.http.MediaType
@@ -79,7 +79,7 @@ class EntityMetricRelControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * entityService.getEntityMetaByCode(ENTITY_CODE) >> entityMeta
+        1 * entityService.getByCode(ENTITY_CODE) >> entityMeta
         1 * metricService.getPrimeMetricByCode(METRIC_CODE) >> primeMetric
         1 * entityMetricRelService.create(1L, 2L, "test_alias", "test://data/uri") >> true
         response.andExpect(status().isOk())
@@ -271,7 +271,7 @@ class EntityMetricRelControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * entityService.getEntityMetaByCode(ENTITY_CODE) >> entityMeta
+        1 * entityService.getByCode(ENTITY_CODE) >> entityMeta
         1 * metricService.getPrimeMetricByCode(METRIC_CODE) >> primeMetric
         1 * entityMetricRelService.update(1L, 2L, "updated_alias", "updated://data/uri") >> true
         response.andExpect(status().isOk())

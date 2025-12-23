@@ -5,8 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
 import lab.zhang.data_science.metrics_mall.model.MetricVersion;
-import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
-import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricVersionQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricVersionVO;
@@ -29,7 +27,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class MetricVersionController extends BaseV1Controller {
+public class VersionController extends BaseV1Controller {
 
     @Autowired
     private MetricVersionService metricVersionService;

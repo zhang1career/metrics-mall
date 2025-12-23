@@ -23,7 +23,7 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MetricAggregationServiceImpl implements MetricAggregationService {
+public class AggregationServiceImpl implements MetricAggregationService {
 
     private final MetricService metricService;
 

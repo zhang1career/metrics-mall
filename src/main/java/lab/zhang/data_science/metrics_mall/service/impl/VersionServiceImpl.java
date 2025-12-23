@@ -29,7 +29,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MetricVersionServiceImpl implements MetricVersionService {
+public class VersionServiceImpl implements MetricVersionService {
 
     @Autowired
     private MetricVersionLifeStatusConfig lifeStatusConfig;

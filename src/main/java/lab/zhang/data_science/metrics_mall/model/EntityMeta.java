@@ -1,21 +1,17 @@
 package lab.zhang.data_science.metrics_mall.model;
 
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * Entity meta model.
- *
- * @author Rongjin Zhang
- */
-@EqualsAndHashCode(callSuper = true)
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntityMeta extends BaseModel {
+public class EntityMeta {
 
-    private Integer id;
+    private Long id;
 
     private String code;
 
@@ -23,4 +19,3 @@ public class EntityMeta extends BaseModel {
 
     private String description;
 }
-

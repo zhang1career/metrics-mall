@@ -21,20 +21,4 @@ public class Entity extends BaseModel {
     private EntityMeta meta;
 
     private Long id;
-
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class EntityMeta {
-
-        private Integer id;
-
-        private String code;
-
-        private String name;
-
-        private String description;
-    }
 }

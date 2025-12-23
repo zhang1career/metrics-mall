@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `dim` (
 ) COMMENT 'dimension meta';
 
 CREATE TABLE `x` (
-    `eid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的entity',
+    `eid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的entity_meta',
     `mid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的metric_meta',
     `alias`       VARCHAR(250)    NOT NULL DEFAULT '' COMMENT 'dimension alias',
     `data_uri`    VARCHAR(1000)   NOT NULL DEFAULT '' COMMENT '数据来源的地址',

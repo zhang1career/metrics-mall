@@ -1,25 +1,27 @@
 package lab.zhang.data_science.metrics_mall.service.impl;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import lab.zhang.data_science.metrics_mall.mapper.EntityMetaMapper;
 import lab.zhang.data_science.metrics_mall.mapper.EntityMetricRelMapper;
-import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper;
-import lab.zhang.data_science.metrics_mall.model.Entity.EntityMeta;
+import lab.zhang.data_science.metrics_mall.model.EntityMeta;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
-import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelResultDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO;
-import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService;
 import lab.zhang.data_science.metrics_mall.service.EntityService;
+import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService;
 import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Entity Metric Relation service implementation.
@@ -32,19 +34,13 @@ import java.util.List;
 public class EntityMetricRelServiceImpl implements EntityMetricRelService {
 
     @Autowired
-    private EntityService entityService;
-
-    @Autowired
     private MetricService metricService;
 
     @Autowired
     private EntityMetricRelMapper entityMetricRelMapper;
 
     @Autowired
-    private EntityMetaMapper entityMetaMapper;
-
-    @Autowired
-    private MetricMetaMapper metricMetaMapper;
+    private EntityService entityService;
 
 
     @Override
@@ -79,6 +75,28 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
     }
 
     @Override
+    public Map<String, EntityMetricRelResultDAO> mapByAliasBatch(Long entityMetaId, Collection<String> aliasColl) {
+        if (entityMetaId == null || aliasColl == null || aliasColl.isEmpty()) {
+            log.warn("[x] querying by alias failed, invalid param: entityId={}, aliasList={}", entityMetaId, aliasColl);
+            return MapUtil.empty();
+        }
+
+        List<EntityMetricRelResultDAO> resultList = entityMetricRelMapper.listByAliasBatch(entityMetaId, aliasColl);
+        if (resultList == null) {
+            log.warn("[x] querying by alias failed, result is null: entityId={}, aliasList={}", entityMetaId, aliasColl);
+            return MapUtil.empty();
+        }
+
+        return resultList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        EntityMetricRelResultDAO::getAlias,
+                        dao -> dao,
+                        (existing, replacement) -> existing
+                ));
+    }
+
+    @Override
     public List<EntityMetricRelDAO> list() {
         return entityMetricRelMapper.selectList(null);
     }
@@ -90,7 +108,7 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
         }
 
         // validate the entity existence
-        EntityMeta entityMeta = entityService.getEntityMetaByCode(dto.getEntityCode());
+        EntityMeta entityMeta = entityService.getByCode(dto.getEntityCode());
         if (entityMeta == null) {
             throw new IllegalArgumentException("[entity_metric_rel] creating failed, entity meta not found: entityCode=" + dto.getEntityCode());
         }
@@ -141,7 +159,7 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
         }
 
         // validate the entities existence
-        EntityMeta entityMeta = entityService.getEntityMetaByCode(dto.getEntityCode());
+        EntityMeta entityMeta = entityService.getByCode(dto.getEntityCode());
         if (entityMeta == null) {
             throw new IllegalArgumentException("[entity_metric_rel] updating failed, entity meta not found: entityCode=" + dto.getEntityCode());
         }

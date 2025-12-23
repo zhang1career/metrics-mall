@@ -3,6 +3,7 @@ package lab.zhang.data_science.metrics_mall.service.impl
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService
 import lab.zhang.data_science.metrics_mall.common.TypedValue
 import lab.zhang.data_science.metrics_mall.model.Entity
+import lab.zhang.data_science.metrics_mall.model.EntityMeta
 import lab.zhang.data_science.metrics_mall.model.metric.AlphaMetric
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
@@ -19,14 +20,14 @@ import spock.lang.Specification
  *
  * @author Rongjin Zhang
  */
-class MetricSnapshotServiceImplTest extends Specification {
+class SnapshotServiceImplTest extends Specification {
 
     EntityService entityService = Mock()
     MetricSnapshotCacheService cacheService = Mock()
     MetricService metricService = Mock()
     MetricStructMapper metricStructMapper = Mock()
 
-    MetricSnapshotServiceImpl service
+    SnapshotServiceImpl service
 
     private static final String ENTITY_CODE = "user"
     private static final Long ENTITY_ID = 12345678L
@@ -38,7 +39,7 @@ class MetricSnapshotServiceImplTest extends Specification {
     private static final String METRIC_VALUE_2 = "10"
 
     def setup() {
-        service = new MetricSnapshotServiceImpl()
+        service = new SnapshotServiceImpl()
         service.entityService = entityService
         service.cacheService = cacheService
         service.metricService = metricService
@@ -438,7 +439,7 @@ class MetricSnapshotServiceImplTest extends Specification {
      * Create entity for testing.
      */
     private static Entity createEntity() {
-        def entityMeta = Entity.EntityMeta.builder()
+        def entityMeta = EntityMeta.builder()
                 .id(1)
                 .code(ENTITY_CODE)
                 .name("User")

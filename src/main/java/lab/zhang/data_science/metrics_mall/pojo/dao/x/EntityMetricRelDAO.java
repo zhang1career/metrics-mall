@@ -1,4 +1,4 @@
-package lab.zhang.data_science.metrics_mall.pojo.dao;
+package lab.zhang.data_science.metrics_mall.pojo.dao.x;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;

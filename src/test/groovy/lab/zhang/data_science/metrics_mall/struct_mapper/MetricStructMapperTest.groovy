@@ -98,23 +98,5 @@ class MetricStructMapperTest extends Specification {
         model.precision == 2
         model.unit == "USD"
     }
-
-    def "test echoMetricModelToDao success"() {
-        given:
-        def model = EchoMetric.builder()
-                .code("m1")
-                .value(TypedValue.of(10.5))
-                .snapshotTs(1000L)
-                .historyList([])
-                .build()
-
-        when:
-        def dao = mapper.echoMetricModelToDao(model)
-
-        then:
-        dao != null
-        dao.a == "10.5"
-        dao.ts == 1000L
-    }
 }
 

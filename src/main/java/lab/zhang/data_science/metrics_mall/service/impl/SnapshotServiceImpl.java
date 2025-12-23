@@ -5,6 +5,7 @@ import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService;
 import lab.zhang.data_science.metrics_mall.components.RequestContext;
 import lab.zhang.data_science.metrics_mall.config.MetricVersionLifeStatusConfig;
 import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
+import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.Entity;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.model.OpLog;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MetricSnapshotServiceImpl implements MetricSnapshotService {
+public class SnapshotServiceImpl implements MetricSnapshotService {
 
     @Autowired
     private RequestContext requestContext;
@@ -166,7 +167,22 @@ public class MetricSnapshotServiceImpl implements MetricSnapshotService {
     }
 
     @Override
-    public BigInteger writeSnapshot(MetricSnapshotDTO dto) {
+    public BigInteger writeSnapshotExternal(MetricSnapshotDTO dto) {
+        dto.getMetricList().forEach(metric -> {
+            metric.setSourceType(SnapshotSourceTypeEnum.EXTERNAL);
+        });
+        return writeSnapshot(dto);
+    }
+
+    @Override
+    public BigInteger writeSnapshotInternal(MetricSnapshotDTO dto) {
+        dto.getMetricList().forEach(metric -> {
+            metric.setSourceType(SnapshotSourceTypeEnum.INTERNAL);
+        });
+        return writeSnapshot(dto);
+    }
+
+    private BigInteger writeSnapshot(MetricSnapshotDTO dto) {
         if (dto == null) {
             throw new IllegalArgumentException("[snap] writing failed, metric snapshot write dto is null");
         }

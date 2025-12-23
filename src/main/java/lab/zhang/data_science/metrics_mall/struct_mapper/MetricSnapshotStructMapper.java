@@ -1,13 +1,13 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
 import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.model.metric.BetaMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricSnapshotVO;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 import java.util.Map;
@@ -27,25 +27,15 @@ public interface MetricSnapshotStructMapper {
     /**
      * Convert MetricSnapshotQO to MetricSnapshotDTO.
      *
-     * @param qo                 metric snapshot query object
-     * @param metricStructMapper metric struct mapper
-     * @param sourceType         snapshot source type
+     * @param qo metric snapshot query object
      * @return metric snapshot data transfer object
      */
-    default MetricSnapshotDTO qoToDto(MetricSnapshotQO qo,
-                                      MetricStructMapper metricStructMapper,
-                                      SnapshotSourceTypeEnum sourceType) {
-        if (qo == null) {
-            return null;
-        }
-        return MetricSnapshotDTO.builder()
-                .entityCode(qo.getEc())
-                .entityId(qo.getEid())
-                .metricList(metricStructMapper.echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs(), sourceType))
-                .snapshotTs(qo.getSnapshotTs())
-                .isAtomic(qo.getIsAtomic() != null && qo.getIsAtomic().equals(1))
-                .build();
-    }
+    @Mapping(target = "entityCode", source = "ec")
+    @Mapping(target = "entityId", source = "eid")
+    @Mapping(target = "metricList", expression = "java(metricStructMapper.echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs()))")
+    @Mapping(target = "snapshotTs", source = "snapshotTs")
+    @Mapping(target = "isAtomic", expression = "java(qo.getIsAtomic() != null && qo.getIsAtomic().equals(1))")
+    MetricSnapshotDTO qoToDto(MetricSnapshotQO qo);
 
 
     /**
@@ -88,10 +78,9 @@ public interface MetricSnapshotStructMapper {
      * Convert MetricSnapshot to MetricSnapshotVO.
      *
      * @param model              metric snapshot result model
-     * @param metricStructMapper metric struct mapper
      * @return metric snapshot response VO
      */
-    default MetricSnapshotVO modelToVo(MetricSnapshot model, MetricStructMapper metricStructMapper) {
+    default MetricSnapshotVO modelToVo(MetricSnapshot model) {
         if (model == null) {
             return null;
         }

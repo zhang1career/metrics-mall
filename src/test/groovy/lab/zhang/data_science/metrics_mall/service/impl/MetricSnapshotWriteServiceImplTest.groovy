@@ -5,6 +5,7 @@ import lab.zhang.data_science.metrics_mall.common.TypedValue
 import lab.zhang.data_science.metrics_mall.components.RequestContext
 import lab.zhang.data_science.metrics_mall.enums.OpEventEnum
 import lab.zhang.data_science.metrics_mall.model.Entity
+import lab.zhang.data_science.metrics_mall.model.EntityMeta
 import lab.zhang.data_science.metrics_mall.model.OpLog
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
@@ -29,7 +30,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     RequestContext requestContext = Mock()
     OpLogService opLogService = Mock()
 
-    MetricSnapshotServiceImpl service
+    SnapshotServiceImpl service
 
     private static final String ENTITY_CODE = "user"
     private static final Long ENTITY_ID = 12345678L
@@ -44,7 +45,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
     private static final Long START_TS = 1715000000000L
 
     def setup() {
-        service = new MetricSnapshotServiceImpl()
+        service = new SnapshotServiceImpl()
         service.entityService = entityService
         service.cacheService = cacheService
         service.metricService = metricService
@@ -532,7 +533,7 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
      * Create entity for testing.
      */
     private static Entity createEntity() {
-        def entityMeta = Entity.EntityMeta.builder()
+        def entityMeta = EntityMeta.builder()
                 .id(1)
                 .code(ENTITY_CODE)
                 .name("User")

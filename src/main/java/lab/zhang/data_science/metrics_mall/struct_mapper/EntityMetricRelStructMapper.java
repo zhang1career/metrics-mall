@@ -1,6 +1,6 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
-import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetricRelQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetricRelVO;

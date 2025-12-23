@@ -3,9 +3,9 @@ package lab.zhang.data_science.metrics_mall.controller
 import cn.hutool.core.date.DateUtil
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.common.TypedValue
-import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.Entity
+import lab.zhang.data_science.metrics_mall.model.EntityMeta
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author Rongjin Zhang
  */
-class MetricSnapshotControllerTest extends Specification {
+class SnapshotControllerTest extends Specification {
 
     MockMvc mockMvc
 
@@ -40,14 +40,14 @@ class MetricSnapshotControllerTest extends Specification {
 
     MetricStructMapper metricStructMapper = Mock()
 
-    MetricSnapshotController controller
+    SnapshotController controller
 
     ObjectMapper objectMapper = new ObjectMapper()
 
     private static final String API_KEY = "test-api-key"
 
     def setup() {
-        controller = new MetricSnapshotController()
+        controller = new SnapshotController()
         controller.metricSnapshotService = metricSnapshotService
         controller.metricSnapshotStructMapper = metricSnapshotStructMap
         controller.metricStructMapper = metricStructMapper
@@ -75,7 +75,7 @@ class MetricSnapshotControllerTest extends Specification {
         def ts = ["coin_balance": 1715000001000L]
 
         def entity = Entity.builder()
-                .meta(Entity.EntityMeta.builder().code("user").build())
+                .meta(EntityMeta.builder().code("user").build())
                 .id(12345678L)
                 .build()
         def metricList = [PrimeMetric.builder().code("coin_balance").build()]
@@ -93,9 +93,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")
@@ -145,7 +145,7 @@ class MetricSnapshotControllerTest extends Specification {
         ]
 
         def entity = Entity.builder()
-                .meta(Entity.EntityMeta.builder().code("user").build())
+                .meta(EntityMeta.builder().code("user").build())
                 .id(12345678L)
                 .build()
         def metricList = [
@@ -169,9 +169,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(ts)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")
@@ -202,7 +202,7 @@ class MetricSnapshotControllerTest extends Specification {
         def values = ["coin_balance": 1050.5]
 
         def entity = Entity.builder()
-                .meta(Entity.EntityMeta.builder().code("user").build())
+                .meta(EntityMeta.builder().code("user").build())
                 .id(12345678L)
                 .build()
         def metricList = [PrimeMetric.builder().code("coin_balance").build()]
@@ -220,9 +220,9 @@ class MetricSnapshotControllerTest extends Specification {
                 .snapshotTsMap(null)
                 .build()
 
-        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO, _ as MetricStructMapper, _ as SnapshotSourceTypeEnum) >> dto
+        metricSnapshotStructMap.qoToDto(_ as MetricSnapshotQO) >> dto
         metricSnapshotService.querySnapshot(_ as MetricSnapshotDTO) >> result
-        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot, _ as MetricStructMapper) >> vo
+        metricSnapshotStructMap.modelToVo(_ as MetricSnapshot) >> vo
 
         when:
         def response = mockMvc.perform(post("/api/v1/m_snap")

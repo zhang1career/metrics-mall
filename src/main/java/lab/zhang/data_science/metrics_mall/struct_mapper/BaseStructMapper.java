@@ -228,7 +228,7 @@ public interface BaseStructMapper {
 
     default <K> Map<K, TypedValue> mapStringToTypedValueMap(String str) {
         if (StrUtil.isBlank(str)) {
-            return MapUtil.newHashMap();
+            return MapUtil.empty();
         }
 
         Map<K, Object> valueObjMap = getKTypedValueMap(str);

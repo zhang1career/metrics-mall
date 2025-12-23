@@ -1,6 +1,5 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
-import lab.zhang.data_science.metrics_mall.model.Entity;
 import lab.zhang.data_science.metrics_mall.model.EntityMeta;
 import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetaDTO;
@@ -31,28 +30,18 @@ public interface EntityMetaStructMapper extends BaseStructMapper {
     EntityMetaDTO qoToDto(EntityMetaQO qo);
 
     /**
-     * Convert EntityMetaDAO to Entity.EntityMeta (for backward compatibility).
-     *
-     * @param dao entity meta dao
-     * @return Entity.EntityMeta
-     */
-    Entity.EntityMeta daoToModel(EntityMetaDAO dao);
-
-    /**
-     * Convert EntityMetaDAO to EntityMetaModel.
+     * Convert EntityMetaDAO to Entity.EntityMeta.
      *
      * @param dao entity meta DAO
-     * @return entity meta model
+     * @return Entity.EntityMeta
      */
-    @Mapping(target = "createTime", expression = "java(mapTimestampToDate(dao.getCt()))")
-    @Mapping(target = "updateTime", expression = "java(mapTimestampToDate(dao.getUt()))")
-    EntityMeta daoToModelNew(EntityMetaDAO dao);
+    EntityMeta daoToModel(EntityMetaDAO dao);
 
     /**
-     * Convert EntityMetaDAO list to EntityMetaModel list.
+     * Convert EntityMetaDAO list to Entity.EntityMeta list.
      *
      * @param daoList entity meta DAO list
-     * @return entity meta model list
+     * @return Entity.EntityMeta list
      */
     List<EntityMeta> daoToModelBatch(List<EntityMetaDAO> daoList);
 
@@ -67,21 +56,35 @@ public interface EntityMetaStructMapper extends BaseStructMapper {
     EntityMetaDAO dtoToDao(EntityMetaDTO dto);
 
     /**
-     * Convert EntityMetaModel to EntityMetaVO.
+     * Convert EntityMetaDAO to EntityMetaVO.
      *
-     * @param model entity meta model
+     * @param dao entity meta DAO
      * @return entity meta VO
      */
-    @Mapping(target = "ct", expression = "java(mapDateToTimestamp(model.getCreateTime()))")
-    @Mapping(target = "ut", expression = "java(mapDateToTimestamp(model.getUpdateTime()))")
-    EntityMetaVO modelToVo(EntityMeta model);
+    EntityMetaVO daoToVo(EntityMetaDAO dao);
 
     /**
-     * Convert EntityMetaModel list to EntityMetaVO list.
+     * Convert EntityMetaDAO list to EntityMetaVO list.
      *
-     * @param modelList entity meta model list
+     * @param daoList entity meta DAO list
      * @return entity meta VO list
      */
-    List<EntityMetaVO> modelToVoBatch(List<EntityMeta> modelList);
+    List<EntityMetaVO> daoToVoBatch(List<EntityMetaDAO> daoList);
+
+    /**
+     * Convert Entity.EntityMeta and EntityMetaDAO to EntityMetaVO.
+     * Note: Entity.EntityMeta doesn't have time fields, so we need DAO for time information.
+     *
+     * @param model entity meta model
+     * @param dao   entity meta DAO (for time fields)
+     * @return entity meta VO
+     */
+    @Mapping(target = "ct", source = "dao.ct")
+    @Mapping(target = "ut", source = "dao.ut")
+    @Mapping(target = "id", source = "model.id")
+    @Mapping(target = "code", source = "model.code")
+    @Mapping(target = "name", source = "model.name")
+    @Mapping(target = "description", source = "model.description")
+    EntityMetaVO modelToVo(EntityMeta model, EntityMetaDAO dao);
 }
 

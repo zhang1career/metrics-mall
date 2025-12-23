@@ -16,7 +16,7 @@ class DimensionStructMapperTest extends Specification {
 
     DimensionStructMapper structMapper = new DimensionStructMapperImpl()
 
-    def "test qoToModel"() {
+    def "test qoToDto"() {
         given:
         def qo = DimensionQO.builder()
                 .id(1L)
@@ -59,7 +59,7 @@ class DimensionStructMapperTest extends Specification {
         model.updateTime.time == now
     }
 
-    def "test modelToDao"() {
+    def "test dtoToDao"() {
         given:
         def now = new Date()
         def dto = DimensionDTO.builder()

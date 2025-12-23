@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author Rongjin Zhang
  */
-class MetricAggregationControllerTest extends Specification {
+class AggregationControllerTest extends Specification {
 
     MockMvc mockMvc
 
@@ -34,14 +34,14 @@ class MetricAggregationControllerTest extends Specification {
 
     MetricAggregationStructMapper metricAggregationStructMapper = Mock()
 
-    MetricAggregationController controller
+    AggregationController controller
 
     ObjectMapper objectMapper = new ObjectMapper()
 
     private static final String API_KEY = "test-api-key"
 
     def setup() {
-        controller = new MetricAggregationController()
+        controller = new AggregationController()
         controller.metricAggregationService = metricAggregationService
         controller.metricAggregationStructMapper = metricAggregationStructMapper
         mockMvc = MockMvcBuilders.standaloneSetup(controller)

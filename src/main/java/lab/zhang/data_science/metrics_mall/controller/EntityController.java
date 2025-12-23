@@ -4,11 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lab.zhang.data_science.metrics_mall.common.response.ApiResponse;
-import lab.zhang.data_science.metrics_mall.model.EntityMeta;
+import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetaDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetaQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetaVO;
-import lab.zhang.data_science.metrics_mall.service.EntityMetaService;
+import lab.zhang.data_science.metrics_mall.service.EntityService;
 import lab.zhang.data_science.metrics_mall.struct_mapper.EntityMetaStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +26,10 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class EntityMetaController extends BaseV1Controller {
+public class EntityController extends BaseV1Controller {
 
     @Autowired
-    private EntityMetaService entityMetaService;
+    private EntityService entityService;
 
     @Autowired
     private EntityMetaStructMapper entityMetaStructMapper;
@@ -44,8 +44,11 @@ public class EntityMetaController extends BaseV1Controller {
     @GetMapping("/entity_metas/{id}")
     public ApiResponse<EntityMetaVO> get(@PathVariable Integer id) {
         log.info("[entity_meta] get, id: {}", id);
-        EntityMeta model = entityMetaService.get(id);
-        return ApiResponse.success(entityMetaStructMapper.modelToVo(model));
+        EntityMetaDAO dao = entityService.getDao(id);
+        if (dao == null) {
+            return ApiResponse.success(null);
+        }
+        return ApiResponse.success(entityMetaStructMapper.daoToVo(dao));
     }
 
     /**
@@ -58,8 +61,11 @@ public class EntityMetaController extends BaseV1Controller {
     @GetMapping("/entity_metas/code/{code}")
     public ApiResponse<EntityMetaVO> getByCode(@PathVariable String code) {
         log.info("[entity_meta] getByCode, code: {}", code);
-        EntityMeta model = entityMetaService.getByCode(code);
-        return ApiResponse.success(entityMetaStructMapper.modelToVo(model));
+        EntityMetaDAO dao = entityService.getDaoByCode(code);
+        if (dao == null) {
+            return ApiResponse.success(null);
+        }
+        return ApiResponse.success(entityMetaStructMapper.daoToVo(dao));
     }
 
     /**
@@ -71,8 +77,8 @@ public class EntityMetaController extends BaseV1Controller {
     @GetMapping("/entity_metas")
     public ApiResponse<List<EntityMetaVO>> list() {
         log.info("[entity_meta] list");
-        List<EntityMeta> modelList = entityMetaService.list();
-        return ApiResponse.success(entityMetaStructMapper.modelToVoBatch(modelList));
+        List<EntityMetaDAO> daoList = entityService.listDao();
+        return ApiResponse.success(entityMetaStructMapper.daoToVoBatch(daoList));
     }
 
     /**
@@ -84,7 +90,7 @@ public class EntityMetaController extends BaseV1Controller {
     @GetMapping("/entity_metas/count")
     public ApiResponse<Long> count() {
         log.info("[entity_meta] count");
-        return ApiResponse.success(entityMetaService.count());
+        return ApiResponse.success(entityService.count());
     }
 
     /**
@@ -98,7 +104,7 @@ public class EntityMetaController extends BaseV1Controller {
     public ApiResponse<Boolean> insert(@Valid @RequestBody EntityMetaQO qo) {
         log.info("[entity_meta] insert, param: {}", qo);
         EntityMetaDTO dto = entityMetaStructMapper.qoToDto(qo);
-        return ApiResponse.success(entityMetaService.insert(dto));
+        return ApiResponse.success(entityService.insert(dto));
     }
 
     /**
@@ -112,7 +118,7 @@ public class EntityMetaController extends BaseV1Controller {
     public ApiResponse<Boolean> update(@Valid @RequestBody EntityMetaQO qo) {
         log.info("[entity_meta] update, param: {}", qo);
         EntityMetaDTO dto = entityMetaStructMapper.qoToDto(qo);
-        return ApiResponse.success(entityMetaService.update(dto));
+        return ApiResponse.success(entityService.update(dto));
     }
 
     /**
@@ -125,7 +131,7 @@ public class EntityMetaController extends BaseV1Controller {
     @DeleteMapping("/entity_metas/{id}")
     public ApiResponse<Boolean> delete(@PathVariable Integer id) {
         log.info("[entity_meta] delete, id: {}", id);
-        return ApiResponse.success(entityMetaService.delete(id));
+        return ApiResponse.success(entityService.delete(id));
     }
 }
 

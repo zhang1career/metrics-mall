@@ -20,11 +20,20 @@ public interface MetricSnapshotService {
     MetricSnapshot querySnapshot(MetricSnapshotDTO dto);
 
     /**
-     * Write metric snapshot values.
+     * Write metric snapshot values from external.
      *
      * @param dto metric snapshot write model
      * @return trace id of the write operation
      */
-    BigInteger writeSnapshot(MetricSnapshotDTO dto);
+    BigInteger writeSnapshotExternal(MetricSnapshotDTO dto);
+
+    /**
+     * Write metric snapshot values from internal.
+     *
+     * @param dto metric snapshot write model
+     * @return trace id of the write operation
+     */
+    BigInteger writeSnapshotInternal(MetricSnapshotDTO dto);
+
 }
 

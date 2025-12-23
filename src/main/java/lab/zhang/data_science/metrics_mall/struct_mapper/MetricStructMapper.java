@@ -124,26 +124,6 @@ public interface MetricStructMapper extends BaseStructMapper {
     List<AlphaMetric> alphaMetricDaoToModelBatch(List<AlphaMetricDAO> daoList);
 
 
-    /**
-     * Convert AlphaMetric to AlphaMetricDAO.
-     *
-     * @param model alpha metric model
-     * @return alpha metric DAO
-     */
-    @Mapping(target = "a", expression = "java(model.getValue() != null ? model.getValue().getValueStr() : null)")
-    @Mapping(target = "ts", source = "snapshotTs")
-    @Mapping(target = "s", expression = "java(mapSourceTypeToInt(model.getSourceType()))")
-    AlphaMetricDAO alphaMetricModelToDao(AlphaMetric model);
-
-    /**
-     * Convert list of AlphaMetric to list of AlphaMetricDAO.
-     *
-     * @param modelList alpha metric model list
-     * @return alpha metric DAO list
-     */
-    List<AlphaMetricDAO> alphaMetricModelToDaoBatch(List<AlphaMetric> modelList);
-
-
     //==================== EchoMetric DTO ====================
 
     /**
@@ -161,7 +141,6 @@ public interface MetricStructMapper extends BaseStructMapper {
      *
      * @param qo         echo metric query object
      * @param snapshotTs snapshot timestamp
-     * @param sourceType source type
      * @return echo metric DTO
      */
     @Mapping(target = "code", source = "qo.code")
@@ -169,26 +148,24 @@ public interface MetricStructMapper extends BaseStructMapper {
     @Mapping(target = "value", source = "qo.value")
     @Mapping(target = "dimensionMap", expression = "java(dimensionQoToDto(qo.getDims()))")
     @Mapping(target = "snapshotTs", source = "snapshotTs")
+    @Mapping(target = "sourceType", ignore = true)
     EchoMetricDTO echoQoToDto(EchoMetricQO qo,
-                              Long snapshotTs,
-                              SnapshotSourceTypeEnum sourceType);
+                              Long snapshotTs);
 
     /**
      * Convert list of EchoMetricQO to list of EchoMetricDTO.
      *
      * @param qoList     list of echo metric query objects
      * @param snapshotTs snapshot timestamp
-     * @param sourceType source type
      * @return list of echo metric DTOs
      */
     default List<EchoMetricDTO> echoQoToDtoBatch(List<EchoMetricQO> qoList,
-                                                 Long snapshotTs,
-                                                 SnapshotSourceTypeEnum sourceType) {
+                                                 Long snapshotTs) {
         if (qoList == null) {
             return ListUtil.empty();
         }
         return qoList.stream()
-                .map(qo -> echoQoToDto(qo, snapshotTs, sourceType))
+                .map(qo -> echoQoToDto(qo, snapshotTs))
                 .collect(Collectors.toList());
     }
 
@@ -246,29 +223,6 @@ public interface MetricStructMapper extends BaseStructMapper {
     @Mapping(target = "validationMap", source = "meta.validation")
     @Mapping(target = "sourceType", expression = "java(mapSourceType(echo.getS()))")
     EchoMetric echoMetricDaoToModel(EchoMetricDAO echo, MetricMetaDAO meta);
-
-
-    //==================== EchoMetric DAO ====================
-
-    /**
-     * Convert EchoMetric to EchoMetricDAO.
-     *
-     * @param model echo metric model
-     * @return echo metric DAO
-     */
-    @Mapping(target = "a", expression = "java(model.getValue() != null ? model.getValue().getValueStr() : null)")
-    @Mapping(target = "ts", source = "snapshotTs")
-    @Mapping(target = "s", expression = "java(mapSourceTypeToInt(model.getSourceType()))")
-    @Mapping(target = "h", source = "historyList")
-    EchoMetricDAO echoMetricModelToDao(EchoMetric model);
-
-    /**
-     * Convert list of EchoMetric to list of EchoMetricDAO.
-     *
-     * @param modelList echo metric model list
-     * @return echo metric DAO list
-     */
-    List<EchoMetricDAO> echoMetricModelToDaoBatch(List<EchoMetric> modelList);
 
 
     //==================== PrettyBriefMetric VO ====================

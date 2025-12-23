@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class EntityMetaDTO extends BaseDTO {
 
-    private Integer id;
+    private Long id;
 
     private String code;
 

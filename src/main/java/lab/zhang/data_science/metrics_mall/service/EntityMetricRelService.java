@@ -1,9 +1,12 @@
 package lab.zhang.data_science.metrics_mall.service;
 
-import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO;
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelResultDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Entity Metric Relation service interface.
@@ -52,6 +55,15 @@ public interface EntityMetricRelService {
      * @return entity metric relation DAO list
      */
     List<EntityMetricRelDAO> listByMetricMetaId(Long metricMetaId);
+
+    /**
+     * List entity metric relations by alias list.
+     *
+     * @param entityMetaId entity id
+     * @param aliasColl alias list
+     * @return entity metric relation querying result DAO map
+     */
+    Map<String, EntityMetricRelResultDAO> mapByAliasBatch(Long entityMetaId, Collection<String> aliasColl);
 
     /**
      * List all entity metric relations.
