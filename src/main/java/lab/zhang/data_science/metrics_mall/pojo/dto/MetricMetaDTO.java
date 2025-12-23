@@ -41,7 +41,5 @@ public class MetricMetaDTO extends BaseDTO {
     private String unit;
 
     private Map<String, TypedValue> validation;
-
-    private Integer cardMax;
 }
 

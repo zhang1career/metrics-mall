@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lab.zhang.data_science.metrics_mall.mapper.EntityMetricRelMapper;
 import lab.zhang.data_science.metrics_mall.model.EntityMeta;
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
+import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelResultDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO;
@@ -112,14 +113,14 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
         if (entityMeta == null) {
             throw new IllegalArgumentException("[entity_metric_rel] creating failed, entity meta not found: entityCode=" + dto.getEntityCode());
         }
-        Long entityMetaId = Long.valueOf(entityMeta.getId());
+        Long entityMetaId = entityMeta.getId();
 
         // validate the metric existence
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(dto.getMetricCode());
-        if (primeMetric == null) {
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
+        if (metricMetaDAO == null) {
             throw new IllegalArgumentException("[entity_metric_rel] creating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
-        Long metricMetaId = primeMetric.getId();
+        Long metricMetaId = metricMetaDAO.getId();
 
         // validate the relation existence
         QueryWrapper<EntityMetricRelDAO> queryWrapper = new QueryWrapper<>();
@@ -163,14 +164,14 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
         if (entityMeta == null) {
             throw new IllegalArgumentException("[entity_metric_rel] updating failed, entity meta not found: entityCode=" + dto.getEntityCode());
         }
-        Long entityMetaId = Long.valueOf(entityMeta.getId());
+        Long entityMetaId = entityMeta.getId();
 
         // validate the metrics existence
-        PrimeMetric primeMetric = metricService.getPrimeMetricByCode(dto.getMetricCode());
-        if (primeMetric == null) {
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
+        if (metricMetaDAO == null) {
             throw new IllegalArgumentException("[entity_metric_rel] updating failed, metric meta not found: metricCode=" + dto.getMetricCode());
         }
-        Long metricMetaId = primeMetric.getId();
+        Long metricMetaId = metricMetaDAO.getId();
 
         // validate relationships existence
         QueryWrapper<EntityMetricRelDAO> queryWrapper = new QueryWrapper<>();

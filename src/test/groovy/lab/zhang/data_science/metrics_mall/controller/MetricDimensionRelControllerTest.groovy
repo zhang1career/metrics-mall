@@ -75,7 +75,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
@@ -96,7 +96,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
@@ -121,7 +121,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels")
                 .param("metricMetaId", METRIC_META_ID.toString())
                 .param("dimensionId", DIMENSION_ID.toString()))
 
@@ -136,7 +136,7 @@ class MetricDimensionRelControllerTest extends Specification {
 
     def "test get not found should return null"() {
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels")
                 .param("metricMetaId", METRIC_META_ID.toString())
                 .param("dimensionId", DIMENSION_ID.toString()))
 
@@ -166,7 +166,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dimension_rels/metric/${METRIC_META_ID}"))
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels/metric/${METRIC_META_ID}"))
 
         then:
         1 * metricDimensionRelService.listByMetricMetaId(METRIC_META_ID) >> daoList
@@ -190,7 +190,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dimension_rels/dimension/${DIMENSION_ID}"))
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels/dimension/${DIMENSION_ID}"))
 
         then:
         1 * metricDimensionRelService.listByDimensionId(DIMENSION_ID) >> daoList
@@ -213,7 +213,7 @@ class MetricDimensionRelControllerTest extends Specification {
         def voList = [vo1]
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dimension_rels/list"))
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels/list"))
 
         then:
         1 * metricDimensionRelService.list() >> daoList
@@ -241,7 +241,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(put("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(put("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
@@ -263,7 +263,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(put("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(put("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
@@ -275,7 +275,7 @@ class MetricDimensionRelControllerTest extends Specification {
 
     def "test delete success"() {
         when:
-        def response = mockMvc.perform(delete("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(delete("/api/v1/metric_dim_rels")
                 .param("metricMetaId", METRIC_META_ID.toString())
                 .param("dimensionId", DIMENSION_ID.toString()))
 

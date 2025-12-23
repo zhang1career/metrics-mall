@@ -1,11 +1,14 @@
 package lab.zhang.data_science.metrics_mall.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.db.sql.Order;
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService;
+import lab.zhang.data_science.metrics_mall.common.OrderedList;
 import lab.zhang.data_science.metrics_mall.components.RequestContext;
 import lab.zhang.data_science.metrics_mall.config.MetricVersionLifeStatusConfig;
 import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum;
 import lab.zhang.data_science.metrics_mall.enums.SnapshotSourceTypeEnum;
+import lab.zhang.data_science.metrics_mall.model.Dimension;
 import lab.zhang.data_science.metrics_mall.model.Entity;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.model.OpLog;
@@ -19,10 +22,7 @@ import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelsDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.OpLogDTO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
-import lab.zhang.data_science.metrics_mall.service.EntityService;
-import lab.zhang.data_science.metrics_mall.service.MetricService;
-import lab.zhang.data_science.metrics_mall.service.MetricSnapshotService;
-import lab.zhang.data_science.metrics_mall.service.OpLogService;
+import lab.zhang.data_science.metrics_mall.service.*;
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,13 +52,20 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
     private MetricVersionLifeStatusConfig lifeStatusConfig;
 
     @Autowired
+    private MetricSnapshotCacheService cacheService;
+
+
+    @Autowired
     private EntityService entityService;
 
     @Autowired
-    private MetricSnapshotCacheService cacheService;
+    private MetricService metricService;
 
     @Autowired
-    private MetricService metricService;
+    private MetricDimensionGroupRelService metricDimensionGroupRelService;
+
+    @Autowired
+    private DimensionService dimensionService;
 
     @Autowired
     private OpLogService opLogService;
@@ -247,7 +254,7 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
             acutalVersionMap.put(code, nearestVersion);
         }
 
-        // validate metric dimensions
+        // validate dimensions
         List<MetricDimensionRelsDTO> relsDTOList = metricList.stream()
                 .filter(Objects::nonNull)
                 .map(_dto -> new MetricDimensionRelsDTO(
@@ -272,6 +279,53 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
                 }
             }
         }
+
+        // validate dimension-group
+        Map<String, Set<OrderedList<String>>> dimensionIdsMap = metricDimensionGroupRelService.mapDimensionIdsByMetricCodeBatch(metricCodeList);
+        // collect all dimension codes for batch conversion
+        Set<String> allDimensionCodeSet = new HashSet<>();
+        for (EchoMetricDTO echoMetricDTO : metricList) {
+            List<String> dimensionCodeList = echoMetricDTO.getDimensionCodeList();
+            if (dimensionCodeList != null && dimensionCodeList.size() > 1) {
+                allDimensionCodeSet.addAll(dimensionCodeList);
+            }
+        }
+        // convert dimension codes to dimension ids
+        Map<String, Dimension> dimensionCodeMap = dimensionService.mapByCodeBatch(new ArrayList<>(allDimensionCodeSet));
+        for (EchoMetricDTO echoMetricDTO : metricList) {
+            List<String> dimensionCodeList = echoMetricDTO.getDimensionCodeList();
+            if (dimensionCodeList == null) {
+                // skip if no dimensions specified
+                continue;
+            }
+            if (dimensionCodeList.size() <= 1) {
+                // skip if no group specified
+                continue;
+            }
+            Set<OrderedList<String>> validDimensionIdsSet = dimensionIdsMap.get(echoMetricDTO.getCode());
+            if (validDimensionIdsSet == null || validDimensionIdsSet.isEmpty()) {
+                throw new IllegalArgumentException(String.format("[snap] writing failed, dimension-group not found for metric: metricCode=%s",
+                        echoMetricDTO.getCode()));
+            }
+
+            // convert dimension codes to dimension ids
+            List<String> dimensionIdList = dimensionCodeList.stream()
+                    .map(code -> {
+                        Dimension dimension = dimensionCodeMap.get(code);
+                        if (dimension == null || dimension.getId() == null) {
+                            throw new IllegalArgumentException(String.format("[snap] writing failed, dimension not found: dimensionCode=%s",
+                                    code));
+                        }
+                        return dimension.getId().toString();
+                    })
+                    .toList();
+            OrderedList<String> requestDimensionIds = new OrderedList<>(dimensionIdList);
+            if (!validDimensionIdsSet.contains(requestDimensionIds)) {
+                throw new IllegalArgumentException(String.format("[snap] writing failed, dimension-group not match for metric: metricCode=%s, dimensionCodes=%s",
+                        echoMetricDTO.getCode(), String.join(",", dimensionCodeList)));
+            }
+        }
+
 
         BigInteger traceId = requestContext.getTraceId();
 

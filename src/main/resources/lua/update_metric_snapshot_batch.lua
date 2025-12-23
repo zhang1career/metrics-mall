@@ -44,9 +44,9 @@ for i = 1, keyCount do
         end
     end
 
-    -- Limit history depth
+    -- Limit history depth by removing the last element
     while #history > maxHistoryDepth do
-        table.remove(history, 1)
+        table.remove(history)
     end
 
     -- Build new JSON

@@ -241,7 +241,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.code').value(not(0)))
     }
 
-    // ==================== 2.4 MetricVersion 数据准备 ====================
+    // ==================== 2.4 Version 数据准备 ====================
 
     def "2.4.1 新增 MetricVersion - 成功（version=1）"() {
         given:
@@ -595,9 +595,47 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    // ==================== 2.6 MetricDimensionRel 关联关系准备 ====================
 
-    def "2.6.1 新增 MetricDimensionRel - 成功（location）"() {
+    // ==================== 2.6 DimensionGroup 数据准备 ====================
+
+    def "2.6.1 新增 DimensionGroup - 成功"() {
+        given:
+        def metricQO = MetricMetaQO.builder()
+                .code(METRIC_CODE)
+                .name("消费金额")
+                .valueType(2)
+                .precision(2)
+                .build()
+        def dimensionQO = DimensionQO.builder()
+                .code("location")
+                .name("地点")
+                .build()
+        def relQO = MetricDimensionGroupRelQO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCodes("location")
+                .build()
+
+        when:
+        mockMvc.perform(post("/api/v1/metrics")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(metricQO)))
+        mockMvc.perform(post("/api/v1/dims")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dimensionQO)))
+        def response = mockMvc.perform(post("/api/v1/metric_dim_group_rels")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(relQO)))
+
+        then:
+        response.andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+                .andExpect(jsonPath('$.data').value(true))
+    }
+
+
+    // ==================== 2.7 MetricDimensionRel 关联关系准备 ====================
+
+    def "2.7.1 新增 MetricDimensionRel - 成功（location）"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -624,7 +662,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dimensionQO)))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(relQO)))
 
@@ -634,7 +672,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    def "2.6.2 新增 MetricDimensionRel - 成功（venues）"() {
+    def "2.7.2 新增 MetricDimensionRel - 成功（venues）"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -673,11 +711,11 @@ class MetricsMallIntegrationTest extends Specification {
         mockMvc.perform(post("/api/v1/dims")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dimensionQO1)))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(relQO)))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(relQO1)))
 
@@ -687,7 +725,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    def "2.6.3 新增 MetricDimensionRel - 成功（category）"() {
+    def "2.7.3 新增 MetricDimensionRel - 成功（category）"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -739,14 +777,14 @@ class MetricsMallIntegrationTest extends Specification {
         mockMvc.perform(post("/api/v1/dims")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(relQO)))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(relQO1)))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        def response = mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(relQO2)))
 
@@ -756,9 +794,9 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    // ==================== 2.7 MetricVersion 状态更新 ====================
+    // ==================== 2.8 MetricVersion 状态更新 ====================
 
-    def "2.7.1 更新 version_1 的 life_status 为 TEST"() {
+    def "2.8.1 更新 version_1 的 life_status 为 TEST"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -799,7 +837,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    def "2.7.2 更新 version_1 的 life_status 为 GRAY"() {
+    def "2.8.2 更新 version_1 的 life_status 为 GRAY"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -850,7 +888,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    def "2.7.3 更新 version_1 的 life_status 为 ONLINE"() {
+    def "2.8.3 更新 version_1 的 life_status 为 ONLINE"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -911,7 +949,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    def "2.7.4 更新 version_1 的 life_status 为 TEST"() {
+    def "2.8.4 更新 version_1 的 life_status 为 TEST"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -972,7 +1010,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    def "2.7.5 更新 version_1 的 life_status 为 OFFLINE"() {
+    def "2.8.5 更新 version_1 的 life_status 为 OFFLINE"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -1043,7 +1081,7 @@ class MetricsMallIntegrationTest extends Specification {
                 .andExpect(jsonPath('$.data').value(true))
     }
 
-    def "2.7.7 更新 version_2 的 is_main 为 1"() {
+    def "2.8.7 更新 version_2 的 is_main 为 1"() {
         given:
         def metricQO = MetricMetaQO.builder()
                 .code(METRIC_CODE)
@@ -1272,17 +1310,17 @@ class MetricsMallIntegrationTest extends Specification {
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
                 .andExpect(status().isOk())
@@ -1503,17 +1541,17 @@ class MetricsMallIntegrationTest extends Specification {
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
                 .andExpect(status().isOk())
@@ -1735,17 +1773,17 @@ class MetricsMallIntegrationTest extends Specification {
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
                 .andExpect(status().isOk())
@@ -1967,17 +2005,17 @@ class MetricsMallIntegrationTest extends Specification {
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
                 .andExpect(status().isOk())
@@ -2200,17 +2238,17 @@ class MetricsMallIntegrationTest extends Specification {
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
                 .andExpect(status().isOk())
@@ -2433,17 +2471,17 @@ class MetricsMallIntegrationTest extends Specification {
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
                 .andExpect(status().isOk())
@@ -2559,6 +2597,10 @@ class MetricsMallIntegrationTest extends Specification {
                 .isHot(1)
                 .validation("xxx")
                 .build()
+        def metricDimensinGroupRelQO = MetricDimensionGroupRelQO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCodes("location,venues")
+                .build()
 
         def versionQO11 = MetricVersionQO.builder()
                 .metricCode(METRIC_CODE)
@@ -2667,19 +2709,25 @@ class MetricsMallIntegrationTest extends Specification {
                 .content(objectMapper.writeValueAsString(dimensionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_dimension_rels")
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        // relate to dimension group
+        mockMvc.perform(post("/api/v1/metric_dim_group_rels")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(metricDimensinGroupRelQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
         // online version 1
@@ -2746,7 +2794,121 @@ class MetricsMallIntegrationTest extends Specification {
 
     def "3.7 写入快照 - 失败（不支持的维度组合）"() {
         given:
-        def qo = MetricSnapshotQO.builder()
+        def entityMetaQO = EntityMetaQO.builder()
+                .code(ENTITY_CODE)
+                .name("顾客")
+                .build()
+        def metricQO = MetricMetaQO.builder()
+                .code(METRIC_CODE)
+                .name("消费金额")
+                .valueType(2)
+                .precision(2)
+                .build()
+        def entityMetricRelQO = EntityMetricRelQO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias("amount")
+                .dataUri("xxx")
+                .build()
+
+        def dimensionQO = DimensionQO.builder()
+                .code("location")
+                .name("地点")
+                .build()
+        def dimensionQO1 = DimensionQO.builder()
+                .code("venues")
+                .name("场所")
+                .build()
+        def dimensionQO2 = DimensionQO.builder()
+                .code("category")
+                .name("种类")
+                .build()
+        def metricDimensionRelQO = MetricDimensionRelQO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode("location")
+                .isHot(1)
+                .validation("xxx")
+                .build()
+        def metricDimensionRelQO1 = MetricDimensionRelQO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode("venues")
+                .isHot(1)
+                .validation("xxx")
+                .build()
+        def metricDimensionRelQO2 = MetricDimensionRelQO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode("category")
+                .isHot(1)
+                .validation("xxx")
+                .build()
+        def metricDimensinGroupRelQO = MetricDimensionGroupRelQO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCodes("location,venues")
+                .build()
+
+        def versionQO11 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(1)
+                .isMain(0)
+                .lifeStatus(1)
+                .calcLogic("xxx")
+                .build()
+        def versionQO12 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(1)
+                .isMain(0)
+                .lifeStatus(2)
+                .calcLogic("xxx")
+                .build()
+        def versionQO13 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(1)
+                .isMain(0)
+                .lifeStatus(3)
+                .calcLogic("xxx")
+                .build()
+        def versionQO14 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(1)
+                .isMain(0)
+                .lifeStatus(4)
+                .calcLogic("xxx")
+                .build()
+        def versionQO21 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(2)
+                .isMain(0)
+                .lifeStatus(1)
+                .calcLogic("xxx")
+                .build()
+        def versionQO22 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(2)
+                .isMain(0)
+                .lifeStatus(2)
+                .calcLogic("xxx")
+                .build()
+        def versionQO23 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(2)
+                .isMain(0)
+                .lifeStatus(3)
+                .calcLogic("xxx")
+                .build()
+        def versionQO24 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(2)
+                .isMain(0)
+                .lifeStatus(4)
+                .calcLogic("xxx")
+                .build()
+        def versionQO201 = MetricVersionQO.builder()
+                .metricCode(METRIC_CODE)
+                .version(2)
+                .isMain(1)
+                .build()
+        // Note: Using code instead of alias as current implementation requires code
+        def snapshotQO = MetricSnapshotQO.builder()
                 .ec(ENTITY_CODE)
                 .eid(ENTITY_ID)
                 .metrics([EchoMetricQO.builder()
@@ -2759,10 +2921,114 @@ class MetricsMallIntegrationTest extends Specification {
                 .build()
 
         when:
+        // create metric
+        mockMvc.perform(post("/api/v1/entity_metas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(entityMetaQO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(post("/api/v1/metrics")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(metricQO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(post("/api/v1/entity_metric_rels")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(entityMetricRelQO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        // relate to dimension
+        mockMvc.perform(post("/api/v1/dims")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dimensionQO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(post("/api/v1/dims")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dimensionQO1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(post("/api/v1/dims")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dimensionQO2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(metricDimensionRelQO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(metricDimensionRelQO1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(post("/api/v1/metric_dim_rels")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(metricDimensionRelQO2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        // relate to dimension group
+        mockMvc.perform(post("/api/v1/metric_dim_group_rels")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(metricDimensinGroupRelQO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        // online version 1
+        mockMvc.perform(post("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO11)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(put("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO12)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(put("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO13)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(put("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO14)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        // online version 2
+        mockMvc.perform(post("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO21)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(put("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO22)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(put("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO23)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        mockMvc.perform(put("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO24)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+        // main version
+        mockMvc.perform(put("/api/v1/metric_versions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(versionQO201)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+
+        and:
         def response = mockMvc.perform(post("/api/v1/m_snap/write")
                 .header("X-API-Key", API_KEY)
+                .header(TRACE_ID, TimeUtil.getCurrentTime())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(qo)))
+                .content(objectMapper.writeValueAsString(snapshotQO)))
 
         then:
         response.andExpect(status().isOk())

@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lab.zhang.data_science.metrics_mall.common.TypedValue;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.util.Map;
 
 /**
  * Metric meta information entity.
@@ -75,10 +75,5 @@ public class MetricMetaDAO extends BaseDAO {
      * Valid range of metric values.
      */
     private String validation;
-
-    /**
-     * Max value of cardinality.
-     */
-    private Integer cardMax;
 }
 

@@ -13,7 +13,6 @@
             agg_type,
             unit,
             validation,
-            card_max,
             ct,
             ut
         FROM metric_meta

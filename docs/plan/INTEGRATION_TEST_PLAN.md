@@ -313,7 +313,7 @@
 ### 2.6 MetricDimensionRel 关联关系准备
 
 #### 2.6.1 测试用例：新增 MetricDimensionRel - 成功（location）
-- **接口**: `POST /api/v1/metric_dimension_rels` (假设存在，如不存在需创建)
+- **接口**: `POST /api/v1/metric_dim_rels` (假设存在，如不存在需创建)
 - **请求数据**:
   ```json
   {
@@ -330,7 +330,7 @@
   - 数据库中存在该关联关系
 
 #### 2.6.2 测试用例：新增 MetricDimensionRel - 成功（venues）
-- **接口**: `POST /api/v1/metric_dimension_rels`
+- **接口**: `POST /api/v1/metric_dim_rels`
 - **请求数据**:
   ```json
   {
@@ -347,7 +347,7 @@
   - 数据库中存在该关联关系
 
 #### 2.6.3 测试用例：新增 MetricDimensionRel - 成功（category）
-- **接口**: `POST /api/v1/metric_dimension_rels`
+- **接口**: `POST /api/v1/metric_dim_rels`
 - **请求数据**:
   ```json
   {

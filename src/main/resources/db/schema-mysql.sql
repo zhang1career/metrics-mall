@@ -20,7 +20,6 @@ CREATE TABLE `metric_meta` (
     `agg_type`    INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'aggregation type, 0=sum, 1=avg, 2=max, 3=min, 4=count',
     `unit`        VARCHAR(32)  NOT NULL DEFAULT '' COMMENT 'unit of the metric',
     `validation`  VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'valid range of metric values, json format',
-    `card_max`    INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'max value of cardinality',
     `ct`          BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'create time, UNIX timestamp in milliseconds',
     `ut`          BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'update time, UNIX timestamp in milliseconds',
     PRIMARY KEY (`id`),
@@ -82,10 +81,19 @@ CREATE TABLE `x` (
 CREATE TABLE `y` (
     `mid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的metric_meta',
     `did`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的dim',
-    `is_hot`      TINYINT         NOT NULL DEFAULT 0 COMMENT 'dim code will suffix to redis key, so the metric value can be lookuped in real-time, 0=no, 1=yes',
+    `is_hot`      TINYINT         NOT NULL DEFAULT '0' COMMENT 'dim code will suffix to redis key, so the metric value can be lookuped in real-time, 0=no, 1=yes',
+    `card_max`    INT    UNSIGNED NOT NULL DEFAULT '0' COMMENT 'max value of cardinality',
     `validation`  VARCHAR(500) NOT NULL DEFAULT '' COMMENT 'valid range of dimension values, json format',
     PRIMARY KEY (`mid`, `did`)
 ) COMMENT 'metric and dimension relationship';
+
+CREATE TABLE `y_group` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `mid`         BIGINT UNSIGNED NOT NULL DEFAULT '0' COMMENT '关联的metric_meta',
+    `dids`        VARCHAR(1000)   NOT NULL DEFAULT ''  COMMENT '关联的dim组合，逗号分隔',
+    PRIMARY KEY (`id`),
+    INDEX `idx_metric` (`mid`)
+) COMMENT 'metric and dimension-group relationship';
 
 CREATE TABLE `op_log` (
     `id`          BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'trace id',

@@ -1,5 +1,6 @@
 package lab.zhang.data_science.metrics_mall.struct_mapper;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
@@ -21,12 +22,33 @@ public interface BaseStructMapper {
 
 
     // string
+    default List<String> explode(String str) {
+        return explode(str, ",");
+    }
+
+    default List<String> explode(String str, String symbol) {
+        if (StrUtil.isBlank(str)) {
+            return ListUtil.empty();
+        }
+        return Arrays.asList(str.split(symbol));
+    }
+
+    default String implode(List<String> list) {
+        return implode(list, ",");
+    }
+
+    default String implode(List<String> list, String symbol) {
+        if (list == null || list.isEmpty()) {
+            return StrUtil.EMPTY;
+        }
+        return String.join(symbol, list);
+    }
 
     default String mapMapToString(Map<?, ?> map) {
         return map != null ? map.toString() : StrUtil.EMPTY;
     }
 
-    default <K> Map<K, Object> getKTypedValueMap(String str) {
+    default <K> Map<K, Object> getTypedValueMap(String str) {
         try {
             Map<K, Object> result = OBJECT_MAPPER.readValue(str, Map.class);
             return result;
@@ -231,7 +253,7 @@ public interface BaseStructMapper {
             return MapUtil.empty();
         }
 
-        Map<K, Object> valueObjMap = getKTypedValueMap(str);
+        Map<K, Object> valueObjMap = getTypedValueMap(str);
         return mapTypedValueMap(valueObjMap);
     }
 

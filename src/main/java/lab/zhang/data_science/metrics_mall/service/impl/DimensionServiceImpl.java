@@ -1,5 +1,7 @@
 package lab.zhang.data_science.metrics_mall.service.impl;
 
+import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lab.zhang.data_science.metrics_mall.mapper.DimensionMapper;
@@ -13,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Dimension service implementation.
@@ -52,6 +56,39 @@ public class DimensionServiceImpl implements DimensionService {
         LambdaQueryWrapper<DimensionDAO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DimensionDAO::getCode, code);
         return dimensionMapper.selectOne(queryWrapper);
+    }
+
+    @Override
+    public List<Dimension> listByCodeBatch(List<String> codeList) {
+        List<DimensionDAO> daoList = getDimensionDaoByCodeBatch(codeList);
+        if (daoList == null) {
+            return ListUtil.empty();
+        }
+        return dimensionStructMapper.daoToModelBatch(daoList);
+    }
+
+    @Override
+    public Map<String, Dimension> mapByCodeBatch(List<String> codeList) {
+        if (codeList == null) {
+            return MapUtil.empty();
+        }
+
+        List<Dimension> dimensionList = listByCodeBatch(codeList);
+        if (dimensionList == null) {
+            return MapUtil.empty();
+        }
+
+        return dimensionList.stream()
+                .collect(Collectors.toMap(Dimension::getCode, dimension -> dimension));
+    }
+
+    private List<DimensionDAO> getDimensionDaoByCodeBatch(List<String> codeList) {
+        if (codeList == null) {
+            return null;
+        }
+        LambdaQueryWrapper<DimensionDAO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(DimensionDAO::getCode, codeList);
+        return dimensionMapper.selectList(queryWrapper);
     }
 
     @Override

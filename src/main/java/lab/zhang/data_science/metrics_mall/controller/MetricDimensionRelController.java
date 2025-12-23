@@ -45,7 +45,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
      */
     @Operation(summary = "Get metric dimension relation",
             description = "Get metric dimension relation by metric meta id and dimension id")
-    @GetMapping("/metric_dimension_rels")
+    @GetMapping("/metric_dim_rels")
     public ApiResponse<MetricDimensionRelVO> get(
             @RequestParam Long metricMetaId,
             @RequestParam Long dimensionId) {
@@ -67,7 +67,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
      */
     @Operation(summary = "List metric dimension relations by metric",
             description = "List metric dimension relations by metric meta id")
-    @GetMapping("/metric_dimension_rels/metric/{metricMetaId}")
+    @GetMapping("/metric_dim_rels/metric/{metricMetaId}")
     public ApiResponse<List<MetricDimensionRelVO>> listByMetricMetaId(@PathVariable Long metricMetaId) {
         log.info("[metric_dimension_rel] listByMetricMetaId, param: metricMetaId={}", metricMetaId);
         List<MetricDimensionRelDAO> daoList = metricDimensionRelService.listByMetricMetaId(metricMetaId);
@@ -85,7 +85,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
      */
     @Operation(summary = "List metric dimension relations by dimension",
             description = "List metric dimension relations by dimension id")
-    @GetMapping("/metric_dimension_rels/dimension/{dimensionId}")
+    @GetMapping("/metric_dim_rels/dimension/{dimensionId}")
     public ApiResponse<List<MetricDimensionRelVO>> listByDimensionId(@PathVariable Long dimensionId) {
         log.info("[metric_dimension_rel] listByDimensionId, param: dimensionId={}", dimensionId);
         List<MetricDimensionRelDAO> daoList = metricDimensionRelService.listByDimensionId(dimensionId);
@@ -102,7 +102,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
      */
     @Operation(summary = "List all metric dimension relations",
             description = "List all metric dimension relations")
-    @GetMapping("/metric_dimension_rels/list")
+    @GetMapping("/metric_dim_rels/list")
     public ApiResponse<List<MetricDimensionRelVO>> list() {
         log.info("[metric_dimension_rel] list");
         List<MetricDimensionRelDAO> daoList = metricDimensionRelService.list();
@@ -119,7 +119,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
     @Operation(summary = "Create metric dimension relation",
             description = "Associate a dimension with a metric. One metric_meta and one dimension can only have one relation. " +
                     "Either metricMetaId/dimensionId or metricCode/dimensionCode can be provided.")
-    @PostMapping("/metric_dimension_rels")
+    @PostMapping("/metric_dim_rels")
     public ApiResponse<Boolean> create(@Valid @RequestBody MetricDimensionRelQO qo) {
         log.info("[metric_dimension_rel] create, param: metricCode={}, dimensionCode={}, isHot={}",
                 qo.getMetricCode(), qo.getDimensionCode(), qo.getIsHot());
@@ -141,7 +141,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
     @Operation(summary = "Update metric dimension relation",
             description = "Update an existing metric dimension relation. " +
                     "Either metricMetaId/dimensionId or metricCode/dimensionCode can be provided.")
-    @PutMapping("/metric_dimension_rels")
+    @PutMapping("/metric_dim_rels")
     public ApiResponse<Boolean> update(@Valid @RequestBody MetricDimensionRelQO qo) {
         log.info("[metric_dimension_rel] update, param: metricCode={}, dimensionCode={}, isHot={}",
                 qo.getMetricCode(), qo.getDimensionCode(), qo.getIsHot());
@@ -163,7 +163,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
      */
     @Operation(summary = "Delete metric dimension relation",
             description = "Delete metric dimension relation by metric meta id and dimension id")
-    @DeleteMapping("/metric_dimension_rels")
+    @DeleteMapping("/metric_dim_rels")
     public ApiResponse<Boolean> delete(
             @RequestParam Long metricMetaId,
             @RequestParam Long dimensionId) {

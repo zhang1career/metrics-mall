@@ -41,7 +41,5 @@ public class MetricMetaQO {
     private String unit;
 
     private Map<String, Object> validation;
-
-    private Integer cardMax;
 }
 

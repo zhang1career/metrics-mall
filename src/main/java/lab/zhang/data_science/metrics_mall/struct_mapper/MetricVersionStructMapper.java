@@ -69,6 +69,8 @@ public interface MetricVersionStructMapper extends BaseStructMapper {
      * @param model metric version model
      * @return metric version view object
      */
+    @Mapping(target = "createTime", expression = "java(mapDateToString(model.getCreateTime()))")
+    @Mapping(target = "updateTime", expression = "java(mapDateToString(model.getUpdateTime()))")
     MetricVersionVO modelToVo(MetricVersion model);
 
     /**

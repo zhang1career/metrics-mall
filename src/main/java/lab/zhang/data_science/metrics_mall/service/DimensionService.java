@@ -4,6 +4,7 @@ import lab.zhang.data_science.metrics_mall.model.Dimension;
 import lab.zhang.data_science.metrics_mall.pojo.dto.DimensionDTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Dimension service interface.
@@ -27,6 +28,22 @@ public interface DimensionService {
      * @return dimension model
      */
     Dimension getByCode(String code);
+
+    /**
+     * Get dimensions by code batch.
+     *
+     * @param codeList dimension code list
+     * @return dimension model list
+     */
+    List<Dimension> listByCodeBatch(List<String> codeList);
+
+    /**
+     * Map dimensions by code batch.
+     *
+     * @param codeList dimension code list
+     * @return map of code to dimension model
+     */
+    Map<String, Dimension> mapByCodeBatch(List<String> codeList);
 
     /**
      * List all dimensions.
