@@ -94,7 +94,7 @@ public class SnapshotServiceImpl implements MetricSnapshotService {
         }
         for (EchoMetricDTO echoMetricDTO : metricList) {
             if (echoMetricDTO == null) {
-                throw new IllegalArgumentException("[snap] querying failed, metric write dto is null");
+                throw new IllegalArgumentException("[snap] querying failed, metricDTO item is null");
             }
             if (StrUtil.isBlank(echoMetricDTO.getCode())) {
                 throw new IllegalArgumentException("[snap] querying failed, metric code is empty");

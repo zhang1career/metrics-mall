@@ -20,7 +20,9 @@ class DimensionServiceImplTest extends Specification {
     DimensionServiceImpl service
 
     def setup() {
-        service = new DimensionServiceImpl(dimensionMapper, dimensionStructMapper)
+        service = new DimensionServiceImpl()
+        service.dimensionMapper = dimensionMapper
+        service.dimensionStructMapper = dimensionStructMapper
     }
 
     def "test get success"() {

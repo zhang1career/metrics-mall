@@ -4,10 +4,12 @@ import lab.zhang.data_science.metrics_mall.common.TypedValue;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
 import lab.zhang.data_science.metrics_mall.model.metric.BetaMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
+import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricSnapshotVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,11 @@ import java.util.Map;
         })
 public interface MetricSnapshotStructMapper {
 
+
+    default List<EchoMetricDTO> snapshotQoToMetricDtos(MetricSnapshotQO qo) {
+        return Mappers.getMapper(MetricStructMapper.class).echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs());
+    }
+
     /**
      * Convert MetricSnapshotQO to MetricSnapshotDTO.
      *
@@ -32,7 +39,7 @@ public interface MetricSnapshotStructMapper {
      */
     @Mapping(target = "entityCode", source = "ec")
     @Mapping(target = "entityId", source = "eid")
-    @Mapping(target = "metricList", expression = "java(metricStructMapper.echoQoToDtoBatch(qo.getMetrics(), qo.getSnapshotTs()))")
+    @Mapping(target = "metricList", expression = "java(snapshotQoToMetricDtos(qo))")
     @Mapping(target = "snapshotTs", source = "snapshotTs")
     @Mapping(target = "isAtomic", expression = "java(qo.getIsAtomic() != null && qo.getIsAtomic().equals(1))")
     MetricSnapshotDTO qoToDto(MetricSnapshotQO qo);

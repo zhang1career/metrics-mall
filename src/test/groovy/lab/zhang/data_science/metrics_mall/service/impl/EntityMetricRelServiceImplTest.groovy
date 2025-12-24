@@ -2,12 +2,14 @@ package lab.zhang.data_science.metrics_mall.service.impl
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
-import lab.zhang.data_science.metrics_mall.mapper.EntityMetricRelMapper
 import lab.zhang.data_science.metrics_mall.mapper.EntityMetaMapper
+import lab.zhang.data_science.metrics_mall.mapper.EntityMetricRelMapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper
-import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.EntityMetaDAO
-import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
+import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO
+import lab.zhang.data_science.metrics_mall.service.EntityService
+import lab.zhang.data_science.metrics_mall.service.MetricService
 import spock.lang.Specification
 
 /**
@@ -17,43 +19,57 @@ import spock.lang.Specification
  */
 class EntityMetricRelServiceImplTest extends Specification {
 
+    EntityMetricRelServiceImpl service
+
+    EntityService entityService = Mock()
+    MetricService metricService = Mock()
     EntityMetricRelMapper entityMetricRelMapper = Mock()
     EntityMetaMapper entityMetaMapper = Mock()
     MetricMetaMapper metricMetaMapper = Mock()
 
-    EntityMetricRelServiceImpl service
-
     private static final Integer ENTITY_META_ID = 1
+    private static final String ENTITY_CODE = "customer"
     private static final Long METRIC_META_ID = 2L
+    private static final String METRIC_CODE = "consume_amount"
     private static final String ALIAS = "test_alias"
     private static final String DATA_URI = "test://data/uri"
 
     def setup() {
         service = new EntityMetricRelServiceImpl()
+        service.entityService = entityService
+        service.metricService = metricService
         service.entityMetricRelMapper = entityMetricRelMapper
-        service.entityMetaMapper = entityMetaMapper
-        service.metricMetaMapper = metricMetaMapper
+
     }
 
     def "test create success"() {
         given:
-        def entityMetaDAO = EntityMetaDAO.builder().id(ENTITY_META_ID).build()
-        def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias(ALIAS)
+                .dataUri(DATA_URI)
+                .build()
 
         when:
-        def result = service.create(ENTITY_META_ID, METRIC_META_ID, ALIAS, DATA_URI)
+        def result = service.create(dto)
 
         then:
-        1 * entityMetaMapper.selectById(ENTITY_META_ID) >> entityMetaDAO
-        1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
         1 * entityMetricRelMapper.selectOne(_ as LambdaQueryWrapper) >> null
         1 * entityMetricRelMapper.insert(_ as EntityMetricRelDAO) >> 1
         result
     }
 
     def "test create with null entityMetaId should throw exception"() {
+        given:
+        def dto = EntityMetricRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .alias(ALIAS)
+                .dataUri(DATA_URI)
+                .build()
+
         when:
-        service.create(null, METRIC_META_ID, ALIAS, DATA_URI)
+        service.create(dto)
 
         then:
         def exception = thrown(IllegalArgumentException)
@@ -62,8 +78,16 @@ class EntityMetricRelServiceImplTest extends Specification {
     }
 
     def "test create with blank alias should throw exception"() {
+        given:
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias("")
+                .dataUri(DATA_URI)
+                .build()
+
         when:
-        service.create(ENTITY_META_ID, METRIC_META_ID, "", DATA_URI)
+        service.create(dto)
 
         then:
         def exception = thrown(IllegalArgumentException)
@@ -72,8 +96,16 @@ class EntityMetricRelServiceImplTest extends Specification {
     }
 
     def "test create with entity meta not found should throw exception"() {
+        given:
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias(ALIAS)
+                .dataUri(DATA_URI)
+                .build()
+
         when:
-        service.create(ENTITY_META_ID, METRIC_META_ID, ALIAS, DATA_URI)
+        service.create(dto)
 
         then:
         1 * entityMetaMapper.selectById(ENTITY_META_ID) >> null
@@ -83,10 +115,16 @@ class EntityMetricRelServiceImplTest extends Specification {
 
     def "test create with metric meta not found should throw exception"() {
         given:
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias(ALIAS)
+                .dataUri(DATA_URI)
+                .build()
         def entityMetaDAO = EntityMetaDAO.builder().id(ENTITY_META_ID).build()
 
         when:
-        service.create(ENTITY_META_ID, METRIC_META_ID, ALIAS, DATA_URI)
+        service.create(dto)
 
         then:
         1 * entityMetaMapper.selectById(ENTITY_META_ID) >> entityMetaDAO
@@ -97,18 +135,20 @@ class EntityMetricRelServiceImplTest extends Specification {
 
     def "test create with existing relation should throw exception"() {
         given:
-        def entityMetaDAO = EntityMetaDAO.builder().id(ENTITY_META_ID).build()
-        def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias(ALIAS)
+                .dataUri(DATA_URI)
+                .build()
         def existingRel = new EntityMetricRelDAO()
         existingRel.setEntityMetaId(ENTITY_META_ID)
         existingRel.setMetricMetaId(METRIC_META_ID)
 
         when:
-        service.create(ENTITY_META_ID, METRIC_META_ID, ALIAS, DATA_URI)
+        service.create(dto)
 
         then:
-        1 * entityMetaMapper.selectById(ENTITY_META_ID) >> entityMetaDAO
-        1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
         1 * entityMetricRelMapper.selectOne(_ as LambdaQueryWrapper) >> existingRel
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("relation already exists")
@@ -216,9 +256,14 @@ class EntityMetricRelServiceImplTest extends Specification {
         existingRel.setMetricMetaId(METRIC_META_ID)
         def updatedAlias = "updated_alias"
         def updatedDataUri = "updated://data/uri"
-
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias(updatedAlias)
+                .dataUri(updatedDataUri)
+                .build()
         when:
-        def result = service.update(ENTITY_META_ID, METRIC_META_ID, updatedAlias, updatedDataUri)
+        def result = service.update(dto)
 
         then:
         1 * entityMetricRelMapper.selectOne(_ as LambdaQueryWrapper) >> existingRel
@@ -227,8 +272,15 @@ class EntityMetricRelServiceImplTest extends Specification {
     }
 
     def "test update with null entityMetaId should throw exception"() {
+        given:
+        def dto = EntityMetricRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .alias(ALIAS)
+                .dataUri(DATA_URI)
+                .build()
+
         when:
-        service.update(null, METRIC_META_ID, ALIAS, DATA_URI)
+        service.update(dto)
 
         then:
         def exception = thrown(IllegalArgumentException)
@@ -237,8 +289,16 @@ class EntityMetricRelServiceImplTest extends Specification {
     }
 
     def "test update with relation not found should throw exception"() {
+        given:
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias(ALIAS)
+                .dataUri(DATA_URI)
+                .build()
+
         when:
-        service.update(ENTITY_META_ID, METRIC_META_ID, ALIAS, DATA_URI)
+        service.update(dto)
 
         then:
         1 * entityMetricRelMapper.selectOne(_ as LambdaQueryWrapper) >> null

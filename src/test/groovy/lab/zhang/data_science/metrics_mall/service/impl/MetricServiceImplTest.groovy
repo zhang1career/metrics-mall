@@ -1,11 +1,12 @@
 package lab.zhang.data_science.metrics_mall.service.impl
 
+import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricVersionMapper
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
+import lab.zhang.data_science.metrics_mall.pojo.dao.metric_version.ExistenceMetricVersionDAO
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO
-import lab.zhang.data_science.metrics_mall.pojo.dto.MetricVersionDTO
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper
 import spock.lang.Specification
 
@@ -79,17 +80,18 @@ class MetricServiceImplTest extends Specification {
         given:
         def codes = [METRIC_CODE]
         def required = [(METRIC_CODE): 2]
+        def lifeStatus = [LifeStatusEnum.GRAY, LifeStatusEnum.ONLINE, LifeStatusEnum.DEPRECATED]
         def available = [
-                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(1).build(),
-                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(2).build(),
-                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(3).build()
+                ExistenceMetricVersionDAO.builder().metricCode(METRIC_CODE).version(1).build(),
+                ExistenceMetricVersionDAO.builder().metricCode(METRIC_CODE).version(2).build(),
+                ExistenceMetricVersionDAO.builder().metricCode(METRIC_CODE).version(3).build()
         ]
 
         when:
-        def result = service.chooseVersionBatch(codes, required)
+        def result = service.chooseVersionBatch(codes, required, lifeStatus as Set<LifeStatusEnum>)
 
         then:
-        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> available
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_, _) >> available
         result.size() == 1
         result.get(METRIC_CODE) == 2
     }
@@ -98,16 +100,17 @@ class MetricServiceImplTest extends Specification {
         given:
         def codes = [METRIC_CODE]
         def required = [(METRIC_CODE): 2]
+        def lifeStatus = [LifeStatusEnum.GRAY, LifeStatusEnum.ONLINE, LifeStatusEnum.DEPRECATED]
         def available = [
-                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(1).build(),
-                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(3).build()
+                ExistenceMetricVersionDAO.builder().metricCode(METRIC_CODE).version(1).build(),
+                ExistenceMetricVersionDAO.builder().metricCode(METRIC_CODE).version(3).build()
         ]
 
         when:
-        def result = service.chooseVersionBatch(codes, required)
+        def result = service.chooseVersionBatch(codes, required, lifeStatus as Set<LifeStatusEnum>)
 
         then:
-        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> available
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_, _) >> available
         result.isEmpty()
     }
 
@@ -115,16 +118,17 @@ class MetricServiceImplTest extends Specification {
         given:
         def codes = [METRIC_CODE]
         def required = [(METRIC_CODE): null]
+        def lifeStatus = [LifeStatusEnum.GRAY, LifeStatusEnum.ONLINE, LifeStatusEnum.DEPRECATED]
         def available = [
-                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(1).isMain(0).build(),
-                MetricVersionDTO.builder().metricCode(METRIC_CODE).version(2).isMain(ONE).build()
+                ExistenceMetricVersionDAO.builder().metricCode(METRIC_CODE).version(1).isMain(0).build(),
+                ExistenceMetricVersionDAO.builder().metricCode(METRIC_CODE).version(2).isMain(ONE).build()
         ]
 
         when:
-        def result = service.chooseVersionBatch(codes, required)
+        def result = service.chooseVersionBatch(codes, required, lifeStatus as Set<LifeStatusEnum>)
 
         then:
-        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> available
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_, _) >> available
         result.size() == 1
         result.get(METRIC_CODE) == 2
     }
@@ -133,12 +137,13 @@ class MetricServiceImplTest extends Specification {
         given:
         def codes = [METRIC_CODE]
         def required = [(METRIC_CODE): 1]
+        def lifeStatus = [LifeStatusEnum.GRAY, LifeStatusEnum.ONLINE, LifeStatusEnum.DEPRECATED]
 
         when:
-        def result = service.chooseVersionBatch(codes, required)
+        def result = service.chooseVersionBatch(codes, required, lifeStatus as Set<LifeStatusEnum>)
 
         then:
-        1 * metricVersionMapper.getExistenceMetricVersionBatch(_ as Set) >> []
+        1 * metricVersionMapper.getExistenceMetricVersionBatch(_, _) >> []
         result.isEmpty()
     }
 }

@@ -43,13 +43,13 @@ public class SnapshotController extends BaseV1Controller {
     private RequestContext requestContext;
 
     @Autowired
-    private MetricSnapshotService metricSnapshotService;
-
-    @Autowired
     private EntityService entityService;
 
     @Autowired
     private EntityMetricRelService xService;
+
+    @Autowired
+    private MetricSnapshotService metricSnapshotService;
 
     @Autowired
     private MetricSnapshotStructMapper metricSnapshotStructMapper;

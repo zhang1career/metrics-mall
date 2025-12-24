@@ -3,6 +3,7 @@ package lab.zhang.data_science.metrics_mall.pojo.dao.x;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -11,6 +12,7 @@ import lombok.Data;
  * @author Rongjin Zhang
  */
 @Data
+@Builder
 @TableName("x")
 public class EntityMetricRelDAO {
 

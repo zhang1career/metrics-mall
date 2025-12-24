@@ -13,9 +13,10 @@ import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricSnapshotQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricSnapshotVO
+import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService
+import lab.zhang.data_science.metrics_mall.service.EntityService
 import lab.zhang.data_science.metrics_mall.service.MetricSnapshotService
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricSnapshotStructMapper
-import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -34,11 +35,13 @@ class SnapshotControllerTest extends Specification {
 
     MockMvc mockMvc
 
+    EntityService entityService = Mock()
+
+    EntityMetricRelService entityMetricRelService = Mock()
+
     MetricSnapshotService metricSnapshotService = Mock()
 
     MetricSnapshotStructMapper metricSnapshotStructMap = Mock()
-
-    MetricStructMapper metricStructMapper = Mock()
 
     SnapshotController controller
 
@@ -48,9 +51,10 @@ class SnapshotControllerTest extends Specification {
 
     def setup() {
         controller = new SnapshotController()
+        controller.entityService = entityService
+        controller.xService = entityMetricRelService
         controller.metricSnapshotService = metricSnapshotService
         controller.metricSnapshotStructMapper = metricSnapshotStructMap
-        controller.metricStructMapper = metricStructMapper
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build()

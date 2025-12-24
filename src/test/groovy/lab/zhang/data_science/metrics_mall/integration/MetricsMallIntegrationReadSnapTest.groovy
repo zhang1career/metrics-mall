@@ -429,7 +429,6 @@ class MetricsMallIntegrationReadSnapTest extends Specification {
                 .calcLogic("xxx")
                 .build()
 
-
         def snapshotQO = MetricSnapshotQO.builder()
                 .ec(ENTITY_CODE)
                 .eid(ENTITY_ID)

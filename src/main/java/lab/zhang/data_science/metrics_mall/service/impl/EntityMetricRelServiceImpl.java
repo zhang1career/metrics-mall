@@ -5,13 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lab.zhang.data_science.metrics_mall.mapper.EntityMetricRelMapper;
 import lab.zhang.data_science.metrics_mall.model.EntityMeta;
-import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric;
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelResultDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO;
-import lab.zhang.data_science.metrics_mall.service.EntityService;
 import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService;
+import lab.zhang.data_science.metrics_mall.service.EntityService;
 import lab.zhang.data_science.metrics_mall.service.MetricService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +34,13 @@ import java.util.stream.Collectors;
 public class EntityMetricRelServiceImpl implements EntityMetricRelService {
 
     @Autowired
+    private EntityService entityService;
+
+    @Autowired
     private MetricService metricService;
 
     @Autowired
     private EntityMetricRelMapper entityMetricRelMapper;
-
-    @Autowired
-    private EntityService entityService;
 
 
     @Override
@@ -136,11 +135,12 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
         String dataUri = dto.getDataUri();
 
         // insert new relation
-        EntityMetricRelDAO dao = new EntityMetricRelDAO();
-        dao.setEntityMetaId(entityMetaId);
-        dao.setMetricMetaId(metricMetaId);
-        dao.setAlias(alias);
-        dao.setDataUri(dataUri);
+        EntityMetricRelDAO dao = EntityMetricRelDAO.builder()
+                .entityMetaId(entityMetaId)
+                .metricMetaId(metricMetaId)
+                .alias(alias)
+                .dataUri(dataUri)
+                .build();
 
         int rows = entityMetricRelMapper.insert(dao);
         if (rows > 0) {
@@ -187,11 +187,12 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
         String dataUri = dto.getDataUri();
 
         // insert new relation
-        EntityMetricRelDAO dao = new EntityMetricRelDAO();
-        dao.setEntityMetaId(entityMetaId);
-        dao.setMetricMetaId(metricMetaId);
-        dao.setAlias(alias);
-        dao.setDataUri(dataUri);
+        EntityMetricRelDAO dao = EntityMetricRelDAO.builder()
+                .entityMetaId(entityMetaId)
+                .metricMetaId(metricMetaId)
+                .alias(alias)
+                .dataUri(dataUri)
+                .build();
 
         int rows = entityMetricRelMapper.updateByPrimaryKey(dao);
         if (rows > 0) {

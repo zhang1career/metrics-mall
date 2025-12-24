@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.EntityMeta
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
+import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetricRelQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.EntityMetricRelVO
-import lab.zhang.data_science.metrics_mall.service.EntityService
 import lab.zhang.data_science.metrics_mall.service.EntityMetricRelService
+import lab.zhang.data_science.metrics_mall.service.EntityService
 import lab.zhang.data_science.metrics_mall.service.MetricService
 import lab.zhang.data_science.metrics_mall.struct_mapper.EntityMetricRelStructMapper
 import org.springframework.http.MediaType
@@ -28,12 +30,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class EntityMetricRelControllerTest extends Specification {
 
-    MockMvc mockMvc
-    EntityMetricRelService entityMetricRelService = Mock()
-    EntityMetricRelStructMapper entityMetricRelStructMapper = Mock()
+    EntityMetricRelController controller
+
     EntityService entityService = Mock()
     MetricService metricService = Mock()
-    EntityMetricRelController controller
+    EntityMetricRelService entityMetricRelService = Mock()
+    EntityMetricRelStructMapper entityMetricRelStructMapper = Mock()
+
+    MockMvc mockMvc
+
     ObjectMapper objectMapper = new ObjectMapper()
 
     private static final Long ENTITY_META_ID = 1L
@@ -46,8 +51,7 @@ class EntityMetricRelControllerTest extends Specification {
         controller = new EntityMetricRelController()
         controller.entityMetricRelService = entityMetricRelService
         controller.entityMetricRelStructMapper = entityMetricRelStructMapper
-        controller.entityService = entityService
-        controller.metricService = metricService
+
         def validator = new LocalValidatorFactoryBean()
         validator.afterPropertiesSet()
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -64,24 +68,26 @@ class EntityMetricRelControllerTest extends Specification {
                 .alias("test_alias")
                 .dataUri("test://data/uri")
                 .build()
-        def entityMeta = EntityMeta.builder()
-                .id(ENTITY_META_ID.intValue())
-                .code(ENTITY_CODE)
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias("test_alias")
+                .dataUri("test://data/uri")
                 .build()
-        def primeMetric = PrimeMetric.builder()
-                .id(METRIC_META_ID)
-                .code(METRIC_CODE)
+        def xRelDTO = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias("test_alias")
+                .dataUri("test://data/uri")
                 .build()
-
         when:
         def response = mockMvc.perform(post("/api/v1/entity_metric_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * entityService.getByCode(ENTITY_CODE) >> entityMeta
-        1 * metricService.getPrimeMetricByCode(METRIC_CODE) >> primeMetric
-        1 * entityMetricRelService.create(1L, 2L, "test_alias", "test://data/uri") >> true
+        1 * entityMetricRelStructMapper.qoToDto(qo) >> dto
+        1 * entityMetricRelService.create(xRelDTO) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
@@ -109,11 +115,12 @@ class EntityMetricRelControllerTest extends Specification {
         given:
         def entityMetaId = 1L
         def metricMetaId = 2L
-        def dao = new EntityMetricRelDAO()
-        dao.setEntityMetaId(entityMetaId)
-        dao.setMetricMetaId(metricMetaId)
-        dao.setAlias("test_alias")
-        dao.setDataUri("test://data/uri")
+        def dao = EntityMetricRelDAO.builder()
+                .entityMetaId(entityMetaId)
+                .metricMetaId(metricMetaId)
+                .alias("test_alias")
+                .dataUri("test://data/uri")
+                .build()
         def vo = EntityMetricRelVO.builder()
                 .entityMetaId(entityMetaId)
                 .metricMetaId(metricMetaId)
@@ -156,16 +163,18 @@ class EntityMetricRelControllerTest extends Specification {
     def "test listByEntityMetaId success"() {
         given:
         def entityMetaId = 1L
-        def dao1 = new EntityMetricRelDAO()
-        dao1.setEntityMetaId(entityMetaId)
-        dao1.setMetricMetaId(2L)
-        dao1.setAlias("alias1")
-        dao1.setDataUri("uri1")
-        def dao2 = new EntityMetricRelDAO()
-        dao2.setEntityMetaId(entityMetaId)
-        dao2.setMetricMetaId(3L)
-        dao2.setAlias("alias2")
-        dao2.setDataUri("uri2")
+        def dao1 = EntityMetricRelDAO.builder()
+                .entityMetaId(entityMetaId)
+                .metricMetaId(2L)
+                .alias("alias1")
+                .dataUri("uri1")
+                .build()
+        def dao2 = EntityMetricRelDAO.builder()
+                .entityMetaId(entityMetaId)
+                .metricMetaId(3L)
+                .alias("alias2")
+                .dataUri("uri2")
+                .build()
         def daoList = [dao1, dao2]
         def vo1 = EntityMetricRelVO.builder()
                 .entityMetaId(entityMetaId)
@@ -197,11 +206,11 @@ class EntityMetricRelControllerTest extends Specification {
     def "test listByMetricMetaId success"() {
         given:
         def metricMetaId = 2L
-        def dao1 = new EntityMetricRelDAO()
-        dao1.setEntityMetaId(1L)
-        dao1.setMetricMetaId(metricMetaId)
-        dao1.setAlias("alias1")
-        dao1.setDataUri("uri1")
+        def dao1 = EntityMetricRelDAO.builder()
+                .entityMetaId(1L)
+                .metricMetaId(metricMetaId)
+                .alias("alias1")
+                .dataUri("uri1")
         def daoList = [dao1]
         def vo1 = EntityMetricRelVO.builder()
                 .entityMetaId(1L)
@@ -209,13 +218,14 @@ class EntityMetricRelControllerTest extends Specification {
                 .alias("alias1")
                 .dataUri("uri1")
                 .build()
+        def voList = [vo1]
 
         when:
         def response = mockMvc.perform(get("/api/v1/entity_metric_rels/metric/${metricMetaId}"))
 
         then:
         1 * entityMetricRelService.listByMetricMetaId(metricMetaId) >> daoList
-        1 * entityMetricRelStructMapper.daoToVo(dao1) >> vo1
+        1 * entityMetricRelStructMapper.daoToVoBatch(daoList) >> voList
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data[0].metricMetaId').value(metricMetaId))
@@ -223,11 +233,12 @@ class EntityMetricRelControllerTest extends Specification {
 
     def "test list success"() {
         given:
-        def dao1 = new EntityMetricRelDAO()
-        dao1.setEntityMetaId(1L)
-        dao1.setMetricMetaId(2L)
-        dao1.setAlias("alias1")
-        dao1.setDataUri("uri1")
+        def dao1 = EntityMetricRelDAO.builder()
+                .entityMetaId(1L)
+                .metricMetaId(2L)
+                .alias("alias1")
+                .dataUri("uri1")
+                .build()
         def daoList = [dao1]
         def vo1 = EntityMetricRelVO.builder()
                 .entityMetaId(1L)
@@ -256,6 +267,12 @@ class EntityMetricRelControllerTest extends Specification {
                 .alias("updated_alias")
                 .dataUri("updated://data/uri")
                 .build()
+        def dto = EntityMetricRelDTO.builder()
+                .entityCode(ENTITY_CODE)
+                .metricCode(METRIC_CODE)
+                .alias("updated_alias")
+                .dataUri("updated://data/uri")
+                .build()
         def entityMeta = EntityMeta.builder()
                 .id(ENTITY_META_ID.intValue())
                 .code(ENTITY_CODE)
@@ -271,9 +288,8 @@ class EntityMetricRelControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * entityService.getByCode(ENTITY_CODE) >> entityMeta
-        1 * metricService.getPrimeMetricByCode(METRIC_CODE) >> primeMetric
-        1 * entityMetricRelService.update(1L, 2L, "updated_alias", "updated://data/uri") >> true
+        1 * entityMetricRelStructMapper.qoToDto(qo) >> dto
+        1 * entityMetricRelService.update(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))

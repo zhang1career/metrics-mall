@@ -180,7 +180,7 @@ class OpLogServiceImplTest extends Specification {
         def result = service.insert(dto)
 
         then:
-        1 * opLogStructMapper.dtoToDao(dto) >> daoWithoutCt
+        1 * opLogStructMapper.dtoToDao(dto) >> daoWithCt
         1 * opLogMapper.insert(_ as OpLogDAO) >> { OpLogDAO dao ->
             assert dao.getCt() != null
             assert dao.getCt() > 0
@@ -231,6 +231,8 @@ class OpLogServiceImplTest extends Specification {
         def result = service.insert(null)
 
         then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message == "[oplog] create failed: dto is null"
         0 * opLogStructMapper.dtoToDao(_)
         0 * opLogMapper.insert(_)
         0 * opLogStructMapper.daoToModel(_)

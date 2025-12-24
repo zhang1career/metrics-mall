@@ -42,8 +42,16 @@ class MetricDimensionGroupRelControllerTest extends Specification {
     def "test get by id success"() {
         given:
         def id = 1L
-        def model = MetricDimensionGroupRel.builder().id(id).mid(100L).dids("1,2,3").build()
-        def vo = MetricDimensionGroupRelVO.builder().id(id).mid(100L).dids("1,2,3").build()
+        def model = MetricDimensionGroupRel.builder()
+                .id(id)
+                .metricId(100L)
+                .dimensionIdList(["1", "2", "3"])
+                .build()
+        def vo = MetricDimensionGroupRelVO.builder()
+                .id(id)
+                .metricId(100L)
+                .dimensionIds("1,2,3")
+                .build()
 
         when:
         def response = mockMvc.perform(get("/api/v1/metric_dim_group_rels/${id}"))
@@ -58,8 +66,20 @@ class MetricDimensionGroupRelControllerTest extends Specification {
 
     def "test list success"() {
         given:
-        def modelList = [MetricDimensionGroupRel.builder().id(1L).mid(100L).dids("1,2,3").build()]
-        def voList = [MetricDimensionGroupRelVO.builder().id(1L).mid(100L).dids("1,2,3").build()]
+        def modelList = [
+                MetricDimensionGroupRel.builder()
+                        .id(1L)
+                        .metricId(100L)
+                        .dimensionIdList(["1", "2", "3"])
+                        .build()
+        ]
+        def voList = [
+                MetricDimensionGroupRelVO.builder()
+                        .id(1L)
+                        .metricId(100L)
+                        .dimensionIds("1,2,3")
+                        .build()
+        ]
 
         when:
         def response = mockMvc.perform(get("/api/v1/metric_dim_group_rels"))
@@ -75,8 +95,20 @@ class MetricDimensionGroupRelControllerTest extends Specification {
     def "test listByMid success"() {
         given:
         def mid = 100L
-        def modelList = [MetricDimensionGroupRel.builder().id(1L).mid(mid).dids("1,2,3").build()]
-        def voList = [MetricDimensionGroupRelVO.builder().id(1L).mid(mid).dids("1,2,3").build()]
+        def modelList = [
+                MetricDimensionGroupRel.builder()
+                        .id(1L)
+                        .metricId(mid)
+                        .dimensionIdList(["1", "2", "3"])
+                        .build()
+        ]
+        def voList = [
+                MetricDimensionGroupRelVO.builder()
+                        .id(1L)
+                        .metricId(mid)
+                        .dimensionIds("1,2,3")
+                        .build()
+        ]
 
         when:
         def response = mockMvc.perform(get("/api/v1/metric_dim_group_rels/metric/${mid}"))
@@ -102,8 +134,14 @@ class MetricDimensionGroupRelControllerTest extends Specification {
 
     def "test insert success"() {
         given:
-        def qo = MetricDimensionGroupRelQO.builder().mid(100L).dids("1,2,3").build()
-        def dto = MetricDimensionGroupRelDTO.builder().metricId(100L).dimensionIdList("1,2,3").build()
+        def qo = MetricDimensionGroupRelQO.builder()
+                .metricId(100L)
+                .dimensionIds("1,2,3")
+                .build()
+        def dto = MetricDimensionGroupRelDTO.builder()
+                .metricId(100L)
+                .dimensionIdList(["1","2","3"])
+                .build()
 
         when:
         def response = mockMvc.perform(post("/api/v1/metric_dim_group_rels")
@@ -120,8 +158,15 @@ class MetricDimensionGroupRelControllerTest extends Specification {
 
     def "test update success"() {
         given:
-        def qo = MetricDimensionGroupRelQO.builder().id(1L).mid(100L).dids("1,2,3,4").build()
-        def dto = MetricDimensionGroupRelDTO.builder().id(1L).metricId(100L).dimensionIdList("1,2,3,4").build()
+        def qo = MetricDimensionGroupRelQO.builder()
+                .metricId(100L)
+                .dimensionIds("1,2,3,4")
+                .build()
+        def dto = MetricDimensionGroupRelDTO.builder()
+                .id(1L)
+                .metricId(100L)
+                .dimensionIdList(["1","2","3","4"])
+                .build()
 
         when:
         def response = mockMvc.perform(put("/api/v1/metric_dim_group_rels")

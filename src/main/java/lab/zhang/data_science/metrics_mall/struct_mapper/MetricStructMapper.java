@@ -126,16 +126,6 @@ public interface MetricStructMapper extends BaseStructMapper {
     //==================== EchoMetric DTO ====================
 
     /**
-     * Map Object to String.
-     *
-     * @param value object value
-     * @return string value
-     */
-    default String mapObjectToString(Object value) {
-        return value == null ? null : String.valueOf(value);
-    }
-
-    /**
      * Convert EchoMetricQO to EchoMetricDTO.
      *
      * @param qo         echo metric query object
@@ -144,12 +134,11 @@ public interface MetricStructMapper extends BaseStructMapper {
      */
     @Mapping(target = "code", source = "qo.code")
     @Mapping(target = "version", source = "qo.v")
-    @Mapping(target = "value", source = "qo.value")
+    @Mapping(target = "value", expression = "java(qo.getValue() != null ? String.valueOf(qo.getValue()) : \"\")")
     @Mapping(target = "dimensionMap", expression = "java(dimensionQoToDto(qo.getDims()))")
     @Mapping(target = "snapshotTs", source = "snapshotTs")
     @Mapping(target = "sourceType", ignore = true)
-    EchoMetricDTO echoQoToDto(EchoMetricQO qo,
-                              Long snapshotTs);
+    EchoMetricDTO echoQoToDto(EchoMetricQO qo, Long snapshotTs);
 
     /**
      * Convert list of EchoMetricQO to list of EchoMetricDTO.

@@ -19,18 +19,16 @@ class MetricDimensionGroupRelStructMapperTest extends Specification {
     def "test qoToDto"() {
         given:
         def qo = MetricDimensionGroupRelQO.builder()
-                .id(1L)
-                .mid(100L)
-                .dids("1,2,3")
+                .metricId(100L)
+                .dimensionIds("1,2,3")
                 .build()
 
         when:
         def dto = structMapper.qoToDto(qo)
 
         then:
-        dto.id == 1L
         dto.metricId == 100L
-        dto.dimensionIdList == "1,2,3"
+        dto.dimensionIdList == ["1", "2", "3"]
     }
 
     def "test daoToModel"() {
@@ -46,8 +44,8 @@ class MetricDimensionGroupRelStructMapperTest extends Specification {
 
         then:
         model.id == 1L
-        model.mid == 100L
-        model.dids == "1,2,3"
+        model.metricId == 100L
+        model.dimensionIdList == ["1", "2", "3"]
     }
 
     def "test dtoToDao"() {
@@ -55,7 +53,7 @@ class MetricDimensionGroupRelStructMapperTest extends Specification {
         def dto = MetricDimensionGroupRelDTO.builder()
                 .id(1L)
                 .metricId(100L)
-                .dimensionIdList("1,2,3")
+                .dimensionIdList(["1", "2", "3"])
                 .build()
 
         when:
@@ -71,8 +69,8 @@ class MetricDimensionGroupRelStructMapperTest extends Specification {
         given:
         def model = MetricDimensionGroupRel.builder()
                 .id(1L)
-                .mid(100L)
-                .dids("1,2,3")
+                .metricId(100L)
+                .dimensionIdList(["1", "2", "3"])
                 .build()
 
         when:
@@ -80,14 +78,22 @@ class MetricDimensionGroupRelStructMapperTest extends Specification {
 
         then:
         vo.id == 1L
-        vo.mid == 100L
-        vo.dids == "1,2,3"
+        vo.metricId == 100L
+        vo.dimensionIds == "1,2,3"
     }
 
     def "test daoToModelBatch"() {
         given:
-        def dao1 = MetricDimensionGroupRelDAO.builder().id(1L).mid(100L).dids("1,2,3").build()
-        def dao2 = MetricDimensionGroupRelDAO.builder().id(2L).mid(200L).dids("4,5,6").build()
+        def dao1 = MetricDimensionGroupRelDAO.builder()
+                .id(1L)
+                .mid(100L)
+                .dids("1,2,3")
+                .build()
+        def dao2 = MetricDimensionGroupRelDAO.builder()
+                .id(2L)
+                .mid(200L)
+                .dids("4,5,6")
+                .build()
         def daoList = [dao1, dao2]
 
         when:
@@ -96,15 +102,23 @@ class MetricDimensionGroupRelStructMapperTest extends Specification {
         then:
         modelList.size() == 2
         modelList[0].id == 1L
-        modelList[0].mid == 100L
+        modelList[0].metricId == 100L
         modelList[1].id == 2L
-        modelList[1].mid == 200L
+        modelList[1].metricId == 200L
     }
 
     def "test modelToVoBatch"() {
         given:
-        def model1 = MetricDimensionGroupRel.builder().id(1L).mid(100L).dids("1,2,3").build()
-        def model2 = MetricDimensionGroupRel.builder().id(2L).mid(200L).dids("4,5,6").build()
+        def model1 = MetricDimensionGroupRel.builder()
+                .id(1L)
+                .metricId(100L)
+                .dimensionIdList(["1", "2", "3"])
+                .build()
+        def model2 = MetricDimensionGroupRel.builder()
+                .id(2L)
+                .metricId(200L)
+                .dimensionIdList(["1", "2", "3"])
+                .build()
         def modelList = [model1, model2]
 
         when:
@@ -113,9 +127,9 @@ class MetricDimensionGroupRelStructMapperTest extends Specification {
         then:
         voList.size() == 2
         voList[0].id == 1L
-        voList[0].mid == 100L
+        voList[0].metricId == 100L
         voList[1].id == 2L
-        voList[1].mid == 200L
+        voList[1].metricId == 200L
     }
 }
 

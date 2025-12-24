@@ -110,9 +110,7 @@ public class EntityMetricRelController extends BaseV1Controller {
     public ApiResponse<List<EntityMetricRelVO>> listByMetricMetaId(@PathVariable Long metricMetaId) {
         log.info("[entity_metric_rel] listByMetricMetaId, param: metricMetaId={}", metricMetaId);
         List<EntityMetricRelDAO> daoList = entityMetricRelService.listByMetricMetaId(metricMetaId);
-        List<EntityMetricRelVO> voList = daoList.stream()
-                .map(entityMetricRelStructMapper::daoToVo)
-                .collect(Collectors.toList());
+        List<EntityMetricRelVO> voList = entityMetricRelStructMapper.daoToVoBatch(daoList);
         return ApiResponse.success(voList);
     }
 
@@ -171,4 +169,3 @@ public class EntityMetricRelController extends BaseV1Controller {
         return ApiResponse.success(result);
     }
 }
-

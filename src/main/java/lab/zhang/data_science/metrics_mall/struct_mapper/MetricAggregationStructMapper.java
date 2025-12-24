@@ -8,11 +8,14 @@ import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO.FieldConditionQO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricAggregationQO.OrderByQO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.AggregationVO;
+import lab.zhang.data_science.metrics_mall.pojo.vo.BriefMetricVO.PrettyBriefMetricVO;
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricAggregationVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -20,8 +23,11 @@ import java.util.stream.Collectors;
  *
  * @author Rongjin Zhang
  */
-@Mapper(componentModel = "spring",
-        config = BaseAggregationStructMapper.class)
+@Mapper(
+        componentModel = "spring",
+        uses = {
+                MetricStructMapper.class,
+        })
 public interface MetricAggregationStructMapper extends BaseStructMapper {
 
     /**
@@ -93,14 +99,17 @@ public interface MetricAggregationStructMapper extends BaseStructMapper {
     }
 
 
+    default Map<String, PrettyBriefMetricVO> modelToMetricVoMap(MetricAggregation model) {
+        return Mappers.getMapper(MetricStructMapper.class).modelToPrettyBriefVoMap(model.getMetricMap());
+    }
+
     /**
      * Convert MetricAggregation to MetricAggregationVO.
      *
      * @param model metric aggregation model
      * @return metric aggregation VO
      */
-    @Mapping(target = "meta", expression = "java(metricStructMapper.modelToPrettyBriefVoMap(model.getMetricMap()))")
+    @Mapping(target = "meta", expression = "java(modelToMetricVoMap(model))")
     @Mapping(target = "rows", expression = "java(modelToAggregationVoBatch(model))")
     MetricAggregationVO modelToVo(MetricAggregation model);
 }
-

@@ -17,8 +17,14 @@ import spock.lang.Specification
  */
 class MetricSnapshotStructMapperTest extends Specification {
 
-    MetricSnapshotStructMapper mapper = new MetricSnapshotStructMapperImpl()
+    MetricSnapshotStructMapper mapper
+
     MetricStructMapper metricStructMapper = Mock()
+
+    def setup() {
+        mapper = new MetricSnapshotStructMapperImpl()
+    }
+
 
     def "test MetricSnapshot qoToDto success"() {
         given:
@@ -29,15 +35,20 @@ class MetricSnapshotStructMapperTest extends Specification {
                 .snapshotTs(1000L)
                 .isAtomic(1)
                 .build()
-
+        def expectedMetricDto = EchoMetricDTO.builder()
+                .code("m1")
+                .value("")
+                .snapshotTs(1000L)
+                .dimensionMap([:])
+                .build()
         when:
         def dto = mapper.qoToDto(qo)
 
         then:
-        1 * metricStructMapper.echoQoToDtoBatch(qo.metrics, qo.snapshotTs) >> []
         dto != null
         dto.entityCode == "user"
         dto.entityId == 12345678L
+        dto.metricList == [expectedMetricDto]
         dto.snapshotTs == 1000L
         dto.isAtomic == true
     }
@@ -105,14 +116,11 @@ class MetricSnapshotStructMapperTest extends Specification {
         def dto = mapper.qoToDto(qo)
 
         then:
-        1 * metricStructMapper.echoQoToDtoBatch(qo.metrics, qo.snapshotTs) >> [expectedMetricDto]
         dto != null
         dto.entityCode == "user"
         dto.entityId == 12345678L
         dto.snapshotTs == 1000L
-        dto.metricList.size() == 1
-        dto.metricList[0].code == "m1"
-        dto.metricList[0].version == 1
+        dto.metricList == [expectedMetricDto]
     }
 
     def "test betaModelToValueMap success"() {

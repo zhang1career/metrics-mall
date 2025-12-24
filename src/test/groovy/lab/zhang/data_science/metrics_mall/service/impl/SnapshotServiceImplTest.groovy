@@ -8,8 +8,8 @@ import lab.zhang.data_science.metrics_mall.model.metric.AlphaMetric
 import lab.zhang.data_science.metrics_mall.model.metric.EchoMetric
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.metric.EchoMetricDAO
-import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
+import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO
 import lab.zhang.data_science.metrics_mall.service.EntityService
 import lab.zhang.data_science.metrics_mall.service.MetricService
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricStructMapper
@@ -53,14 +53,23 @@ class SnapshotServiceImplTest extends Specification {
                 .entityId(ENTITY_ID)
                 .metricList([])
                 .build()
+        def entity = Entity.builder()
+                .meta(EntityMeta.builder()
+                        .id(1L)
+                        .code(ENTITY_CODE)
+                        .name("")
+                        .description("")
+                        .build())
+                .id(ENTITY_ID)
+                .build()
 
         when:
         service.querySnapshot(dto)
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message == "[snap] metric list is empty"
-        0 * entityService.getEntityByCode(_, _)
+        exception.message == "[snap] querying failed, metric list is empty"
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
     }
 
     def "test querySnapshot with null metric list should throw exception"() {
@@ -70,14 +79,23 @@ class SnapshotServiceImplTest extends Specification {
                 .entityId(ENTITY_ID)
                 .metricList(null)
                 .build()
+        def entity = Entity.builder()
+                .meta(EntityMeta.builder()
+                        .id(1L)
+                        .code(ENTITY_CODE)
+                        .name("")
+                        .description("")
+                        .build())
+                .id(ENTITY_ID)
+                .build()
 
         when:
         service.querySnapshot(dto)
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message == "[snap] metric list is empty"
-        0 * entityService.getEntityByCode(_, _)
+        exception.message == "[snap] querying failed, metric list is empty"
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
     }
 
     def "test querySnapshot with entity not found should return null"() {
@@ -92,6 +110,15 @@ class SnapshotServiceImplTest extends Specification {
                 .entityId(ENTITY_ID)
                 .metricList([metricDTO])
                 .build()
+        def entity = Entity.builder()
+                .meta(EntityMeta.builder()
+                        .id(1L)
+                        .code(ENTITY_CODE)
+                        .name("")
+                        .description("")
+                        .build())
+                .id(ENTITY_ID)
+                .build()
 
         entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> null
 
@@ -99,8 +126,9 @@ class SnapshotServiceImplTest extends Specification {
         def result = service.querySnapshot(dto)
 
         then:
-        result == null
-        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID)
+        def exception = thrown(IllegalArgumentException)
+        exception.message == "[snap] querying failed, entity not found, entityCode=user"
+        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> null
         0 * cacheService.get(_, _, _, _, _)
     }
 
@@ -269,20 +297,16 @@ class SnapshotServiceImplTest extends Specification {
                 .snapshotTs(null)
                 .build()
         def metricMetaDAO1 = createMetricMetaDAO(METRIC_CODE_1)
-        def echoMetricMetaDAO1 = createEchoMetricDAO(METRIC_VALUE_1, SNAPSHOT_TS)
-        def echoMetric1 = createEchoMetric(METRIC_CODE_1, METRIC_VALUE_1, SNAPSHOT_TS)
 
         when:
         def result = service.querySnapshot(dto)
 
         then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message == "[snap] querying failed, metricDTO item is null"
         1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.getMetricMetaDaoByCode(METRIC_CODE_1) >> metricMetaDAO1
-        1 * cacheService.get(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null) >> echoMetricMetaDAO1
-        1 * metricStructMapper.echoMetricDaoToModel(echoMetricMetaDAO1, metricMetaDAO1) >> echoMetric1
-        result != null
-        result.metricList.size() == 1
-        result.metricList[0].code == METRIC_CODE_1
+        0 * metricService.getMetricMetaDaoByCode(METRIC_CODE_1) >> metricMetaDAO1
+        result == null
     }
 
     def "test querySnapshot with metric not found in service should filter out"() {
@@ -530,12 +554,10 @@ class SnapshotServiceImplTest extends Specification {
     private static EchoMetric createEchoMetricWithHistory(String code, String value, Long snapshotTs, Long targetSnapshotTs) {
         def historyList = [
                 AlphaMetric.builder()
-                        .code(code)
                         .value(TypedValue.of(value))
                         .snapshotTs(snapshotTs)
                         .build(),
                 AlphaMetric.builder()
-                        .code(code)
                         .value(TypedValue.of("1200.0"))
                         .snapshotTs(targetSnapshotTs)
                         .build()

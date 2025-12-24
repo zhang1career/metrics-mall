@@ -5,11 +5,10 @@ import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.Dimension
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricDimensionRelQO
 import lab.zhang.data_science.metrics_mall.pojo.vo.MetricDimensionRelVO
-import lab.zhang.data_science.metrics_mall.service.DimensionService
 import lab.zhang.data_science.metrics_mall.service.MetricDimensionRelService
-import lab.zhang.data_science.metrics_mall.service.MetricService
 import lab.zhang.data_science.metrics_mall.struct_mapper.MetricDimensionRelStructMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -31,8 +30,6 @@ class MetricDimensionRelControllerTest extends Specification {
     MockMvc mockMvc
     MetricDimensionRelService metricDimensionRelService = Mock()
     MetricDimensionRelStructMapper metricDimensionRelStructMapper = Mock()
-    MetricService metricService = Mock()
-    DimensionService dimensionService = Mock()
     MetricDimensionRelController controller
     ObjectMapper objectMapper = new ObjectMapper()
 
@@ -47,8 +44,6 @@ class MetricDimensionRelControllerTest extends Specification {
         controller = new MetricDimensionRelController()
         controller.metricDimensionRelService = metricDimensionRelService
         controller.metricDimensionRelStructMapper = metricDimensionRelStructMapper
-        controller.metricService = metricService
-        controller.dimensionService = dimensionService
         def validator = new LocalValidatorFactoryBean()
         validator.afterPropertiesSet()
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -65,24 +60,20 @@ class MetricDimensionRelControllerTest extends Specification {
                 .isHot(IS_HOT)
                 .validation(VALIDATION)
                 .build()
-        def primeMetric = PrimeMetric.builder()
-                .id(METRIC_META_ID)
-                .code(METRIC_CODE)
+        def dto = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
                 .build()
-        def dimension = Dimension.builder()
-                .id(DIMENSION_ID)
-                .code(DIMENSION_CODE)
-                .build()
-
         when:
         def response = mockMvc.perform(post("/api/v1/metric_dim_rels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * metricService.getPrimeMetricByCode(METRIC_CODE) >> primeMetric
-        1 * dimensionService.getByCode(DIMENSION_CODE) >> dimension
-        1 * metricDimensionRelService.create(METRIC_META_ID, DIMENSION_ID, IS_HOT, VALIDATION) >> true
+        1 * metricDimensionRelStructMapper.qoToDto(qo) >> dto
+        1 * metricDimensionRelService.create(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
@@ -231,13 +222,11 @@ class MetricDimensionRelControllerTest extends Specification {
                 .isHot(0)
                 .validation("{\"min\":10,\"max\":200}")
                 .build()
-        def primeMetric = PrimeMetric.builder()
-                .id(METRIC_META_ID)
-                .code(METRIC_CODE)
-                .build()
-        def dimension = Dimension.builder()
-                .id(DIMENSION_ID)
-                .code(DIMENSION_CODE)
+        def dto = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(0)
+                .validation("{\"min\":10,\"max\":200}")
                 .build()
 
         when:
@@ -246,9 +235,8 @@ class MetricDimensionRelControllerTest extends Specification {
                 .content(objectMapper.writeValueAsString(qo)))
 
         then:
-        1 * metricService.getPrimeMetricByCode(METRIC_CODE) >> primeMetric
-        1 * dimensionService.getByCode(DIMENSION_CODE) >> dimension
-        1 * metricDimensionRelService.update(METRIC_META_ID, DIMENSION_ID, 0, "{\"min\":10,\"max\":200}") >> true
+        1 * metricDimensionRelStructMapper.qoToDto(qo) >> dto
+        1 * metricDimensionRelService.update(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
