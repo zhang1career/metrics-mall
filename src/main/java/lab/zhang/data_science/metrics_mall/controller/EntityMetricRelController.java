@@ -61,18 +61,18 @@ public class EntityMetricRelController extends BaseV1Controller {
      * Get entity metric relation by entity meta id and metric meta id.
      *
      * @param entityMetaId entity meta id
-     * @param metricMetaId metric meta id
+     * @param metricId metric meta id
      * @return entity metric relation response
      */
     @Operation(summary = "Get entity metric relation",
             description = "Get entity metric relation by entity meta id and metric meta id")
-    @GetMapping("/entity_metric_rels")
-    public ApiResponse<EntityMetricRelVO> get(
-            @RequestParam Long entityMetaId,
-            @RequestParam Long metricMetaId) {
-        log.info("[entity_metric_rel] get, param: entityMetaId={}, metricMetaId={}",
-                entityMetaId, metricMetaId);
-        EntityMetricRelDAO dao = entityMetricRelService.get(entityMetaId, metricMetaId);
+    @GetMapping("/entity_metric_rels/entity/{entityMetaId}/metric/{metricId}")
+    public ApiResponse<EntityMetricRelVO> getByBothId(
+            @PathVariable Long entityMetaId,
+            @PathVariable Long metricId) {
+        log.info("[entity_metric_rel] get, param: entityMetaId={}, metricId={}",
+                entityMetaId, metricId);
+        EntityMetricRelDAO dao = entityMetricRelService.get(entityMetaId, metricId);
         if (dao == null) {
             return ApiResponse.success(null);
         }
@@ -101,15 +101,15 @@ public class EntityMetricRelController extends BaseV1Controller {
     /**
      * List entity metric relations by metric meta id.
      *
-     * @param metricMetaId metric meta id
+     * @param metricId metric meta id
      * @return entity metric relation list response
      */
     @Operation(summary = "List entity metric relations by metric",
             description = "List entity metric relations by metric meta id")
-    @GetMapping("/entity_metric_rels/metric/{metricMetaId}")
-    public ApiResponse<List<EntityMetricRelVO>> listByMetricMetaId(@PathVariable Long metricMetaId) {
-        log.info("[entity_metric_rel] listByMetricMetaId, param: metricMetaId={}", metricMetaId);
-        List<EntityMetricRelDAO> daoList = entityMetricRelService.listByMetricMetaId(metricMetaId);
+    @GetMapping("/entity_metric_rels/metric/{metricId}")
+    public ApiResponse<List<EntityMetricRelVO>> listByMetricId(@PathVariable Long metricId) {
+        log.info("[entity_metric_rel] listByMetricId, param: metricId={}", metricId);
+        List<EntityMetricRelDAO> daoList = entityMetricRelService.listByMetricId(metricId);
         List<EntityMetricRelVO> voList = entityMetricRelStructMapper.daoToVoBatch(daoList);
         return ApiResponse.success(voList);
     }
@@ -121,7 +121,7 @@ public class EntityMetricRelController extends BaseV1Controller {
      */
     @Operation(summary = "List all entity metric relations",
             description = "List all entity metric relations")
-    @GetMapping("/entity_metric_rels/list")
+    @GetMapping("/entity_metric_rels")
     public ApiResponse<List<EntityMetricRelVO>> list() {
         log.info("[entity_metric_rel] list");
         List<EntityMetricRelDAO> daoList = entityMetricRelService.list();
@@ -154,18 +154,18 @@ public class EntityMetricRelController extends BaseV1Controller {
      * Delete entity metric relation by entity meta id and metric meta id.
      *
      * @param entityMetaId entity meta id
-     * @param metricMetaId metric meta id
+     * @param metricId metric meta id
      * @return success response
      */
     @Operation(summary = "Delete entity metric relation",
             description = "Delete entity metric relation by entity meta id and metric meta id")
-    @DeleteMapping("/entity_metric_rels")
+    @DeleteMapping("/entity_metric_rels/entity/{entityMetaId}/metric/{metricId}")
     public ApiResponse<Boolean> delete(
-            @RequestParam Long entityMetaId,
-            @RequestParam Long metricMetaId) {
-        log.info("[entity_metric_rel] delete, param: entityMetaId={}, metricMetaId={}",
-                entityMetaId, metricMetaId);
-        boolean result = entityMetricRelService.delete(entityMetaId, metricMetaId);
+            @PathVariable Long entityMetaId,
+            @PathVariable Long metricId) {
+        log.info("[entity_metric_rel] delete, param: entityMetaId={}, metricId={}",
+                entityMetaId, metricId);
+        boolean result = entityMetricRelService.delete(entityMetaId, metricId);
         return ApiResponse.success(result);
     }
 }

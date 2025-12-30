@@ -23,7 +23,6 @@ public class MetricVersionQO {
     /**
      * Metric code.
      */
-    @NotBlank(message = "Metric code cannot be blank")
     private String metricCode;
 
     /**

@@ -65,6 +65,15 @@ public class MetricServiceImpl implements MetricService {
     }
 
     @Override
+    public MetricMetaDAO getMetricMetaDaoById(Long id) {
+        if (id == null) {
+            return null;
+        }
+
+        return metricMapper.selectById(id);
+    }
+
+    @Override
     public MetricMetaDAO getMetricMetaDaoByCode(String code) {
         if (StrUtil.isBlank(code)) {
             return null;

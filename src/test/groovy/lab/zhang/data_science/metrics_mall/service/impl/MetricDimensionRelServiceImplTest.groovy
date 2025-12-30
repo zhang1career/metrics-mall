@@ -3,10 +3,12 @@ package lab.zhang.data_science.metrics_mall.service.impl
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper
-import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper
 import lab.zhang.data_science.metrics_mall.pojo.dao.DimensionDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
+import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO
+import lab.zhang.data_science.metrics_mall.service.DimensionService
+import lab.zhang.data_science.metrics_mall.service.MetricService
 import spock.lang.Specification
 
 /**
@@ -16,60 +18,91 @@ import spock.lang.Specification
  */
 class MetricDimensionRelServiceImplTest extends Specification {
 
-    MetricDimensionRelMapper metricDimensionRelMapper = Mock()
-    MetricMetaMapper metricMetaMapper = Mock()
-
     MetricDimensionRelServiceImpl service
 
+    MetricService metricService = Mock()
+    DimensionService dimensionService = Mock()
+    MetricDimensionRelMapper metricDimensionRelMapper = Mock()
+
     private static final Long METRIC_META_ID = 1L
+    private static final String METRIC_CODE = "consumer_amount"
     private static final Long DIMENSION_ID = 2L
+    private static final String DIMENSION_CODE = "location"
     private static final Integer IS_HOT = 1
     private static final String VALIDATION = "{\"min\":0,\"max\":100}"
 
     def setup() {
         service = new MetricDimensionRelServiceImpl()
+        service.metricService = metricService
+        service.dimensionService = dimensionService
         service.metricDimensionRelMapper = metricDimensionRelMapper
-        service.metricMetaMapper = metricMetaMapper
     }
 
     def "test create success"() {
         given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
+                .build()
         def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
         def dimensionDAO = DimensionDAO.builder().id(DIMENSION_ID).build()
 
         when:
-        def result = service.create(METRIC_META_ID, DIMENSION_ID, IS_HOT, VALIDATION)
+        def result = service.create(relDTO)
 
         then:
-        1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
         1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> null
         1 * metricDimensionRelMapper.insert(_ as MetricDimensionRelDAO) >> 1
         result
     }
 
     def "test create with null metricMetaId should throw exception"() {
+        given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(null)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
+                .build()
+
         when:
-        service.create(null, DIMENSION_ID, IS_HOT, VALIDATION)
+        service.create(relDTO)
 
         then:
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("metricMetaId and dimensionId cannot be null")
-        0 * metricMetaMapper.selectById(_)
     }
 
     def "test create with null isHot should throw exception"() {
+        given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(null)
+                .validation(VALIDATION)
+                .build()
+
         when:
-        service.create(METRIC_META_ID, DIMENSION_ID, null, VALIDATION)
+        service.create(relDTO)
 
         then:
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("isHot cannot be null")
-        0 * metricMetaMapper.selectById(_)
     }
 
     def "test create with metric meta not found should throw exception"() {
+        given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
+                .build()
+
         when:
-        service.create(METRIC_META_ID, DIMENSION_ID, IS_HOT, VALIDATION)
+        service.create(relDTO)
 
         then:
         1 * metricMetaMapper.selectById(METRIC_META_ID) >> null
@@ -79,10 +112,16 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
     def "test create with dimension not found should throw exception"() {
         given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
+                .build()
         def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
 
         when:
-        service.create(METRIC_META_ID, DIMENSION_ID, IS_HOT, VALIDATION)
+        service.create(relDTO)
 
         then:
         1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
@@ -92,6 +131,12 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
     def "test create with existing relation should throw exception"() {
         given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
+                .build()
         def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
         def dimensionDAO = DimensionDAO.builder().id(DIMENSION_ID).build()
         def existingRel = new MetricDimensionRelDAO()
@@ -99,7 +144,7 @@ class MetricDimensionRelServiceImplTest extends Specification {
         existingRel.setDimensionId(DIMENSION_ID)
 
         when:
-        service.create(METRIC_META_ID, DIMENSION_ID, IS_HOT, VALIDATION)
+        service.create(relDTO)
 
         then:
         1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
@@ -214,14 +259,21 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
     def "test update success"() {
         given:
+        def updatedIsHot = 0
+        def updatedValidation = "{\"min\":10,\"max\":200}"
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(updatedIsHot)
+                .validation(updatedValidation)
+                .build()
         def existingRel = new MetricDimensionRelDAO()
         existingRel.setMetricMetaId(METRIC_META_ID)
         existingRel.setDimensionId(DIMENSION_ID)
-        def updatedIsHot = 0
-        def updatedValidation = "{\"min\":10,\"max\":200}"
+
 
         when:
-        def result = service.update(METRIC_META_ID, DIMENSION_ID, updatedIsHot, updatedValidation)
+        def result = service.update(relDTO)
 
         then:
         1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> existingRel
@@ -230,8 +282,16 @@ class MetricDimensionRelServiceImplTest extends Specification {
     }
 
     def "test update with null metricMetaId should throw exception"() {
+        given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(null)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
+                .build()
+
         when:
-        service.update(null, DIMENSION_ID, IS_HOT, VALIDATION)
+        service.update(relDTO)
 
         then:
         def exception = thrown(IllegalArgumentException)
@@ -241,7 +301,7 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
     def "test update with relation not found should throw exception"() {
         when:
-        service.update(METRIC_META_ID, DIMENSION_ID, IS_HOT, VALIDATION)
+        service.update(relDTO)
 
         then:
         1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> null

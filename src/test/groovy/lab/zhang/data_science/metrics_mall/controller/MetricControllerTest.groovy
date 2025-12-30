@@ -115,7 +115,7 @@ class MetricControllerTest extends Specification {
 
         then:
         1 * metricStructMapper.qoToDto(_ as MetricMetaQO) >> MetricMetaDTO.builder().build()
-        1 * metricService.list(_ as PrimeMetric) >> modelList
+        1 * metricService.list(_ as MetricMetaDTO) >> modelList
         1 * metricStructMapper.modelToVo(_ as PrimeMetric) >> voList[0]
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
@@ -170,7 +170,7 @@ class MetricControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(put("/api/v1/metrics/${id}")
+        def response = mockMvc.perform(put("/api/v1/metrics")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(qo)))
 

@@ -22,6 +22,7 @@ public interface MetricVersionMapper extends BaseMapper<MetricVersionDAO> {
      * Get versions by metric codes.
      *
      * @param metricCodeColl metric codes
+     * @param lifeStatusColl life statuses
      * @return list of maps containing code, version, is_main
      */
     @Select("<script>" +

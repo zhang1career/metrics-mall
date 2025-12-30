@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
 import lab.zhang.data_science.metrics_mall.model.EntityMeta
 import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
-import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO
 import lab.zhang.data_science.metrics_mall.pojo.dto.EntityMetricRelDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.EntityMetricRelQO
@@ -224,7 +223,7 @@ class EntityMetricRelControllerTest extends Specification {
         def response = mockMvc.perform(get("/api/v1/entity_metric_rels/metric/${metricMetaId}"))
 
         then:
-        1 * entityMetricRelService.listByMetricMetaId(metricMetaId) >> daoList
+        1 * entityMetricRelService.listByMetricId(metricMetaId) >> daoList
         1 * entityMetricRelStructMapper.daoToVoBatch(daoList) >> voList
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))

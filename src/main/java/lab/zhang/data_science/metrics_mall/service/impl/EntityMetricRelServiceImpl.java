@@ -65,12 +65,12 @@ public class EntityMetricRelServiceImpl implements EntityMetricRelService {
     }
 
     @Override
-    public List<EntityMetricRelDAO> listByMetricMetaId(Long metricMetaId) {
-        if (metricMetaId == null) {
+    public List<EntityMetricRelDAO> listByMetricId(Long metricId) {
+        if (metricId == null) {
             return List.of();
         }
         LambdaQueryWrapper<EntityMetricRelDAO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(EntityMetricRelDAO::getMetricMetaId, metricMetaId);
+        queryWrapper.eq(EntityMetricRelDAO::getMetricMetaId, metricId);
         return entityMetricRelMapper.selectList(queryWrapper);
     }
 

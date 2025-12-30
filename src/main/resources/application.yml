@@ -2,6 +2,9 @@ server:
   port: 8080
   servlet:
     context-path: /
+  tomcat:
+    remoteip:
+      host-header: "*"
 
 
 # Metrics-mall configuration
@@ -91,6 +94,17 @@ springdoc:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
+
+
+# Spring Boot Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: when-authorized
 
 
 # Logging configuration

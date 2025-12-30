@@ -218,7 +218,7 @@ class EntityMetricRelServiceImplTest extends Specification {
         result == []
     }
 
-    def "test listByMetricMetaId success"() {
+    def 'test listByMetricId success'() {
         given:
         def dao1 = new EntityMetricRelDAO()
         dao1.setEntityMetaId(1L)
@@ -226,7 +226,7 @@ class EntityMetricRelServiceImplTest extends Specification {
         def daoList = [dao1]
 
         when:
-        def result = service.listByMetricMetaId(METRIC_META_ID)
+        def result = service.listByMetricId(METRIC_META_ID)
 
         then:
         1 * entityMetricRelMapper.selectList(_ as LambdaQueryWrapper) >> daoList

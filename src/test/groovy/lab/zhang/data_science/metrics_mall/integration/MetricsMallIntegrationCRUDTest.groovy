@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.not
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -31,6 +32,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+// CAUTION: The cleanup script MUST NOT be enabled for normal test runs,
+//@Sql(
+//        scripts = "/sql/cleanup.sql",
+//        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+//)
 @Transactional
 class MetricsMallIntegrationCRUDTest extends Specification {
 
@@ -43,6 +49,14 @@ class MetricsMallIntegrationCRUDTest extends Specification {
     private static final String ENTITY_CODE = "customer"
     private static final String METRIC_CODE = "consume_amount"
     private static final Long ENTITY_ID = 10000001L
+
+    def getMetricIdByCode(String code) {
+        def response = mockMvc.perform(get("/api/v1/metrics/code/${code}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath('$.code').value(0))
+                .andReturn()
+        return objectMapper.readTree(response.response.contentAsString).get("data").get("id").asLong()
+    }
 
 
     // ==================== 2.1 EntityMeta 数据准备 ====================
@@ -284,8 +298,9 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
+        def metricId = getMetricIdByCode(METRIC_CODE)
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_versions")
+        def response = mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
 
@@ -324,13 +339,14 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_versions")
+        def response = mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
 
@@ -368,13 +384,14 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_versions")
+        def response = mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
 
@@ -412,13 +429,14 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_versions")
+        def response = mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
 
@@ -456,13 +474,14 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_versions")
+        def response = mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
 
@@ -520,13 +539,14 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(relQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))
         and:
-        def response = mockMvc.perform(post("/api/v1/metric_versions")
+        def response = mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
 
@@ -903,13 +923,14 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
         and:
-        def response = mockMvc.perform(put("/api/v1/metric_versions")
+        def response = mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
 
@@ -949,18 +970,19 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
         and:
-        def response = mockMvc.perform(put("/api/v1/metric_versions")
+        def response = mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO2)))
 
@@ -1005,23 +1027,24 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
         and:
-        def response = mockMvc.perform(put("/api/v1/metric_versions")
+        def response = mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO3)))
 
@@ -1066,23 +1089,24 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
         and:
-        def response = mockMvc.perform(put("/api/v1/metric_versions")
+        def response = mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO3)))
 
@@ -1132,28 +1156,29 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO3)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
         and:
-        def response = mockMvc.perform(put("/api/v1/metric_versions")
+        def response = mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO4)))
 
@@ -1203,28 +1228,29 @@ class MetricsMallIntegrationCRUDTest extends Specification {
                 .content(objectMapper.writeValueAsString(metricQO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(post("/api/v1/metric_versions")
+        def metricId = getMetricIdByCode(METRIC_CODE)
+        mockMvc.perform(post("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO20)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO21)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO22)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
-        mockMvc.perform(put("/api/v1/metric_versions")
+        mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO23)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
         and:
-        def response = mockMvc.perform(put("/api/v1/metric_versions")
+        def response = mockMvc.perform(put("/api/v1/metrics/${metricId}/versions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(versionQO24)))
 

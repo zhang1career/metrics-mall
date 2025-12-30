@@ -14,6 +14,14 @@ import java.util.List;
 public interface MetricVersionService {
 
     /**
+     * List metric versions by metric id.
+     *
+     * @param metricId metric id
+     * @return list of metric version model
+     */
+    List<MetricVersion> listByMetricId(Long metricId);
+
+    /**
      * Get metric version by id.
      *
      * @param id primary key id
@@ -31,20 +39,12 @@ public interface MetricVersionService {
     MetricVersion getByMetricIdAndVersion(Long metricId, Integer version);
 
     /**
-     * List metric versions by query criteria.
-     *
-     * @param dto query criteria
-     * @return list of metric version model
-     */
-    List<MetricVersion> list(MetricVersionDTO dto);
-
-    /**
      * Insert a new metric version.
      *
      * @param dto metric version data transfer object
      * @return true if success
      */
-    boolean insert(MetricVersionDTO dto);
+    boolean create(MetricVersionDTO dto);
 
     /**
      * Update an existing metric version.
@@ -61,5 +61,8 @@ public interface MetricVersionService {
      * @return true if success
      */
     boolean delete(Long id);
+
+
+    boolean deleteByMetricIdAndVersion(Long metricId, Integer version);
 }
 

@@ -45,6 +45,25 @@ public class VersionServiceImpl implements MetricVersionService {
 
 
     @Override
+    public List<MetricVersion> listByMetricId(Long metricId) {
+        if (metricId == null) {
+            throw new IllegalArgumentException("[metric_version] list failed, metricId is null");
+        }
+        // validate metric meta existence
+        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoById(metricId);
+        if (metricMetaDAO == null) {
+            throw new IllegalArgumentException("[metric_version] list failed, metric meta not found: metricId=" + metricId);
+        }
+
+        // query
+        LambdaQueryWrapper<MetricVersionDAO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MetricVersionDAO::getMetricId, metricId);
+        List<MetricVersionDAO> daoList = metricVersionMapper.selectList(queryWrapper);
+
+        return metricVersionStructMapper.daoToModelBatch(daoList);
+    }
+
+    @Override
     public MetricVersion get(Long id) {
         if (id == null) {
             return null;
@@ -56,50 +75,15 @@ public class VersionServiceImpl implements MetricVersionService {
 
     @Override
     public MetricVersion getByMetricIdAndVersion(Long metricId, Integer version) {
-        if (metricId == null || version == null) {
-            throw new IllegalArgumentException("metric code or version is null");
-        }
-
-        LambdaQueryWrapper<MetricVersionDAO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MetricVersionDAO::getMetricId, metricId);
-        queryWrapper.eq(MetricVersionDAO::getVersion, version);
+        LambdaQueryWrapper<MetricVersionDAO> queryWrapper =
+                buildQueryWrapperForSearchingByMetricIdAndVersion(metricId, version);
         MetricVersionDAO dao = metricVersionMapper.selectOne(queryWrapper);
         return metricVersionStructMapper.daoToModel(dao);
     }
 
-    @Override
-    public List<MetricVersion> list(MetricVersionDTO dto) {
-        if (dto == null) {
-            throw new IllegalArgumentException("[metric_version] list failed, dto is null");
-        }
-        // validate metric meta existence
-        MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(dto.getMetricCode());
-        if (metricMetaDAO == null) {
-            throw new IllegalArgumentException("[metric_version] list failed, metric meta not found: metricCode=" + dto.getMetricCode());
-        }
-
-        // query
-        LambdaQueryWrapper<MetricVersionDAO> queryWrapper = new LambdaQueryWrapper<>();
-        if (dto.getMetricId() != null) {
-            queryWrapper.eq(MetricVersionDAO::getMetricId, dto.getMetricId());
-        }
-        if (dto.getVersion() != null) {
-            queryWrapper.eq(MetricVersionDAO::getVersion, dto.getVersion());
-        }
-        if (dto.getIsMain() != null) {
-            queryWrapper.eq(MetricVersionDAO::getIsMain, dto.getIsMain());
-        }
-        if (dto.getLifeStatus() != null) {
-            queryWrapper.eq(MetricVersionDAO::getLifeStatus, dto.getLifeStatus());
-        }
-        List<MetricVersionDAO> daoList = metricVersionMapper.selectList(queryWrapper);
-
-        return metricVersionStructMapper.daoToModelBatch(daoList);
-    }
-
 
     @Override
-    public boolean insert(MetricVersionDTO dto) {
+    public boolean create(MetricVersionDTO dto) {
         // validate input
         if (dto == null) {
             throw new IllegalArgumentException("[metric_version] creating failed, dto to insert is null");
@@ -205,6 +189,25 @@ public class VersionServiceImpl implements MetricVersionService {
             return false;
         }
         return metricVersionMapper.deleteById(id) > 0;
+    }
+
+    @Override
+    public boolean deleteByMetricIdAndVersion(Long metricId, Integer version) {
+        LambdaQueryWrapper<MetricVersionDAO> queryWrapper =
+                buildQueryWrapperForSearchingByMetricIdAndVersion(metricId, version);
+        return metricVersionMapper.delete(queryWrapper) > 0;
+    }
+
+    private LambdaQueryWrapper<MetricVersionDAO> buildQueryWrapperForSearchingByMetricIdAndVersion(Long metricId, Integer version) {
+        if (metricId == null || version == null) {
+            throw new IllegalArgumentException("metric code or version is null");
+        }
+
+        LambdaQueryWrapper<MetricVersionDAO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MetricVersionDAO::getMetricId, metricId);
+        queryWrapper.eq(MetricVersionDAO::getVersion, version);
+
+        return queryWrapper;
     }
 }
 

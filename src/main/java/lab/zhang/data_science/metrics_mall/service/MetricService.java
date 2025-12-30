@@ -36,6 +36,14 @@ public interface MetricService {
     Map<String, PrimeMetric> getPrimeMetricByCodeBatch(List<String> codes);
 
     /**
+     * Get metric DAO by id.
+     *
+     * @param id metric id
+     * @return metric DAO, null if not found
+     */
+    MetricMetaDAO getMetricMetaDaoById(Long id);
+
+    /**
      * Get metric DAO by code.
      *
      * @param code metric code

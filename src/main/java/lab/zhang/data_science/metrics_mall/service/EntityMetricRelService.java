@@ -51,10 +51,10 @@ public interface EntityMetricRelService {
     /**
      * List entity metric relations by metric meta id.
      *
-     * @param metricMetaId metric meta id
+     * @param metricId metric meta id
      * @return entity metric relation DAO list
      */
-    List<EntityMetricRelDAO> listByMetricMetaId(Long metricMetaId);
+    List<EntityMetricRelDAO> listByMetricId(Long metricId);
 
     /**
      * List entity metric relations by alias list.

@@ -56,8 +56,8 @@ public class MetricController extends BaseV1Controller {
      * @return metric response
      */
     @Operation(summary = "Get metric by code", description = "Get metric by code")
-    @GetMapping("/metrics")
-    public ApiResponse<MetricVO> getByCode(@RequestParam String code) {
+    @GetMapping("/metrics/code/{code}")
+    public ApiResponse<MetricVO> getByCode(@PathVariable String code) {
         log.info("[metric] getByCode, code: {}", code);
         PrimeMetric model = metricService.getPrimeMetricByCode(code);
         return ApiResponse.success(metricStructMapper.modelToVo(model));
@@ -70,7 +70,7 @@ public class MetricController extends BaseV1Controller {
      * @return metric list response
      */
     @Operation(summary = "List metrics", description = "List metrics by query criteria")
-    @GetMapping("/metrics/list")
+    @GetMapping("/metrics")
     public ApiResponse<List<MetricVO>> list(MetricMetaQO qo) {
         log.info("[metric] list, param: {}", qo);
         MetricMetaDTO dto = metricStructMapper.qoToDto(qo);

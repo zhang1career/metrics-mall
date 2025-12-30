@@ -9,7 +9,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
@@ -37,6 +39,25 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
 
         log.warn("Validation failed: {}", message);
+
+        return ResponseEntity.ok(ApiResponse.error(400, "Validation failed: " + message));
+    }
+
+    /**
+     * Handle HandlerMethodValidationException
+     * This exception occurs when method parameter validation fails (Spring 6.1+)
+     *
+     * @param ex HandlerMethodValidationException
+     * @return error response
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleHandlerMethodValidation(HandlerMethodValidationException ex) {
+        String message = ex.getAllValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> result.getMethodParameter().getParameterName() + ": " + error.getDefaultMessage()))
+                .collect(Collectors.joining(", "));
+
+        log.warn("Handler method validation failed: {}", message, ex);
 
         return ResponseEntity.ok(ApiResponse.error(400, "Validation failed: " + message));
     }
@@ -139,6 +160,19 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.ok(ApiResponse.error(400, message));
+    }
+
+    /**
+     * Handle NoResourceFoundException
+     * This exception occurs when a requested resource (e.g., static file or endpoint) is not found
+     *
+     * @param ex NoResourceFoundException
+     * @return error response
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNoResourceFound(NoResourceFoundException ex) {
+        log.warn("Resource not found: {}", ex.getResourcePath());
+        return ResponseEntity.ok(ApiResponse.error(404, "Resource not found: " + ex.getResourcePath()));
     }
 
     /**
