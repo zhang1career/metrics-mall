@@ -109,7 +109,7 @@ public class DimensionServiceImpl implements DimensionService {
     }
 
     @Override
-    public boolean insert(DimensionDTO dto) {
+    public boolean create(DimensionDTO dto) {
         // validate input
         if (dto == null) {
             throw new IllegalArgumentException("[dimension] creating failed, dto cannot be null");

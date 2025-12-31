@@ -35,42 +35,33 @@ public class MetricDimensionRelController extends BaseV1Controller {
     @Autowired
     private MetricDimensionRelStructMapper metricDimensionRelStructMapper;
 
-
     /**
-     * Get metric dimension relation by metric meta id and dimension id.
+     * List all metric dimension relations.
      *
-     * @param metricMetaId metric meta id
-     * @param dimensionId  dimension id
-     * @return metric dimension relation response
+     * @return metric dimension relation list response
      */
-    @Operation(summary = "Get metric dimension relation",
-            description = "Get metric dimension relation by metric meta id and dimension id")
+    @Operation(summary = "List all metric dimension relations",
+            description = "List all metric dimension relations")
     @GetMapping("/metric_dim_rels")
-    public ApiResponse<MetricDimensionRelVO> get(
-            @RequestParam Long metricMetaId,
-            @RequestParam Long dimensionId) {
-        log.info("[metric_dimension_rel] get, param: metricMetaId={}, dimensionId={}",
-                metricMetaId, dimensionId);
-        MetricDimensionRelDAO dao = metricDimensionRelService.get(metricMetaId, dimensionId);
-        if (dao == null) {
-            return ApiResponse.success(null);
-        }
-        MetricDimensionRelVO vo = metricDimensionRelStructMapper.daoToVo(dao);
-        return ApiResponse.success(vo);
+    public ApiResponse<List<MetricDimensionRelVO>> list() {
+        log.info("[y] list");
+        List<MetricDimensionRelDAO> daoList = metricDimensionRelService.list();
+        List<MetricDimensionRelVO> voList = metricDimensionRelStructMapper.daoToVoBatch(daoList);
+        return ApiResponse.success(voList);
     }
 
     /**
      * List metric dimension relations by metric meta id.
      *
-     * @param metricMetaId metric meta id
+     * @param metricId metric meta id
      * @return metric dimension relation list response
      */
     @Operation(summary = "List metric dimension relations by metric",
             description = "List metric dimension relations by metric meta id")
-    @GetMapping("/metric_dim_rels/metric/{metricMetaId}")
-    public ApiResponse<List<MetricDimensionRelVO>> listByMetricMetaId(@PathVariable Long metricMetaId) {
-        log.info("[metric_dimension_rel] listByMetricMetaId, param: metricMetaId={}", metricMetaId);
-        List<MetricDimensionRelDAO> daoList = metricDimensionRelService.listByMetricMetaId(metricMetaId);
+    @GetMapping("/metric_dim_rels/metric/{metricId}")
+    public ApiResponse<List<MetricDimensionRelVO>> listByMetricId(@PathVariable Long metricId) {
+        log.info("[y] listByMetricMetaId, param: metricMetaId={}", metricId);
+        List<MetricDimensionRelDAO> daoList = metricDimensionRelService.listByMetricMetaId(metricId);
         List<MetricDimensionRelVO> voList = daoList.stream()
                 .map(metricDimensionRelStructMapper::daoToVo)
                 .collect(Collectors.toList());
@@ -87,7 +78,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
             description = "List metric dimension relations by dimension id")
     @GetMapping("/metric_dim_rels/dimension/{dimensionId}")
     public ApiResponse<List<MetricDimensionRelVO>> listByDimensionId(@PathVariable Long dimensionId) {
-        log.info("[metric_dimension_rel] listByDimensionId, param: dimensionId={}", dimensionId);
+        log.info("[y] listByDimensionId, param: dimensionId={}", dimensionId);
         List<MetricDimensionRelDAO> daoList = metricDimensionRelService.listByDimensionId(dimensionId);
         List<MetricDimensionRelVO> voList = daoList.stream()
                 .map(metricDimensionRelStructMapper::daoToVo)
@@ -96,18 +87,25 @@ public class MetricDimensionRelController extends BaseV1Controller {
     }
 
     /**
-     * List all metric dimension relations.
+     * Get metric dimension relation by metric meta id and dimension id.
      *
-     * @return metric dimension relation list response
+     * @param metricMetaId metric meta id
+     * @param dimensionId  dimension id
+     * @return metric dimension relation response
      */
-    @Operation(summary = "List all metric dimension relations",
-            description = "List all metric dimension relations")
-    @GetMapping("/metric_dim_rels/list")
-    public ApiResponse<List<MetricDimensionRelVO>> list() {
-        log.info("[metric_dimension_rel] list");
-        List<MetricDimensionRelDAO> daoList = metricDimensionRelService.list();
-        List<MetricDimensionRelVO> voList = metricDimensionRelStructMapper.daoToVoBatch(daoList);
-        return ApiResponse.success(voList);
+    @Operation(summary = "Get metric dimension relation",
+            description = "Get metric dimension relation by metric meta id and dimension id")
+    @GetMapping("/metric_dim_rels/metric/{metricMetaId}/dimension/{dimensionId}")
+    public ApiResponse<MetricDimensionRelVO> get(@PathVariable Long metricMetaId,
+                                                 @PathVariable Long dimensionId) {
+        log.info("[y] get, param: metricMetaId={}, dimensionId={}",
+                metricMetaId, dimensionId);
+        MetricDimensionRelDAO dao = metricDimensionRelService.get(metricMetaId, dimensionId);
+        if (dao == null) {
+            return ApiResponse.success(null);
+        }
+        MetricDimensionRelVO vo = metricDimensionRelStructMapper.daoToVo(dao);
+        return ApiResponse.success(vo);
     }
 
     /**
@@ -121,7 +119,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
                     "Either metricMetaId/dimensionId or metricCode/dimensionCode can be provided.")
     @PostMapping("/metric_dim_rels")
     public ApiResponse<Boolean> create(@Valid @RequestBody MetricDimensionRelQO qo) {
-        log.info("[metric_dimension_rel] create, param: metricCode={}, dimensionCode={}, isHot={}",
+        log.info("[y] create, param: metricCode={}, dimensionCode={}, isHot={}",
                 qo.getMetricCode(), qo.getDimensionCode(), qo.getIsHot());
 
         MetricDimensionRelDTO dto = metricDimensionRelStructMapper.qoToDto(qo);
@@ -143,7 +141,7 @@ public class MetricDimensionRelController extends BaseV1Controller {
                     "Either metricMetaId/dimensionId or metricCode/dimensionCode can be provided.")
     @PutMapping("/metric_dim_rels")
     public ApiResponse<Boolean> update(@Valid @RequestBody MetricDimensionRelQO qo) {
-        log.info("[metric_dimension_rel] update, param: metricCode={}, dimensionCode={}, isHot={}",
+        log.info("[y] update, param: metricCode={}, dimensionCode={}, isHot={}",
                 qo.getMetricCode(), qo.getDimensionCode(), qo.getIsHot());
 
         MetricDimensionRelDTO dto = metricDimensionRelStructMapper.qoToDto(qo);
@@ -163,11 +161,10 @@ public class MetricDimensionRelController extends BaseV1Controller {
      */
     @Operation(summary = "Delete metric dimension relation",
             description = "Delete metric dimension relation by metric meta id and dimension id")
-    @DeleteMapping("/metric_dim_rels")
-    public ApiResponse<Boolean> delete(
-            @RequestParam Long metricMetaId,
-            @RequestParam Long dimensionId) {
-        log.info("[metric_dimension_rel] delete, param: metricMetaId={}, dimensionId={}",
+    @DeleteMapping("/metric_dim_rels/metric/{metricMetaId}/dimension/{dimensionId}")
+    public ApiResponse<Boolean> delete(@PathVariable Long metricMetaId,
+                                       @PathVariable Long dimensionId) {
+        log.info("[y] delete, param: metricMetaId={}, dimensionId={}",
                 metricMetaId, dimensionId);
         boolean result = metricDimensionRelService.delete(metricMetaId, dimensionId);
         return ApiResponse.success(result);

@@ -3,6 +3,8 @@ package lab.zhang.data_science.metrics_mall.service.impl
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import lab.zhang.data_science.metrics_mall.mapper.MetricDimensionRelMapper
+import lab.zhang.data_science.metrics_mall.mapper.MetricMetaMapper
+import lab.zhang.data_science.metrics_mall.model.Dimension
 import lab.zhang.data_science.metrics_mall.pojo.dao.DimensionDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
@@ -22,6 +24,7 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
     MetricService metricService = Mock()
     DimensionService dimensionService = Mock()
+    MetricMetaMapper metricMetaMapper = Mock()
     MetricDimensionRelMapper metricDimensionRelMapper = Mock()
 
     private static final Long METRIC_META_ID = 1L
@@ -46,14 +49,22 @@ class MetricDimensionRelServiceImplTest extends Specification {
                 .isHot(IS_HOT)
                 .validation(VALIDATION)
                 .build()
-        def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
-        def dimensionDAO = DimensionDAO.builder().id(DIMENSION_ID).build()
+        def metricMetaDAO = MetricMetaDAO.builder()
+                .id(METRIC_META_ID)
+                .code(METRIC_CODE)
+                .build()
+        def dimension = Dimension.builder()
+                .id(DIMENSION_ID)
+                .code(DIMENSION_CODE)
+                .build()
 
         when:
         def result = service.create(relDTO)
 
         then:
-        1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> null
+        1 * metricService.getMetricMetaDaoByCode(_) >> metricMetaDAO
+        1 * dimensionService.getByCode(_) >> dimension
+        1 * metricDimensionRelMapper.selectOne(_) >> null
         1 * metricDimensionRelMapper.insert(_ as MetricDimensionRelDAO) >> 1
         result
     }
@@ -72,24 +83,7 @@ class MetricDimensionRelServiceImplTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("metricMetaId and dimensionId cannot be null")
-    }
-
-    def "test create with null isHot should throw exception"() {
-        given:
-        def relDTO = MetricDimensionRelDTO.builder()
-                .metricCode(METRIC_CODE)
-                .dimensionCode(DIMENSION_CODE)
-                .isHot(null)
-                .validation(VALIDATION)
-                .build()
-
-        when:
-        service.create(relDTO)
-
-        then:
-        def exception = thrown(IllegalArgumentException)
-        exception.message.contains("isHot cannot be null")
+        exception.message.contains("creating failed, metric meta not found")
     }
 
     def "test create with metric meta not found should throw exception"() {
@@ -105,9 +99,9 @@ class MetricDimensionRelServiceImplTest extends Specification {
         service.create(relDTO)
 
         then:
-        1 * metricMetaMapper.selectById(METRIC_META_ID) >> null
+        1 * metricService.getMetricMetaDaoByCode(_) >> null
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("metric meta not found")
+        exception.message.contains("creating failed, metric meta not found")
     }
 
     def "test create with dimension not found should throw exception"() {
@@ -118,15 +112,18 @@ class MetricDimensionRelServiceImplTest extends Specification {
                 .isHot(IS_HOT)
                 .validation(VALIDATION)
                 .build()
-        def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
+        def metricMetaDAO = MetricMetaDAO.builder()
+                .id(METRIC_META_ID)
+                .build()
 
         when:
         service.create(relDTO)
 
         then:
-        1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
+        1 * metricService.getMetricMetaDaoByCode(_) >> metricMetaDAO
+        1 * dimensionService.getByCode(_) >> null
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("dimension not found")
+        exception.message.contains("creating failed, dimension not found")
     }
 
     def "test create with existing relation should throw exception"() {
@@ -137,8 +134,12 @@ class MetricDimensionRelServiceImplTest extends Specification {
                 .isHot(IS_HOT)
                 .validation(VALIDATION)
                 .build()
-        def metricMetaDAO = MetricMetaDAO.builder().id(METRIC_META_ID).build()
-        def dimensionDAO = DimensionDAO.builder().id(DIMENSION_ID).build()
+        def metricMetaDAO = MetricMetaDAO.builder()
+                .id(METRIC_META_ID)
+                .build()
+        def dimension = Dimension.builder()
+                .id(DIMENSION_ID)
+                .build()
         def existingRel = new MetricDimensionRelDAO()
         existingRel.setMetricMetaId(METRIC_META_ID)
         existingRel.setDimensionId(DIMENSION_ID)
@@ -147,10 +148,11 @@ class MetricDimensionRelServiceImplTest extends Specification {
         service.create(relDTO)
 
         then:
-        1 * metricMetaMapper.selectById(METRIC_META_ID) >> metricMetaDAO
-        1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> existingRel
+        1 * metricService.getMetricMetaDaoByCode(_) >> metricMetaDAO
+        1 * dimensionService.getByCode(_) >> dimension
+        1 * metricDimensionRelMapper.selectOne(_) >> existingRel
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("relation already exists")
+        exception.message.contains("creating failed, relation already exists")
     }
 
     def "test get success"() {
@@ -267,18 +269,29 @@ class MetricDimensionRelServiceImplTest extends Specification {
                 .isHot(updatedIsHot)
                 .validation(updatedValidation)
                 .build()
+        def metricMetaDAO = MetricMetaDAO.builder()
+                .id(METRIC_META_ID)
+                .build()
+        def dimension = Dimension.builder()
+                .id(DIMENSION_ID)
+                .build()
         def existingRel = new MetricDimensionRelDAO()
         existingRel.setMetricMetaId(METRIC_META_ID)
         existingRel.setDimensionId(DIMENSION_ID)
-
+        def relDAO = new MetricDimensionRelDAO();
+        relDAO.setMetricMetaId(METRIC_META_ID);
+        relDAO.setDimensionId(DIMENSION_ID);
+        relDAO.setIsHot(updatedIsHot);
+        relDAO.setValidation(updatedValidation);
 
         when:
         def result = service.update(relDTO)
 
         then:
-        1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> existingRel
-        1 * metricDimensionRelMapper.update(null, _ as UpdateWrapper) >> 1
-        result
+        1 * metricService.getMetricMetaDaoByCode(_) >> metricMetaDAO
+        1 * dimensionService.getByCode(_) >> dimension
+        1 * metricDimensionRelMapper.selectOne(_) >> existingRel
+        1 * metricDimensionRelMapper.updateByPrimaryKey(relDAO) >> 1
     }
 
     def "test update with null metricMetaId should throw exception"() {
@@ -294,19 +307,57 @@ class MetricDimensionRelServiceImplTest extends Specification {
         service.update(relDTO)
 
         then:
+        1 * metricService.getMetricMetaDaoByCode(_) >> null
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("metricMetaId and dimensionId cannot be null")
-        0 * metricDimensionRelMapper.selectOne(_)
+        exception.message.contains("updating failed, metric meta not found")
     }
 
-    def "test update with relation not found should throw exception"() {
+    def "test update with null dimensionId should throw exception"() {
+        given:
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(null)
+                .isHot(IS_HOT)
+                .validation(VALIDATION)
+                .build()
+        def metricMetaDAO = MetricMetaDAO.builder()
+                .id(METRIC_META_ID)
+                .build()
         when:
         service.update(relDTO)
 
         then:
-        1 * metricDimensionRelMapper.selectOne(_ as LambdaQueryWrapper) >> null
+        1 * metricService.getMetricMetaDaoByCode(_) >> metricMetaDAO
+        1 * dimensionService.getByCode(_) >> null
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("relation not found")
+        exception.message.contains("updating failed, dimension not found")
+    }
+
+    def "test update with no relation should throw exception"() {
+        def updatedIsHot = 0
+        def updatedValidation = "{\"min\":10,\"max\":200}"
+        def relDTO = MetricDimensionRelDTO.builder()
+                .metricCode(METRIC_CODE)
+                .dimensionCode(DIMENSION_CODE)
+                .isHot(updatedIsHot)
+                .validation(updatedValidation)
+                .build()
+        def metricMetaDAO = MetricMetaDAO.builder()
+                .id(METRIC_META_ID)
+                .build()
+        def dimension = Dimension.builder()
+                .id(DIMENSION_ID)
+                .build()
+
+        when:
+        def result = service.update(relDTO)
+
+        then:
+        1 * metricService.getMetricMetaDaoByCode(_) >> metricMetaDAO
+        1 * dimensionService.getByCode(_) >> dimension
+        1 * metricDimensionRelMapper.selectOne(_) >> null
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("updating failed, relation not exists")
     }
 
     def "test delete success"() {

@@ -78,13 +78,13 @@ class DimensionServiceImplTest extends Specification {
         result == 5L
     }
 
-    def "test insert success"() {
+    def 'test create success'() {
         given:
         def dto = DimensionDTO.builder().code("city").build()
         def dao = DimensionDAO.builder().code("city").build()
 
         when:
-        def result = service.insert(dto)
+        def result = service.create(dto)
 
         then:
         1 * dimensionStructMapper.dtoToDao(dto) >> dao
@@ -94,13 +94,14 @@ class DimensionServiceImplTest extends Specification {
 
     def "test update success"() {
         given:
-        def dto = DimensionDTO.builder().id(1L).code("city").build()
+        def dto = DimensionDTO.builder().code("city").build()
         def dao = DimensionDAO.builder().id(1L).code("city").build()
 
         when:
         def result = service.update(dto)
 
         then:
+        1 * dimensionMapper.selectOne(_) >> dao
         1 * dimensionStructMapper.dtoToDao(dto) >> dao
         1 * dimensionMapper.updateById(_ as DimensionDAO) >> 1
         result

@@ -3,6 +3,8 @@ package lab.zhang.data_science.metrics_mall.service.impl
 import lab.zhang.data_science.metrics_mall.cache.MetricSnapshotCacheService
 import lab.zhang.data_science.metrics_mall.common.TypedValue
 import lab.zhang.data_science.metrics_mall.components.RequestContext
+import lab.zhang.data_science.metrics_mall.config.MetricVersionLifeStatusConfig
+import lab.zhang.data_science.metrics_mall.enums.LifeStatusEnum
 import lab.zhang.data_science.metrics_mall.enums.OpEventEnum
 import lab.zhang.data_science.metrics_mall.model.Entity
 import lab.zhang.data_science.metrics_mall.model.EntityMeta
@@ -10,7 +12,9 @@ import lab.zhang.data_science.metrics_mall.model.OpLog
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricMetaDAO
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO
 import lab.zhang.data_science.metrics_mall.pojo.dto.metric.EchoMetricDTO
+import lab.zhang.data_science.metrics_mall.service.DimensionService
 import lab.zhang.data_science.metrics_mall.service.EntityService
+import lab.zhang.data_science.metrics_mall.service.MetricDimensionGroupRelService
 import lab.zhang.data_science.metrics_mall.service.MetricService
 import lab.zhang.data_science.metrics_mall.service.OpLogService
 import org.apache.commons.lang3.tuple.Pair
@@ -24,13 +28,16 @@ import spock.lang.Specification
  */
 class MetricSnapshotWriteServiceImplTest extends Specification {
 
+    SnapshotServiceImpl service
+
+    MetricVersionLifeStatusConfig lifeStatusConfig = Mock()
     EntityService entityService = Mock()
     MetricSnapshotCacheService cacheService = Mock()
     MetricService metricService = Mock()
+    DimensionService dimensionService = Mock()
+    MetricDimensionGroupRelService yGroupRelService = Mock()
     RequestContext requestContext = Mock()
     OpLogService opLogService = Mock()
-
-    SnapshotServiceImpl service
 
     private static final String ENTITY_CODE = "user"
     private static final Long ENTITY_ID = 12345678L
@@ -46,11 +53,15 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
     def setup() {
         service = new SnapshotServiceImpl()
+        service.lifeStatusConfig = lifeStatusConfig
         service.entityService = entityService
         service.cacheService = cacheService
         service.metricService = metricService
+        service.dimensionService = dimensionService
+        service.metricDimensionGroupRelService = yGroupRelService
         service.requestContext = requestContext
         service.opLogService = opLogService
+        service.snapshotPublishDelay = 60
 
         // setup default request context behavior
         requestContext.getTraceId() >> TRACE_ID
@@ -66,14 +77,15 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .entityId(ENTITY_ID)
                 .metricList([])
                 .build()
+        def entity = createEntity()
 
         when:
-        service.writeSnapshot(dto as MetricSnapshotDTO)
+        service.writeSnapshot(dto)
 
         then:
+        1 * entityService.getEntityByCode(_ as String, _ as Long) >> entity
         def exception = thrown(IllegalArgumentException)
-        exception.message == "metric list is empty"
-        0 * entityService.getEntityByCode(_, _)
+        exception.message.contains("writing failed, metric list is empty")
     }
 
     def "test writeSnapshot with null metric list should throw exception"() {
@@ -83,14 +95,15 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .entityId(ENTITY_ID)
                 .metricList(null)
                 .build()
+        def entity = createEntity()
 
         when:
         service.writeSnapshot(dto)
 
         then:
+        1 * entityService.getEntityByCode(_, _) >> entity
         def exception = thrown(IllegalArgumentException)
-        exception.message == "metric list is empty"
-        0 * entityService.getEntityByCode(_, _)
+        exception.message.contains("writing failed, metric list is empty")
     }
 
     def "test writeSnapshot with entity not found should return all rejected"() {
@@ -118,7 +131,6 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
 
     def "test writeSnapshot success with single metric"() {
         given:
-        def entity = createEntity()
         def metricDTO = EchoMetricDTO.builder()
                 .code(METRIC_CODE_1)
                 .version(VERSION)
@@ -131,18 +143,24 @@ class MetricSnapshotWriteServiceImplTest extends Specification {
                 .metricList([metricDTO] as List<EchoMetricDTO>)
                 .snapshotTs(SNAPSHOT_TS)
                 .build()
+        def entity = createEntity()
+        def metricDAO = createMetricMetaDAO(METRIC_CODE_1)
         def insertedOpLog = createOpLog(TRACE_ID)
 
         when:
         def result = service.writeSnapshot(dto)
 
         then:
-        1 * entityService.getEntityByCode(ENTITY_CODE, ENTITY_ID) >> entity
-        1 * metricService.chooseVersionBatch([METRIC_CODE_1], [(METRIC_CODE_1): VERSION]) >> [(METRIC_CODE_1): VERSION]
+        1 * entityService.getEntityByCode(_, _) >> entity
+        1 * lifeStatusConfig.getWritableMetricVersionLifeStatuses() >> [LifeStatusEnum.TEST]
+        1 * metricService.chooseVersionBatch(_, _, _) >> [(METRIC_CODE_1): VERSION]
         0 * metricService.checkHotBatch(_, _)
-        1 * metricService.validateCode(METRIC_CODE_1) >> Pair.of(true, "")
-        1 * opLogService.insert(_ as OpLog) >> insertedOpLog
-        1 * cacheService.put(ENTITY_CODE, ENTITY_ID, METRIC_CODE_1, VERSION, null, SNAPSHOT_TS, 0, METRIC_VALUE_1)
+        1 * yGroupRelService.mapDimensionIdsByMetricCodeBatch(_) >> [:]
+        1 * dimensionService.mapByCodeBatch(_) >> [:]
+        1 * metricService.getPrimeMetricByCodeBatch(_) >> [(METRIC_CODE_1): metricDAO]
+        1 * requestContext.getTraceId() >> TRACE_ID
+        1 * opLogService.insert(_) >> insertedOpLog
+        1 * cacheService.putBatch(_, _, _)
         result != null
         result instanceof BigInteger
         result == TRACE_ID

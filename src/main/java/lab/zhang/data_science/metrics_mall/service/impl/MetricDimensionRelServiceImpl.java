@@ -38,14 +38,8 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
 
 
     @Override
-    public MetricDimensionRelDAO get(Long metricMetaId, Long dimensionId) {
-        if (metricMetaId == null || dimensionId == null) {
-            return null;
-        }
-        LambdaQueryWrapper<MetricDimensionRelDAO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MetricDimensionRelDAO::getMetricMetaId, metricMetaId)
-                .eq(MetricDimensionRelDAO::getDimensionId, dimensionId);
-        return metricDimensionRelMapper.selectOne(queryWrapper);
+    public List<MetricDimensionRelDAO> list() {
+        return metricDimensionRelMapper.selectList(null);
     }
 
     @Override
@@ -69,8 +63,14 @@ public class MetricDimensionRelServiceImpl implements MetricDimensionRelService 
     }
 
     @Override
-    public List<MetricDimensionRelDAO> list() {
-        return metricDimensionRelMapper.selectList(null);
+    public MetricDimensionRelDAO get(Long metricMetaId, Long dimensionId) {
+        if (metricMetaId == null || dimensionId == null) {
+            return null;
+        }
+        LambdaQueryWrapper<MetricDimensionRelDAO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MetricDimensionRelDAO::getMetricMetaId, metricMetaId)
+                .eq(MetricDimensionRelDAO::getDimensionId, dimensionId);
+        return metricDimensionRelMapper.selectOne(queryWrapper);
     }
 
     @Override

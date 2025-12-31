@@ -45,7 +45,6 @@ class MetricsMallIntegrationReadSnapTest extends Specification {
     private static final String METRIC_CODE = "consume_amount"
     private static final Long ENTITY_ID = 10000001L
     private static final Long REQUEST_SNAPSHOT_TS = 1766507545000L
-    private static final Long ACTUAL_SNAPSHOT_TS = 1766505929573L
 
     def getMetricIdByCode(String code) {
         def response = mockMvc.perform(get("/api/v1/metrics/code/${code}"))
@@ -156,7 +155,7 @@ class MetricsMallIntegrationReadSnapTest extends Specification {
                 .andExpect(jsonPath('$.code').value(0))
 
         and:
-        def response = mockMvc.perform(post("/api/v1/m_snap")
+        def response = mockMvc.perform(post("/api/v1/m_snap/read")
                 .header("X-API-Key", API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snapshotQO)))
@@ -268,7 +267,7 @@ class MetricsMallIntegrationReadSnapTest extends Specification {
                 .andExpect(jsonPath('$.code').value(0))
 
         and:
-        def response = mockMvc.perform(post("/api/v1/m_snap")
+        def response = mockMvc.perform(post("/api/v1/m_snap/read")
                 .header("X-API-Key", API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snapshotQO)))
@@ -381,7 +380,7 @@ class MetricsMallIntegrationReadSnapTest extends Specification {
                 .andExpect(jsonPath('$.code').value(0))
 
         and:
-        def response = mockMvc.perform(post("/api/v1/m_snap")
+        def response = mockMvc.perform(post("/api/v1/m_snap/read")
                 .header("X-API-Key", API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snapshotQO)))
@@ -495,7 +494,7 @@ class MetricsMallIntegrationReadSnapTest extends Specification {
                 .andExpect(jsonPath('$.code').value(0))
 
         and:
-        def response = mockMvc.perform(post("/api/v1/m_snap")
+        def response = mockMvc.perform(post("/api/v1/m_snap/read")
                 .header("X-API-Key", API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snapshotQO)))

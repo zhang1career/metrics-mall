@@ -35,6 +35,19 @@ public class DimensionController extends BaseV1Controller {
     private DimensionStructMapper dimensionStructMapper;
 
     /**
+     * List all dimensions.
+     *
+     * @return dimension list response
+     */
+    @Operation(summary = "List dimensions", description = "List all dimensions")
+    @GetMapping("/dims")
+    public ApiResponse<List<DimensionVO>> list() {
+        log.info("[dim] list");
+        List<Dimension> modelList = dimensionService.list();
+        return ApiResponse.success(dimensionStructMapper.modelToVoBatch(modelList));
+    }
+
+    /**
      * Get dimension by id.
      *
      * @param id dimension id
@@ -63,19 +76,6 @@ public class DimensionController extends BaseV1Controller {
     }
 
     /**
-     * List all dimensions.
-     *
-     * @return dimension list response
-     */
-    @Operation(summary = "List dimensions", description = "List all dimensions")
-    @GetMapping("/dims")
-    public ApiResponse<List<DimensionVO>> list() {
-        log.info("[dim] list");
-        List<Dimension> modelList = dimensionService.list();
-        return ApiResponse.success(dimensionStructMapper.modelToVoBatch(modelList));
-    }
-
-    /**
      * Count all dimensions.
      *
      * @return dimension count response
@@ -88,17 +88,17 @@ public class DimensionController extends BaseV1Controller {
     }
 
     /**
-     * Insert a new dimension.
+     * Create a new dimension.
      *
      * @param qo dimension query object
      * @return success response
      */
-    @Operation(summary = "Insert dimension", description = "Insert a new dimension")
+    @Operation(summary = "Create dimension", description = "Create a new dimension")
     @PostMapping("/dims")
-    public ApiResponse<Boolean> insert(@Valid @RequestBody DimensionQO qo) {
-        log.info("[dim] insert, param: {}", qo);
+    public ApiResponse<Boolean> create(@Valid @RequestBody DimensionQO qo) {
+        log.info("[dim] create, param: qo={}", qo);
         DimensionDTO dto = dimensionStructMapper.qoToDto(qo);
-        return ApiResponse.success(dimensionService.insert(dto));
+        return ApiResponse.success(dimensionService.create(dto));
     }
 
     /**

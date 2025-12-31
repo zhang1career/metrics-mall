@@ -92,13 +92,16 @@ class EntityServiceImplTest extends Specification {
 
     def "test update success"() {
         given:
-        def dto = EntityMetaDTO.builder().id(1).code("user").build()
+        def dto = EntityMetaDTO.builder().code("user").build()
         def dao = EntityMetaDAO.builder().id(1).code("user").build()
+        def model = EntityMeta.builder().id(1).code("user").build()
 
         when:
         def result = service.update(dto)
 
         then:
+        1 * entityMetaMapper.selectOne(_) >> dao
+        1 * entityMetaStructMapper.daoToModel(dao) >> model
         1 * entityMetaStructMapper.dtoToDao(dto) >> dao
         1 * entityMetaMapper.updateById(_ as EntityMetaDAO) >> 1
         result
@@ -144,7 +147,7 @@ class EntityServiceImplTest extends Specification {
 
         then:
         1 * entityMetaMapper.selectOne(_ as LambdaQueryWrapper) >> null
-        0 * entityMetaStructMapper.daoToModel(_)
+        1 * entityMetaStructMapper.daoToModel(_) >> null
         result == null
     }
 }

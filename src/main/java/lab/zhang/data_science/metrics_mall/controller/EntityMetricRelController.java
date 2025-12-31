@@ -46,7 +46,7 @@ public class EntityMetricRelController extends BaseV1Controller {
             description = "Associate a metric with an entity. One entity_meta and one metric_meta can only have one relation")
     @PostMapping("/entity_metric_rels")
     public ApiResponse<Boolean> create(@Valid @RequestBody EntityMetricRelQO qo) {
-        log.info("[entity_metric_rel] create, param: entityCode={}, metricCode={}, alias={}",
+        log.info("[x] create, param: entityCode={}, metricCode={}, alias={}",
                 qo.getEntityCode(), qo.getMetricCode(), qo.getAlias());
 
         EntityMetricRelDTO dto = entityMetricRelStructMapper.qoToDto(qo);
@@ -61,7 +61,7 @@ public class EntityMetricRelController extends BaseV1Controller {
      * Get entity metric relation by entity meta id and metric meta id.
      *
      * @param entityMetaId entity meta id
-     * @param metricId metric meta id
+     * @param metricId     metric meta id
      * @return entity metric relation response
      */
     @Operation(summary = "Get entity metric relation",
@@ -70,7 +70,7 @@ public class EntityMetricRelController extends BaseV1Controller {
     public ApiResponse<EntityMetricRelVO> getByBothId(
             @PathVariable Long entityMetaId,
             @PathVariable Long metricId) {
-        log.info("[entity_metric_rel] get, param: entityMetaId={}, metricId={}",
+        log.info("[x] get, param: entityMetaId={}, metricId={}",
                 entityMetaId, metricId);
         EntityMetricRelDAO dao = entityMetricRelService.get(entityMetaId, metricId);
         if (dao == null) {
@@ -90,7 +90,7 @@ public class EntityMetricRelController extends BaseV1Controller {
             description = "List entity metric relations by entity meta id")
     @GetMapping("/entity_metric_rels/entity/{entityMetaId}")
     public ApiResponse<List<EntityMetricRelVO>> listByEntityMetaId(@PathVariable Long entityMetaId) {
-        log.info("[entity_metric_rel] listByEntityMetaId, param: entityMetaId={}", entityMetaId);
+        log.info("[x] listByEntityMetaId, param: entityMetaId={}", entityMetaId);
         List<EntityMetricRelDAO> daoList = entityMetricRelService.listByEntityMetaId(entityMetaId);
         List<EntityMetricRelVO> voList = daoList.stream()
                 .map(entityMetricRelStructMapper::daoToVo)
@@ -108,7 +108,7 @@ public class EntityMetricRelController extends BaseV1Controller {
             description = "List entity metric relations by metric meta id")
     @GetMapping("/entity_metric_rels/metric/{metricId}")
     public ApiResponse<List<EntityMetricRelVO>> listByMetricId(@PathVariable Long metricId) {
-        log.info("[entity_metric_rel] listByMetricId, param: metricId={}", metricId);
+        log.info("[x] listByMetricId, param: metricId={}", metricId);
         List<EntityMetricRelDAO> daoList = entityMetricRelService.listByMetricId(metricId);
         List<EntityMetricRelVO> voList = entityMetricRelStructMapper.daoToVoBatch(daoList);
         return ApiResponse.success(voList);
@@ -123,7 +123,7 @@ public class EntityMetricRelController extends BaseV1Controller {
             description = "List all entity metric relations")
     @GetMapping("/entity_metric_rels")
     public ApiResponse<List<EntityMetricRelVO>> list() {
-        log.info("[entity_metric_rel] list");
+        log.info("[x] list");
         List<EntityMetricRelDAO> daoList = entityMetricRelService.list();
         List<EntityMetricRelVO> voList = entityMetricRelStructMapper.daoToVoBatch(daoList);
         return ApiResponse.success(voList);
@@ -139,7 +139,7 @@ public class EntityMetricRelController extends BaseV1Controller {
             description = "Update an existing entity metric relation.")
     @PutMapping("/entity_metric_rels")
     public ApiResponse<Boolean> update(@Valid @RequestBody EntityMetricRelQO qo) {
-        log.info("[entity_metric_rel] update, param: entityCode={}, metricCode={}, alias={}",
+        log.info("[x] update, param: entityCode={}, metricCode={}, alias={}",
                 qo.getEntityCode(), qo.getMetricCode(), qo.getAlias());
 
         EntityMetricRelDTO dto = entityMetricRelStructMapper.qoToDto(qo);
@@ -154,16 +154,15 @@ public class EntityMetricRelController extends BaseV1Controller {
      * Delete entity metric relation by entity meta id and metric meta id.
      *
      * @param entityMetaId entity meta id
-     * @param metricId metric meta id
+     * @param metricId     metric meta id
      * @return success response
      */
     @Operation(summary = "Delete entity metric relation",
             description = "Delete entity metric relation by entity meta id and metric meta id")
     @DeleteMapping("/entity_metric_rels/entity/{entityMetaId}/metric/{metricId}")
-    public ApiResponse<Boolean> delete(
-            @PathVariable Long entityMetaId,
-            @PathVariable Long metricId) {
-        log.info("[entity_metric_rel] delete, param: entityMetaId={}, metricId={}",
+    public ApiResponse<Boolean> delete(@PathVariable Long entityMetaId,
+                                       @PathVariable Long metricId) {
+        log.info("[x] delete, param: entityMetaId={}, metricId={}",
                 entityMetaId, metricId);
         boolean result = entityMetricRelService.delete(entityMetaId, metricId);
         return ApiResponse.success(result);

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -21,6 +22,23 @@ public class MetricVersionLifeStatusConfig {
 
     @Autowired
     private EnvUtil envUtil;
+
+    /**
+     * Initialize and log environment enum value on startup
+     */
+    @PostConstruct
+    public void init() {
+        EnvEnum envEnum = envUtil.getEnvEnum();
+        log.info("[init] metric life status, env={}, readable={}, writable={}",
+                envEnum.name(),
+                this.getReadableMetricVersionLifeStatuses().stream()
+                        .map(LifeStatusEnum::name)
+                        .toList(),
+                this.getWritableMetricVersionLifeStatuses().stream()
+                        .map(LifeStatusEnum::name)
+                        .toList()
+                );
+    }
 
     /**
      * mapping from environment enum to readable life statuses

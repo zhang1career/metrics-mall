@@ -38,7 +38,6 @@ public interface MetricDimensionGroupRelStructMapper extends BaseStructMapper {
     @Mapping(target = "mid", source = "metricId")
     @Mapping(target = "dids", expression = "java(implode(dto.getDimensionIdList()))")
     @Mapping(target = "ct", ignore = true)
-    @Mapping(target = "ut", ignore = true)
     MetricDimensionGroupRelDAO dtoToDao(MetricDimensionGroupRelDTO dto);
 
     /**
@@ -50,7 +49,7 @@ public interface MetricDimensionGroupRelStructMapper extends BaseStructMapper {
     @Mapping(target = "metricId", source = "mid")
     @Mapping(target = "dimensionIdList", expression = "java(explode(dao.getDids()))")
     @Mapping(target = "createTime", expression = "java(mapTimestampToDate(dao.getCt()))")
-    @Mapping(target = "updateTime", expression = "java(mapTimestampToDate(dao.getUt()))")
+    @Mapping(target = "updateTime", ignore = true)
     MetricDimensionGroupRel daoToModel(MetricDimensionGroupRelDAO dao);
 
     /**
@@ -69,7 +68,7 @@ public interface MetricDimensionGroupRelStructMapper extends BaseStructMapper {
      */
     @Mapping(target = "dimensionIds", expression = "java(implode(model.getDimensionIdList()))")
     @Mapping(target = "createTime", expression = "java(mapDateToString(model.getCreateTime()))")
-    @Mapping(target = "updateTime", expression = "java(mapDateToString(model.getUpdateTime()))")
+    @Mapping(target = "updateTime", ignore = true)
     MetricDimensionGroupRelVO modelToVo(MetricDimensionGroupRel model);
 
     /**

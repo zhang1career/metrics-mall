@@ -103,7 +103,7 @@ public class EntityServiceImpl implements EntityService {
             throw new IllegalArgumentException("[entity_meta] updating failed, dto is null");
         }
 
-        EntityMeta existingModel = getByCode(dto.getCode());
+        EntityMeta existingModel = this.getByCode(dto.getCode());
         if (existingModel == null) {
             throw new IllegalStateException("[entity_meta] updating failed, existed model is not existed");
         }

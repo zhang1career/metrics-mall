@@ -36,6 +36,24 @@ public class MetricController extends BaseV1Controller {
     private MetricStructMapper metricStructMapper;
 
     /**
+     * List metrics by query criteria.
+     *
+     * @param qo metric query object
+     * @return metric list response
+     */
+    @Operation(summary = "List metrics", description = "List metrics by query criteria")
+    @GetMapping("/metrics")
+    public ApiResponse<List<MetricVO>> list(MetricMetaQO qo) {
+        log.info("[metric] list, param: {}", qo);
+        MetricMetaDTO dto = metricStructMapper.qoToDto(qo);
+        List<PrimeMetric> modelList = metricService.list(dto);
+        List<MetricVO> voList = modelList.stream()
+                .map(metricStructMapper::modelToVo)
+                .collect(java.util.stream.Collectors.toList());
+        return ApiResponse.success(voList);
+    }
+
+    /**
      * Get metric by id.
      *
      * @param id metric id
@@ -61,24 +79,6 @@ public class MetricController extends BaseV1Controller {
         log.info("[metric] getByCode, code: {}", code);
         PrimeMetric model = metricService.getPrimeMetricByCode(code);
         return ApiResponse.success(metricStructMapper.modelToVo(model));
-    }
-
-    /**
-     * List metrics by query criteria.
-     *
-     * @param qo metric query object
-     * @return metric list response
-     */
-    @Operation(summary = "List metrics", description = "List metrics by query criteria")
-    @GetMapping("/metrics")
-    public ApiResponse<List<MetricVO>> list(MetricMetaQO qo) {
-        log.info("[metric] list, param: {}", qo);
-        MetricMetaDTO dto = metricStructMapper.qoToDto(qo);
-        List<PrimeMetric> modelList = metricService.list(dto);
-        List<MetricVO> voList = modelList.stream()
-                .map(metricStructMapper::modelToVo)
-                .collect(java.util.stream.Collectors.toList());
-        return ApiResponse.success(voList);
     }
 
     /**

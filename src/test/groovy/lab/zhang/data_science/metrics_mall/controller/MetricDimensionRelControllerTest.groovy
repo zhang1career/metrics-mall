@@ -2,8 +2,6 @@ package lab.zhang.data_science.metrics_mall.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import lab.zhang.data_science.metrics_mall.handler.GlobalExceptionHandler
-import lab.zhang.data_science.metrics_mall.model.Dimension
-import lab.zhang.data_science.metrics_mall.model.metric.PrimeMetric
 import lab.zhang.data_science.metrics_mall.pojo.dao.MetricDimensionRelDAO
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricDimensionRelDTO
 import lab.zhang.data_science.metrics_mall.pojo.qo.MetricDimensionRelQO
@@ -112,9 +110,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dim_rels")
-                .param("metricMetaId", METRIC_META_ID.toString())
-                .param("dimensionId", DIMENSION_ID.toString()))
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels/metric/${METRIC_META_ID}/dimension/${DIMENSION_ID}"))
 
         then:
         1 * metricDimensionRelService.get(METRIC_META_ID, DIMENSION_ID) >> dao
@@ -127,9 +123,7 @@ class MetricDimensionRelControllerTest extends Specification {
 
     def "test get not found should return null"() {
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dim_rels")
-                .param("metricMetaId", METRIC_META_ID.toString())
-                .param("dimensionId", DIMENSION_ID.toString()))
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels/metric/${METRIC_META_ID}/dimension/${DIMENSION_ID}"))
 
         then:
         1 * metricDimensionRelService.get(METRIC_META_ID, DIMENSION_ID) >> null
@@ -138,7 +132,7 @@ class MetricDimensionRelControllerTest extends Specification {
                 .andExpect(jsonPath('$.data').isEmpty())
     }
 
-    def "test listByMetricMetaId success"() {
+    def 'test listByMetricId success'() {
         given:
         def dao1 = new MetricDimensionRelDAO()
         dao1.setMetricMetaId(METRIC_META_ID)
@@ -204,7 +198,7 @@ class MetricDimensionRelControllerTest extends Specification {
         def voList = [vo1]
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metric_dim_rels/list"))
+        def response = mockMvc.perform(get("/api/v1/metric_dim_rels"))
 
         then:
         1 * metricDimensionRelService.list() >> daoList
@@ -263,9 +257,7 @@ class MetricDimensionRelControllerTest extends Specification {
 
     def "test delete success"() {
         when:
-        def response = mockMvc.perform(delete("/api/v1/metric_dim_rels")
-                .param("metricMetaId", METRIC_META_ID.toString())
-                .param("dimensionId", DIMENSION_ID.toString()))
+        def response = mockMvc.perform(delete("/api/v1/metric_dim_rels/metric/${METRIC_META_ID}/dimension/${DIMENSION_ID}"))
 
         then:
         1 * metricDimensionRelService.delete(METRIC_META_ID, DIMENSION_ID) >> true

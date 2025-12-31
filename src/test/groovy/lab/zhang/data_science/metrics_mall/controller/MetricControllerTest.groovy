@@ -87,7 +87,7 @@ class MetricControllerTest extends Specification {
                 .build()
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metrics").param("code", code))
+        def response = mockMvc.perform(get("/api/v1/metrics/code/${code}"))
 
         then:
         1 * metricService.getPrimeMetricByCode(code) >> model
@@ -111,7 +111,7 @@ class MetricControllerTest extends Specification {
                 .build()]
 
         when:
-        def response = mockMvc.perform(get("/api/v1/metrics/list"))
+        def response = mockMvc.perform(get("/api/v1/metrics"))
 
         then:
         1 * metricStructMapper.qoToDto(_ as MetricMetaQO) >> MetricMetaDTO.builder().build()

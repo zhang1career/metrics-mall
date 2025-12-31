@@ -9,7 +9,6 @@ import lab.zhang.data_science.metrics_mall.components.RequestContext;
 import lab.zhang.data_science.metrics_mall.enums.OpEventEnum;
 import lab.zhang.data_science.metrics_mall.model.EntityMeta;
 import lab.zhang.data_science.metrics_mall.model.MetricSnapshot;
-import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dao.x.EntityMetricRelResultDAO;
 import lab.zhang.data_science.metrics_mall.pojo.dto.MetricSnapshotDTO;
 import lab.zhang.data_science.metrics_mall.pojo.qo.EchoMetricQO;
@@ -62,8 +61,8 @@ public class SnapshotController extends BaseV1Controller {
      * @param qo     metric snapshot query object
      * @return metric snapshot response
      */
-    @Operation(summary = "Get metric snapshot", description = "Query real-time metric snapshot values (GMS)")
-    @PostMapping("/m_snap")
+    @Operation(summary = "Get metric snapshot", description = "Get real-time metric snapshot values (GMS)")
+    @PostMapping("/m_snap/read")
     public ApiResponse<MetricSnapshotVO> querySnapshot(
             @RequestHeader("X-API-Key") String apiKey,
             @RequestHeader(value = "X-Request-ID", required = false) String requestIdStr,

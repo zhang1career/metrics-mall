@@ -20,10 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
@@ -50,20 +48,6 @@ public class MetricDimensionGroupRelController extends BaseV1Controller {
     private MetricDimensionGroupRelStructMapper metricDimensionGroupRelStructMapper;
 
     /**
-     * Get yGroup by id.
-     *
-     * @param id yGroup id
-     * @return yGroup response
-     */
-    @Operation(summary = "Get yGroup", description = "Get yGroup by id")
-    @GetMapping("/metric_dim_group_rels/{id}")
-    public ApiResponse<MetricDimensionGroupRelVO> get(@PathVariable Long id) {
-        log.info("[y_group] get, id: {}", id);
-        MetricDimensionGroupRel model = metricDimensionGroupRelService.get(id);
-        return ApiResponse.success(metricDimensionGroupRelStructMapper.modelToVo(model));
-    }
-
-    /**
      * List all yGroups.
      *
      * @return yGroup list response
@@ -79,15 +63,29 @@ public class MetricDimensionGroupRelController extends BaseV1Controller {
     /**
      * List yGroups by metric id.
      *
-     * @param mid metric id
+     * @param metricId metric id
      * @return yGroup list response
      */
     @Operation(summary = "List yGroups by metric id", description = "List yGroups by metric id")
-    @GetMapping("/metric_dim_group_rels/metric/{mid}")
-    public ApiResponse<List<MetricDimensionGroupRelVO>> listByMid(@PathVariable Long mid) {
-        log.info("[y_group] listByMid, mid: {}", mid);
-        List<MetricDimensionGroupRel> modelList = metricDimensionGroupRelService.listByMetricId(mid);
+    @GetMapping("/metric_dim_group_rels/metric/{metricId}")
+    public ApiResponse<List<MetricDimensionGroupRelVO>> listByMetricId(@PathVariable Long metricId) {
+        log.info("[y_group] listByMetricId, param: metricId={}", metricId);
+        List<MetricDimensionGroupRel> modelList = metricDimensionGroupRelService.listByMetricId(metricId);
         return ApiResponse.success(metricDimensionGroupRelStructMapper.modelToVoBatch(modelList));
+    }
+
+    /**
+     * Get yGroup by id.
+     *
+     * @param id yGroup id
+     * @return yGroup response
+     */
+    @Operation(summary = "Get yGroup", description = "Get yGroup by id")
+    @GetMapping("/metric_dim_group_rels/{id}")
+    public ApiResponse<MetricDimensionGroupRelVO> get(@PathVariable Long id) {
+        log.info("[y_group] get, param: id={}", id);
+        MetricDimensionGroupRel model = metricDimensionGroupRelService.get(id);
+        return ApiResponse.success(metricDimensionGroupRelStructMapper.modelToVo(model));
     }
 
     /**
@@ -103,36 +101,36 @@ public class MetricDimensionGroupRelController extends BaseV1Controller {
     }
 
     /**
-     * Insert a new yGroup.
+     * Create a new yGroup.
      *
      * @param qo yGroup query object
      * @return success response
      */
-    @Operation(summary = "Insert yGroup", description = "Insert a new yGroup")
+    @Operation(summary = "Create yGroup", description = "Create a new yGroup")
     @PostMapping("/metric_dim_group_rels")
-    public ApiResponse<Boolean> insert(@Valid @RequestBody MetricDimensionGroupRelQO qo) {
-        log.info("[y_group] insert, param: {}", qo);
+    public ApiResponse<Boolean> create(@Valid @RequestBody MetricDimensionGroupRelQO qo) {
+        log.info("[y_group] create, param: {}", qo);
 
         // validate metric code
         MetricMetaDAO metricMetaDAO = metricService.getMetricMetaDaoByCode(qo.getMetricCode());
         if (metricMetaDAO == null) {
-            throw new IllegalArgumentException("[y_group] inserting failed, metric meta not found by code: " + qo.getMetricCode());
+            throw new IllegalArgumentException("[y_group] creating failed, metric meta not found by code: " + qo.getMetricCode());
         }
         Long metricId = metricMetaDAO.getId();
         if (metricId == null) {
-            throw new IllegalArgumentException("[y_group] inserting failed, metric meta id is null by code: " + qo.getMetricCode());
+            throw new IllegalArgumentException("[y_group] creating failed, metric meta id is null by code: " + qo.getMetricCode());
         }
         qo.setMetricId(metricId);
 
         // validate dimension codes
         String dimensionCodesStr = qo.getDimensionCodes();
         if (StrUtil.isBlank(dimensionCodesStr)) {
-            throw new IllegalArgumentException("[y_group] inserting failed, dimensionCodes cannot be blank");
+            throw new IllegalArgumentException("[y_group] creating failed, dimensionCodes cannot be blank");
         }
         List<String> dimensionCodeList = metricDimensionGroupRelStructMapper.explode(dimensionCodesStr);
         Map<String, Dimension> dimensionCodeMap = dimensionService.mapByCodeBatch(dimensionCodeList);
         if (dimensionCodeMap == null) {
-            throw new IllegalArgumentException("[y_group] inserting failed, dimensionList is null by codes: " + dimensionCodesStr);
+            throw new IllegalArgumentException("[y_group] creating failed, dimensionList is null by codes: " + dimensionCodesStr);
         }
         List<String> dimensionIdList = dimensionCodeList.stream()
                 .map(code -> dimensionCodeMap.get(code).getId().toString())
@@ -149,6 +147,7 @@ public class MetricDimensionGroupRelController extends BaseV1Controller {
      *
      * @param qo yGroup query object
      * @return success response
+     * todo: 需要再设计一下更新逻辑
      */
     @Operation(summary = "Update yGroup", description = "Update an existing yGroup")
     @PutMapping("/metric_dim_group_rels")

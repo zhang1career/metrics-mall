@@ -112,7 +112,7 @@ class DimensionControllerTest extends Specification {
 
         then:
         1 * dimensionStructMapper.qoToDto(_ as DimensionQO) >> dto
-        1 * dimensionService.insert(dto) >> true
+        1 * dimensionService.create(dto) >> true
         response.andExpect(status().isOk())
                 .andExpect(jsonPath('$.code').value(0))
                 .andExpect(jsonPath('$.data').value(true))

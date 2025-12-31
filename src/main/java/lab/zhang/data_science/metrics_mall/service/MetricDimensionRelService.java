@@ -13,13 +13,11 @@ import java.util.List;
 public interface MetricDimensionRelService {
 
     /**
-     * Get metric dimension relation by metric meta id and dimension id.
+     * List all metric dimension relations.
      *
-     * @param metricMetaId metric meta id
-     * @param dimensionId dimension id
-     * @return metric dimension relation DAO, null if not found
+     * @return metric dimension relation DAO list
      */
-    MetricDimensionRelDAO get(Long metricMetaId, Long dimensionId);
+    List<MetricDimensionRelDAO> list();
 
     /**
      * List metric dimension relations by metric meta id.
@@ -38,11 +36,13 @@ public interface MetricDimensionRelService {
     List<MetricDimensionRelDAO> listByDimensionId(Long dimensionId);
 
     /**
-     * List all metric dimension relations.
+     * Get metric dimension relation by metric meta id and dimension id.
      *
-     * @return metric dimension relation DAO list
+     * @param metricMetaId metric meta id
+     * @param dimensionId dimension id
+     * @return metric dimension relation DAO, null if not found
      */
-    List<MetricDimensionRelDAO> list();
+    MetricDimensionRelDAO get(Long metricMetaId, Long dimensionId);
 
     /**
      * Create metric dimension relation.

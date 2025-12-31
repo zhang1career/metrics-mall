@@ -65,7 +65,7 @@ public interface DimensionService {
      * @param dto dimension data transfer object
      * @return true if success
      */
-    boolean insert(DimensionDTO dto);
+    boolean create(DimensionDTO dto);
 
     /**
      * Update an existing dimension.
